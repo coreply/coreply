@@ -153,7 +153,56 @@ fun ModernSettingsScreen(
                 }
             }
         }
-        CustomApiSettingsSection(viewModel)
+
+
+        // API Type Selection
+
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "API Configuration",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Tab-like selection for API type
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    onClick = { viewModel.updateApiType("custom") },
+                    label = { Text("Custom API") },
+                    selected = uiState.apiType == "custom",
+                    trailingIcon = if (uiState.apiType == "custom") {
+                        { Icon(Icons.Default.Check, contentDescription = "Selected") }
+                    } else null,
+                    modifier = Modifier.weight(1f)
+                )
+
+                FilterChip(
+                    onClick = { viewModel.updateApiType("hosted") },
+                    label = { Text("Coreply Hosted") },
+                    selected = uiState.apiType == "hosted",
+                    trailingIcon = if (uiState.apiType == "hosted") {
+                        { Icon(Icons.Default.Check, contentDescription = "Selected") }
+                    } else null,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+
+        // Content based on API type selection
+        when (uiState.apiType) {
+            "custom" -> CustomApiSettingsSection(viewModel)
+            "hosted" -> HostedApiSettingsSection()
+        }
+
+        // About Section
+        AboutSection()
 
 
     }
@@ -272,6 +321,122 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+
+@Composable
+fun HostedApiSettingsSection() {
+
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(
+            text = "Coreply Hosted",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "🚧 Coming Soon",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                Text(
+                    text = "Hosted API service is currently available in a separate app. Please check our Github repo for details. It is planned to be integrated into this app in the future.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AboutSection() {
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(
+            text = "About",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        // GitHub Link
+        Surface(
+            onClick = {
+                val uri = Uri.parse("https://github.com/coreply/coreply")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                context.startActivity(intent)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🔗",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = "View on GitHub",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+
+        // Instagram Link
+        Surface(
+            onClick = {
+                val uri = Uri.parse("https://instagram.com/_u/coreply.app")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                intent.setPackage("com.instagram.android")
+                try {
+                    context.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://instagram.com/coreply.app")
+                        )
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "📷",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = "Follow on Instagram",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
     }
 }
