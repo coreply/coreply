@@ -142,6 +142,30 @@ fun notificationMessageListProcessor(node: AccessibilityNodeInfo): MutableList<C
     }
 }
 
+fun onScreenContentProcessor(
+    node: AccessibilityNodeInfo,
+): MutableList<ChatMessage> {
+    val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
+    val textInputNode = generalTextInputFinder(node)
+    val inputRect = Rect()
+    textInputNode?.getBoundsInScreen(inputRect)
+
+    val chatWidgets = findNodesByCriteria(node, {
+        if (it.text?.isBlank() ?: false) false
+        else{
+            val tmpRect = Rect()
+            it.getBoundsInScreen(tmpRect)
+            tmpRect.top <= inputRect.top
+        }
+    })
+    chatWidgets.sortWith(nodeComparator)
+    for (chatNodeInfo in chatWidgets) {
+        val message_text = chatNodeInfo.text?.toString() ?: ""
+        chatMessages.add(ChatMessage("OnScreen", message_text, ""))
+    }
+    return chatMessages
+}
+
 fun telegramMessageListProcessor(node: AccessibilityNodeInfo): MutableList<ChatMessage> {
     val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
     val contentNodes = node.findAccessibilityNodeInfosByViewId("android:id/content")

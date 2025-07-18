@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.flow.firstOrNull
@@ -43,6 +44,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val CUSTOM_SYSTEM_PROMPT = stringPreferencesKey("customSystemPrompt")
         val TEMPERATURE = floatPreferencesKey("temperature_float")
         val TOP_P = floatPreferencesKey("topp_float")
+        val SELECTED_APPS = stringSetPreferencesKey("selected_apps_set")
 
         // Default values
         private const val DEFAULT_MASTER_SWITCH = true
@@ -53,6 +55,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         private const val DEFAULT_SYSTEM_PROMPT = "You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks"
         private const val DEFAULT_TEMPERATURE = 0.3f
         private const val DEFAULT_TOP_P = 0.5f
+        private val DEFAULT_SELECTED_APPS = emptySet<String>()
     }
 
     // Mutable state for each preference field
@@ -64,6 +67,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     val customSystemPromptState: MutableState<String> = mutableStateOf(DEFAULT_SYSTEM_PROMPT)
     val temperatureState: MutableState<Float> = mutableStateOf(DEFAULT_TEMPERATURE)
     val topPState: MutableState<Float> = mutableStateOf(DEFAULT_TOP_P)
+    val selectedAppsState: MutableState<Set<String>> = mutableStateOf(DEFAULT_SELECTED_APPS)
 
     data class PreferenceUpdate(
         val masterSwitch: Boolean? = null,
@@ -73,7 +77,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val customModelName: String? = null,
         val customSystemPrompt: String? = null,
         val temperature: Float? = null,
-        val topP: Float? = null
+        val topP: Float? = null,
+        val selectedApps: Set<String>? = null
     )
 
     /**
@@ -89,6 +94,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             updates.customSystemPrompt?.let { preferences[CUSTOM_SYSTEM_PROMPT] = it }
             updates.temperature?.let { preferences[TEMPERATURE] = it }
             updates.topP?.let { preferences[TOP_P] = it }
+            updates.selectedApps?.let { preferences[SELECTED_APPS] = it }
         }
     }
 
@@ -106,6 +112,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             customSystemPromptState.value = prefs[CUSTOM_SYSTEM_PROMPT] ?: DEFAULT_SYSTEM_PROMPT
             temperatureState.value = prefs[TEMPERATURE] ?: DEFAULT_TEMPERATURE
             topPState.value = prefs[TOP_P] ?: DEFAULT_TOP_P
+            selectedAppsState.value = prefs[SELECTED_APPS] ?: DEFAULT_SELECTED_APPS
         }
     }
 
@@ -171,6 +178,14 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     suspend fun updateTopP(topP: Float) {
         topPState.value = topP
         updatePreferences(PreferenceUpdate(topP = topP))
+    }
+
+    /**
+     * Update selected apps state and persist to datastore
+     */
+    suspend fun updateSelectedApps(apps: Set<String>) {
+        selectedAppsState.value = apps
+        updatePreferences(PreferenceUpdate(selectedApps = apps))
     }
 
     /**

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import app.coreply.coreplyapp.AppSelectorActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +49,7 @@ fun ModernSettingsScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+
     val uiState = viewModel.uiState
 
     Column(
@@ -101,10 +104,47 @@ fun ModernSettingsScreen(
                     }
                 )
             }
+
+            // Select Apps Button
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    val intent = Intent(context, AppSelectorActivity::class.java)
+                    context.startActivity(intent)
+                }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Select Apps",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        val selectedCount = uiState.selectedApps.size
+                        Text(
+                            text = if (selectedCount > 0) "$selectedCount apps selected" else "Choose apps for universal mode",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = "Open app selector",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
         CustomApiSettingsSection(viewModel)
-
-
     }
 }
 
@@ -224,5 +264,3 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
         }
     }
 }
-
-

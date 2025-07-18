@@ -19,7 +19,8 @@ data class SettingsUiState(
     val customModelName: String = "gpt-4.1-mini",
     val customSystemPrompt: String = "",
     val temperature: Float = 0.3f,
-    val topP: Float = 0.5f
+    val topP: Float = 0.5f,
+    val selectedApps: Set<String> = emptySet()
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -46,7 +47,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             customModelName = preferencesManager.customModelNameState.value,
             customSystemPrompt = preferencesManager.customSystemPromptState.value,
             temperature = preferencesManager.temperatureState.value,
-            topP = preferencesManager.topPState.value
+            topP = preferencesManager.topPState.value,
+            selectedApps = preferencesManager.selectedAppsState.value
         )
     }
     
@@ -101,6 +103,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         uiState = uiState.copy(topP = topP)
         viewModelScope.launch { 
             preferencesManager.updateTopP(topP)
+        }
+    }
+
+    fun updateSelectedApps(apps: Set<String>) {
+        uiState = uiState.copy(selectedApps = apps)
+        viewModelScope.launch {
+            preferencesManager.updateSelectedApps(apps)
         }
     }
 }

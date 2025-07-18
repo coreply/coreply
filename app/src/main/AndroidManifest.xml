@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <application
         android:name="app.coreply.coreplyapp.MainApplication"
@@ -44,6 +45,11 @@
             android:name="app.coreply.coreplyapp.WelcomeActivity"
             android:label="Welcome Activity"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name="app.coreply.coreplyapp.AppSelectorActivity"
+            android:label="Select Apps"
+            android:parentActivityName="app.coreply.coreplyapp.SettingsActivity" />
 
     </application>
 

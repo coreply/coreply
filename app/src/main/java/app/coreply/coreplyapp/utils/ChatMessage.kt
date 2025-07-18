@@ -28,8 +28,10 @@ class ChatMessage {
         var str = ""
         if (sender == "Me") {
             str += "Message I sent:\n"
-        } else {
+        } else if (sender == "Others") {
             str += "Message I received:\n"
+        } else {
+            str += "On screen content, unknown sender:\n"
         }
         str += message + "\n"
         return str

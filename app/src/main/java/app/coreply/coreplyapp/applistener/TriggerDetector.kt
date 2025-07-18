@@ -35,6 +35,16 @@ fun detectSupportedApp(rootNode: AccessibilityNodeInfo?): Pair<SupportedAppPrope
                 )
             }
         }
+//        if (inputNodePackage == "com.xingin.xhs") {
+//            return Pair(SupportedAppProperty("com.xingin.xhs", makeGeneralDetector("dummy"),
+//                { _, _, id, _ -> true },
+//                { generalTextInputFinder(it) },
+//                arrayOf<String>(),
+//                {
+//                    onScreenContentProcessor(it)
+//                },
+//                DetectedApp.INSTAGRAM), inputNode)
+//        }
 
     }
     return Pair(null, null)
