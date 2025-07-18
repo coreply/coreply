@@ -236,7 +236,7 @@ open class CallAI(open val suggestionStorage: SuggestionStorageClass, private va
 
                 ),
         )
-        //Log.v("CallAI", "Requesting suggestions with prompt: $userPrompt")
+        Log.v("CallAI", "Requesting suggestions with prompt: $userPrompt")
         val response = openAI.chatCompletion(
             request,
             RequestOptions(

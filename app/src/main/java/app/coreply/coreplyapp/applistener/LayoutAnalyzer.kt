@@ -151,7 +151,7 @@ fun onScreenContentProcessor(
     textInputNode?.getBoundsInScreen(inputRect)
 
     val chatWidgets = findNodesByCriteria(node, {
-        if (it.text?.isBlank() ?: false) false
+        if (it.text?.isBlank() ?: true || it.isShowingHintText) false
         else{
             val tmpRect = Rect()
             it.getBoundsInScreen(tmpRect)
