@@ -43,16 +43,18 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val CUSTOM_SYSTEM_PROMPT = stringPreferencesKey("customSystemPrompt")
         val TEMPERATURE = floatPreferencesKey("temperature_float")
         val TOP_P = floatPreferencesKey("topp_float")
+        val HOSTED_API_KEY = stringPreferencesKey("hostedApiKey")
 
         // Default values
         private const val DEFAULT_MASTER_SWITCH = true
-        private const val DEFAULT_API_TYPE = "custom"
+        private const val DEFAULT_API_TYPE = "hosted"
         private const val DEFAULT_API_URL = "https://api.openai.com/v1/"
         private const val DEFAULT_API_KEY = ""
         private const val DEFAULT_MODEL_NAME = "gpt-4.1-mini"
         private const val DEFAULT_SYSTEM_PROMPT = "You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks"
         private const val DEFAULT_TEMPERATURE = 0.3f
         private const val DEFAULT_TOP_P = 0.5f
+        private const val DEFAULT_HOSTED_API_KEY = ""
     }
 
     // Mutable state for each preference field
@@ -64,6 +66,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     val customSystemPromptState: MutableState<String> = mutableStateOf(DEFAULT_SYSTEM_PROMPT)
     val temperatureState: MutableState<Float> = mutableStateOf(DEFAULT_TEMPERATURE)
     val topPState: MutableState<Float> = mutableStateOf(DEFAULT_TOP_P)
+    val hostedApiKeyState: MutableState<String> = mutableStateOf(DEFAULT_HOSTED_API_KEY)
 
     data class PreferenceUpdate(
         val masterSwitch: Boolean? = null,
@@ -73,7 +76,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val customModelName: String? = null,
         val customSystemPrompt: String? = null,
         val temperature: Float? = null,
-        val topP: Float? = null
+        val topP: Float? = null,
+        val hostedApiKey: String? = null
     )
 
     /**
@@ -82,13 +86,14 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     suspend fun updatePreferences(updates: PreferenceUpdate) {
         dataStore.edit { preferences ->
             updates.masterSwitch?.let { preferences[MASTER_SWITCH] = it }
-            updates.apiType?.let { preferences[API_TYPE] = it }
             updates.customApiUrl?.let { preferences[CUSTOM_API_URL] = it }
             updates.customApiKey?.let { preferences[CUSTOM_API_KEY] = it }
+            updates.apiType?.let { preferences[API_TYPE] = it }
             updates.customModelName?.let { preferences[CUSTOM_MODEL_NAME] = it }
             updates.customSystemPrompt?.let { preferences[CUSTOM_SYSTEM_PROMPT] = it }
             updates.temperature?.let { preferences[TEMPERATURE] = it }
             updates.topP?.let { preferences[TOP_P] = it }
+            updates.hostedApiKey?.let { preferences[HOSTED_API_KEY] = it }
         }
     }
 
@@ -99,13 +104,14 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val preferences = dataStore.data.firstOrNull()
         preferences?.let { prefs ->
             masterSwitchState.value = prefs[MASTER_SWITCH] ?: DEFAULT_MASTER_SWITCH
-            apiTypeState.value = prefs[API_TYPE] ?: DEFAULT_API_TYPE
             customApiUrlState.value = prefs[CUSTOM_API_URL] ?: DEFAULT_API_URL
             customApiKeyState.value = prefs[CUSTOM_API_KEY] ?: DEFAULT_API_KEY
+            apiTypeState.value = prefs[API_TYPE] ?: if (customApiKeyState.value.isEmpty()) "hosted" else "custom"
             customModelNameState.value = prefs[CUSTOM_MODEL_NAME] ?: DEFAULT_MODEL_NAME
             customSystemPromptState.value = prefs[CUSTOM_SYSTEM_PROMPT] ?: DEFAULT_SYSTEM_PROMPT
             temperatureState.value = prefs[TEMPERATURE] ?: DEFAULT_TEMPERATURE
             topPState.value = prefs[TOP_P] ?: DEFAULT_TOP_P
+            hostedApiKeyState.value = prefs[HOSTED_API_KEY] ?: DEFAULT_HOSTED_API_KEY
         }
     }
 
@@ -173,6 +179,10 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         updatePreferences(PreferenceUpdate(topP = topP))
     }
 
+    suspend fun updateHostedApiKey(apiKey: String) {
+        hostedApiKeyState.value = apiKey
+        updatePreferences(PreferenceUpdate(hostedApiKey = apiKey))
+    }
     /**
      * Get current master switch value (for backward compatibility)
      */
