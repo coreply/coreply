@@ -198,7 +198,7 @@ fun ModernSettingsScreen(
         // Content based on API type selection
         when (uiState.apiType) {
             "custom" -> CustomApiSettingsSection(viewModel)
-            "hosted" -> HostedApiSettingsSection()
+            "hosted" -> HostedApiSettingsSection(viewModel)
         }
 
         // About Section
@@ -327,16 +327,38 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
 
 
 @Composable
-fun HostedApiSettingsSection() {
+fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
+    val uiState = viewModel.uiState
+    var showApiKey by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
         Text(
-            text = "Coreply Hosted",
+            text = "Coreply Cloud",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
+        )
+        // API Key
+        OutlinedTextField(
+            value = uiState.hostedApiKey, onValueChange = viewModel::updateHostedApiKey,
+            label = { Text("Coreply Cloud API Key") },
+            supportingText = { Text("Your API authentication key") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            trailingIcon = {
+                IconButton(onClick = {
+                    showApiKey = !showApiKey
+                }) {
+                    Icon(
+                        imageVector = if (showApiKey) Icons.Default.Lock else Icons.Default.Info,
+                        contentDescription = if (showApiKey) "Hide API Key" else "Show API Key"
+                    )
+                }
+            },
+            visualTransformation = if (showApiKey) VisualTransformation.None else PasswordVisualTransformation()
         )
         Card(
             modifier = Modifier.fillMaxWidth(),

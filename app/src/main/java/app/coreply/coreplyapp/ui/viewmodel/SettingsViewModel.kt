@@ -21,6 +21,7 @@ data class SettingsUiState(
     val customSystemPrompt: String = "",
     val temperature: Float = 0.3f,
     val topP: Float = 0.5f,
+    val hostedApiKey: String = "",
     val suggestionPresentationType: SuggestionPresentationType = SuggestionPresentationType.BOTH
 )
 
@@ -49,6 +50,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             customSystemPrompt = preferencesManager.customSystemPromptState.value,
             temperature = preferencesManager.temperatureState.value,
             topP = preferencesManager.topPState.value,
+            hostedApiKey = preferencesManager.hostedApiKeyState.value
             suggestionPresentationType = preferencesManager.suggestionPresentationTypeState.value
         )
     }
@@ -102,8 +104,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     
     fun updateTopP(topP: Float) {
         uiState = uiState.copy(topP = topP)
-        viewModelScope.launch { 
+        viewModelScope.launch {
             preferencesManager.updateTopP(topP)
+        }
+    }
+
+    fun updateHostedApiKey(key: String) {
+        uiState = uiState.copy(hostedApiKey = key)
+        viewModelScope.launch {
+            preferencesManager.updateHostedApiKey(key)
         }
     }
 
