@@ -138,10 +138,28 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
                 )
                 if (rectArray != null && rectArray.any { it != null }) {
                     status = AppSupportStatus.TYPING
+                    var rtl = false
+                    for (rectF in rectArray) {
+                        if (rectF != null) {
+                            // Check if is RTL by comparing the distance to left and right edges
+                            val distanceToLeft = Math.abs(rectF.left - rect.left)
+                            val distanceToRight = Math.abs(rectF.right - rect.right)
+                            if (distanceToLeft > distanceToRight) {
+                                rtl = true
+                            }
+                            break
+                        }
+                    }
                     for (i in rectArray.indices.reversed()) {
                         val rectF = rectArray[i]
                         if (rectF != null) {
-                            rect.left = rectF.right.toInt()
+                            if (rtl) {
+                                // RTL, align to left edge
+                                rect.right = rectF.left.toInt()
+                            } else {
+                                // LTR, align to right edge
+                                rect.left = rectF.right.toInt()
+                            }
                             rect.top = rectF.top.toInt()
                             rect.bottom = rectF.bottom.toInt()
                             break
@@ -179,7 +197,7 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
             actualMessage = ""
         }
 
-        if (actualMessage == currentText){
+        if (actualMessage == currentText) {
             return
         }
         currentText = actualMessage
@@ -261,13 +279,12 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
     override fun onServiceConnected() {
         super.onServiceConnected()
         val info = this.serviceInfo
-
         info.eventTypes =
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
         info.flags =
             AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
         this.serviceInfo = info
-        Toast.makeText(this, getString(R.string.app_accessibility_started), Toast.LENGTH_SHORT)
+        Toast.makeText(applicationContext, getString(R.string.app_accessibility_started), Toast.LENGTH_SHORT)
             .show()
         val appContext = applicationContext
 
@@ -381,17 +398,36 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
                 // For loop in reverse order to get the last cursor position
                 if (rectArray != null && rectArray.any { it != null }) {
                     status = AppSupportStatus.TYPING
+                    var rtl = false
+                    for (rectF in rectArray) {
+                        if (rectF != null) {
+                            // Check if is RTL by comparing the distance to left and right edges
+                            val distanceToLeft = Math.abs(rectF.left - rect.left)
+                            val distanceToRight = Math.abs(rectF.right - rect.right)
+                            if (distanceToLeft > distanceToRight) {
+                                rtl = true
+                            }
+                            break
+                        }
+                    }
                     for (i in rectArray.indices.reversed()) {
                         val rectF = rectArray[i]
                         if (rectF != null) {
-                            rect.left = rectF.right.toInt()
+                            if (rtl) {
+                                // RTL, align to left edge
+                                rect.right = rectF.left.toInt()
+                            } else {
+                                // LTR, align to right edge
+                                rect.left = rectF.right.toInt()
+                            }
                             rect.top = rectF.top.toInt()
                             rect.bottom = rectF.bottom.toInt()
                             break
                         }
                     }
                 } else {
-                    rect.left += (rect.width() * 0.5).toInt()
+                    rect.left += (rect.width() * 0.25).toInt()
+                    rect.right -= (rect.width() * 0.25).toInt()
                     status = AppSupportStatus.HINT_TEXT
                 }
             } else {
@@ -403,10 +439,10 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
         Log.v("CoWA", "Measured rect: $rect, status: $status")
 
         // Update shared state instead of direct overlay calls
-        withContext(Dispatchers.Main) {
-            overlayState?.updateRect(rect)
-            overlayState?.updateNode(node, status)
-        }
+
+        overlayState?.updateRect(rect)
+        overlayState?.updateNode(node, status)
+
 
         if (node.refreshWithExtraData(
                 AccessibilityNodeInfo.EXTRA_DATA_RENDERING_INFO_KEY,
@@ -414,9 +450,9 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
             )
         ) {
             //Log.v("CoWA", "Text size in px: ${node.extraRenderingInfo?.textSizeInPx}")
-            withContext(Dispatchers.Main) {
-                overlayState?.updateTextSize(node.extraRenderingInfo?.textSizeInPx ?: 36f)
-            }
+
+            overlayState?.updateTextSize(node.extraRenderingInfo?.textSizeInPx ?: 36f)
+
         }
         onEditTextUpdate(node, status)
 
@@ -468,7 +504,7 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
     override fun onSuggestionUpdated(typingInfo: TypingInfo, newSuggestion: String) {
         if (running) {
             overlayState?.updateSuggestion(ai.suggestionStorage.getSuggestion(currentText!!))
-        } else{
+        } else {
             ai.suggestionStorage.clearSuggestion()
         }
     }

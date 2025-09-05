@@ -35,6 +35,17 @@ class ChatMessage {
         return str
     }
 
+    fun toFIMString(): String {
+        var str = ""
+        if (sender == "Me") {
+            str += "send_message(\""
+        } else {
+            str += "mock_received(\""
+        }
+        str += message + "\")\n"
+        return str
+    }
+
     override fun equals(other: Any?): Boolean {
         return (other is ChatMessage) && (other.sender == sender) && (other.message == message) && (other.timestr == timestr)
     }

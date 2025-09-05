@@ -89,7 +89,8 @@ fun notificationMessageListProcessor(node: AccessibilityNodeInfo): MutableList<C
     }
     var targetAreas = node.findAccessibilityNodeInfosByViewId("com.android.systemui:id/expanded")
     if (targetAreas.isEmpty()) {
-        targetAreas = node.findAccessibilityNodeInfosByViewId("com.android.systemui:id/expandableNotificationRow")
+        targetAreas =
+            node.findAccessibilityNodeInfosByViewId("com.android.systemui:id/expandableNotificationRow")
     }
 
     // Get the rect of the text input node
@@ -105,9 +106,9 @@ fun notificationMessageListProcessor(node: AccessibilityNodeInfo): MutableList<C
         targetArea.getBoundsInScreen(targetRect)
 
         // Check if the target is above the text input
-        if (targetRect.bottom <= textInputRect.bottom) {
+        if (targetRect.top <= textInputRect.top) {
             // Calculate the vertical distance between the bottom of target and top of input
-            val distance = textInputRect.top - targetRect.bottom
+            val distance = textInputRect.top - targetRect.top
 
             // Update closest target if this one is closer
             if (distance < minDistance) {
@@ -116,6 +117,7 @@ fun notificationMessageListProcessor(node: AccessibilityNodeInfo): MutableList<C
             }
         }
     }
+
     // Process the closest target for chat messages
     // For now, return empty list if no suitable target is found
     return if (closestTarget != null) {
@@ -136,7 +138,7 @@ fun notificationMessageListProcessor(node: AccessibilityNodeInfo): MutableList<C
         }
 
         //Log.v("CoWA", conversationList.toString())
-        return chatMessages
+        chatMessages
     } else {
         mutableListOf()
     }
@@ -149,7 +151,7 @@ fun telegramMessageListProcessor(node: AccessibilityNodeInfo): MutableList<ChatM
 
         val chatWidgets: MutableList<AccessibilityNodeInfo> = findNodesByCriteria(
             node,
-            { (it.className == "android.view.ViewGroup" && it.text.isNotBlank()) })
+            { (it.className == "android.view.ViewGroup" && it.text != null && it.text.isNotBlank()) })
 
         chatWidgets.sortWith(nodeComparator)
 
@@ -171,17 +173,81 @@ fun mattermostMessageListProcessor(node: AccessibilityNodeInfo): MutableList<Cha
     val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
     val chatWidgetsParents: MutableList<AccessibilityNodeInfo> = findNodesByCriteria(
         node,
-        { (it.className == "android.view.ViewGroup" && it.viewIdResourceName=="markdown_paragraph") })
+        { (it.className == "android.view.ViewGroup" && it.viewIdResourceName == "markdown_paragraph") })
 
     val chatWidgets: MutableList<AccessibilityNodeInfo> = ArrayList<AccessibilityNodeInfo>()
 
-    chatWidgets.addAll(chatWidgetsParents.map { findNodesByCriteria(it, {it.text.isNotBlank()}) }.flatten())
+    chatWidgets.addAll(chatWidgetsParents.map { findNodesByCriteria(it, { it.text.isNotBlank() }) }
+        .flatten())
     chatWidgets.sortWith(nodeComparator)
 
     for (chatNodeInfo in chatWidgets) {
         val message_text = chatNodeInfo.text?.toString() ?: ""
         chatMessages.add(ChatMessage("Others", message_text, ""))
     }
+    //Log.v("CoWA", conversationList.toString())
+    return chatMessages
+}
+
+fun googleMessageListProcessor(node: AccessibilityNodeInfo): MutableList<ChatMessage> {
+    val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
+    val chatWidgets: MutableList<AccessibilityNodeInfo> = findNodesByCriteria(
+        node,
+        { it.viewIdResourceName == "message_text" })
+    chatWidgets.sortWith(nodeComparator)
+
+    val rootRect = Rect()
+    node.getBoundsInScreen(rootRect)
+    for (chatNodeInfo in chatWidgets) {
+        val bounds = Rect()
+        chatNodeInfo.getBoundsInScreen(bounds)
+        val isMe = (bounds.left + bounds.right) / 2 > (rootRect.left + rootRect.right) / 2
+        val message_text = chatNodeInfo.text?.toString() ?: ""
+        chatMessages.add(ChatMessage(if (isMe) "Me" else "Others", message_text, ""))
+    }
+    //Log.v("CoWA", conversationList.toString())
+    return chatMessages
+}
+
+fun scMessageListProcessor(node: AccessibilityNodeInfo): MutableList<ChatMessage> {
+    val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
+
+    val chatWidgets: MutableList<AccessibilityNodeInfo> = findNodesByCriteria(
+        node,
+        { (it.text != null && it.text.isNotBlank() && it.className == "javaClass") })
+
+    chatWidgets.sortWith(nodeComparator)
+    for (chatNodeInfo in chatWidgets) {
+        val message_text = chatNodeInfo.text?.toString() ?: ""
+        chatMessages.add(ChatMessage("Others", message_text, ""))
+
+    }
+    //Log.v("CoWA", conversationList.toString())
+    return chatMessages
+}
+
+fun teamsMessageListProcessor(
+    node: AccessibilityNodeInfo,
+    messageWidgets: ArrayList<String>
+): MutableList<ChatMessage> {
+    val chatWidgets: MutableList<AccessibilityNodeInfo> = ArrayList<AccessibilityNodeInfo>()
+    val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
+
+    for (messageWidget in messageWidgets) {
+        chatWidgets.addAll(node.findAccessibilityNodeInfosByViewId(messageWidget))
+    }
+    chatWidgets.sortWith(nodeComparator)
+
+    val rootRect = Rect()
+    node.getBoundsInScreen(rootRect)
+    for (chatNodeInfo in chatWidgets) {
+        val bounds = Rect()
+        chatNodeInfo.getBoundsInScreen(bounds)
+        val isMe = (bounds.left + bounds.right) / 2 > (rootRect.left + rootRect.right) / 2
+        val message_text = chatNodeInfo.contentDescription?.toString() ?: ""
+        chatMessages.add(ChatMessage(if (isMe) "Me" else "Others", message_text, ""))
+    }
+
     //Log.v("CoWA", conversationList.toString())
     return chatMessages
 }

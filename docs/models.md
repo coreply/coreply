@@ -3,15 +3,18 @@
 The new prompt format is now more flexible and can be used with mainstream LLMs. It has been briefly tested with the following models:
 
 | Model                   | Supported? |
-|-------------------------|------------|
-| Claude 3 and 3.5 Family | ✅          |
-| Llama 3 & 4 Family      | ✅          |
-| Gemma 2 & 3 Family      | ✅          |
-| OpenAI GPT Family       | ✅          |
-| Google Gemini Family    | ✅          |
+| ----------------------- | ---------- |
+| Claude 3 and 3.5 Family | ✅         |
+| Llama 3 & 4 Family      | ✅         |
+| Gemma 2 & 3 Family      | ✅         |
+| OpenAI GPT Family       | ✅         |
+| Google Gemini Family    | ✅         |
 
 Many other models should work as well. You can try them out and find the best fit for your needs.
 
+## Note on thinking/reasoning models
+
+Reasoning models works with Coreply. However, reasoning means more latency before suggestions are made. Therefore, they are not the best choice for Coreply. Therefore it is suggested to avoid reasoning models like GPT-5, Gemini 2.5, Claude 3.7/4 and Qwen 3 models unless your provider disables thinking by default, which Openrouter seems to do.
 
 ## System Message
 
@@ -49,8 +52,7 @@ What color options do you have?
 
 Coreply would remove text the user has already typed from the output. For example, if the user is typing `What col`, Coreply would show the suggestion as `or options do you have?` on the screen. This is because most LLMs are terrible at outputting partial words, giving lots of nonsense and typos. So we need to let it output the full word.
 
-
-----
+---
 
 **Content below is deprecated. You may find the relevant code in the source code and you can try it yourself if interested.**
 
@@ -68,7 +70,7 @@ In short, coreply has been briefly tested with the following models:
 
 \* Inference provider needs to support assistant message prefilling, which most providers do.
 
-## The coreply prompt format 
+## The coreply prompt format
 
 Consider the example conversation:
 

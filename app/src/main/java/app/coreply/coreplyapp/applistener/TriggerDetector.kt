@@ -18,12 +18,18 @@ enum class DetectedApp {
     ANDROID_SYSTEM,
     TELEGRAM,
     MATTER_MOST,
+    GOOGLE_MESSAGES,
+    FB_MESSENGER,
+    SNAPCHAT,
+    TEAMS,
+    OTHER,
     NOT_DETECTED
 }
 
 
 fun detectSupportedApp(rootNode: AccessibilityNodeInfo?): Pair<SupportedAppProperty?, AccessibilityNodeInfo?> {
     val inputNode = rootNode?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+//    iterNode(rootNode!!)
     if (inputNode != null) {
         val inputNodeId = inputNode.viewIdResourceName ?: ""
         val inputNodePackage = inputNode.packageName ?: ""
@@ -68,7 +74,7 @@ fun generalDetector(
 /**
  * Checks if a content node is above an input widget in screen coordinates
  */
-private fun isContentNodeAboveInput(
+fun isContentNodeAboveInput(
     contentNode: AccessibilityNodeInfo?,
     inputNode: AccessibilityNodeInfo?
 ): Boolean {
@@ -91,13 +97,13 @@ private fun isContentNodeAboveInput(
     }
 }
 
-fun telegramDetector(node: AccessibilityNodeInfo): Pair<Boolean, AccessibilityNodeInfo?> {
+fun telegramDetector(node: AccessibilityNodeInfo, tgPkgName: String = "org.telegram.messenger"): Pair<Boolean, AccessibilityNodeInfo?> {
     val contentNodes = node.findAccessibilityNodeInfosByViewId("android:id/content")
     if (contentNodes != null && contentNodes.size == 1) {
         val contentNode = contentNodes[0]
-        if (contentNode.packageName == "org.telegram.messenger") {
+        if (contentNode.packageName == tgPkgName) {
             val inputWidget = node.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-            if (inputWidget != null && inputWidget.packageName == "org.telegram.messenger") {
+            if (inputWidget != null && inputWidget.packageName == tgPkgName) {
                 // Verify the content node is above the input widget
                 if (isContentNodeAboveInput(contentNode, inputWidget)) {
                     return Pair(true, inputWidget)

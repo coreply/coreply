@@ -118,6 +118,14 @@ class ChatContents {
         return msgBlock
     }
 
+    fun getFIMFormat(): String{
+        var msgBlock: String = ""
+        for (msg in chatContents.takeLast(20)) {
+            msgBlock += msg.toFIMString()
+        }
+        return msgBlock
+    }
+
     override fun toString(): String {
         var str = ""
         for (i in chatContents) {

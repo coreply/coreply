@@ -61,7 +61,7 @@ fun InlineSuggestionOverlay(
 ) {
     Box(
         modifier = modifier
-            .wrapContentWidth(Alignment.Start)
+            .wrapContentWidth(if (showBackground) { Alignment.End } else { Alignment.Start })
             .wrapContentHeight(if (showBackground) { Alignment.CenterVertically } else { Alignment.Bottom }) // Adjust height based on background visibility
             .combinedClickable(
                 onClick = onClick,

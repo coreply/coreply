@@ -307,6 +307,7 @@ class Overlay(
             } else {
                 mainParams.width = min(inlineTextWidth + DP8, currentState.chatEntryWidth)
                 mainParams.x = chatEntryRect.left
+
             }
 
             trailingParams.y = chatEntryRect.bottom
