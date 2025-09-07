@@ -144,7 +144,7 @@ See [Model Selection & Providers](./docs/models.md) for details.
 
 ## Contributing
 
-All contributions are welcome! However, the code was based on an old project in 2016, so please be patient with the code quality and expect major architectural changes in the future.
+All contributions are welcome. However, please expect breaking changes as this project is in active development. There are plans to monetize the app, so a contributor license agreement (CLA), or change in license is under consideration. Feel free to reach out before making significant contributions.
 
 ## Known Issues
 
