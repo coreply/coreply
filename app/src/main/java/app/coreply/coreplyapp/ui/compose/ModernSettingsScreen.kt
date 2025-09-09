@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.core.net.toUri
 import app.coreply.coreplyapp.data.SuggestionPresentationType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -173,6 +174,16 @@ fun ModernSettingsScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 FilterChip(
+                    onClick = { viewModel.updateApiType("hosted") },
+                    label = { Text("Coreply Cloud") },
+                    selected = uiState.apiType == "hosted",
+                    trailingIcon = if (uiState.apiType == "hosted") {
+                        { Icon(Icons.Default.Check, contentDescription = "Selected") }
+                    } else null,
+                    modifier = Modifier.weight(1f)
+                )
+
+                FilterChip(
                     onClick = { viewModel.updateApiType("custom") },
                     label = { Text("Custom API") },
                     selected = uiState.apiType == "custom",
@@ -182,15 +193,7 @@ fun ModernSettingsScreen(
                     modifier = Modifier.weight(1f)
                 )
 
-                FilterChip(
-                    onClick = { viewModel.updateApiType("hosted") },
-                    label = { Text("Coreply Hosted") },
-                    selected = uiState.apiType == "hosted",
-                    trailingIcon = if (uiState.apiType == "hosted") {
-                        { Icon(Icons.Default.Check, contentDescription = "Selected") }
-                    } else null,
-                    modifier = Modifier.weight(1f)
-                )
+
             }
         }
 
@@ -329,6 +332,7 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
 @Composable
 fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
     val uiState = viewModel.uiState
+    val context = LocalContext.current
     var showApiKey by remember { mutableStateOf(false) }
 
     Column(
@@ -343,8 +347,8 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
         // API Key
         OutlinedTextField(
             value = uiState.hostedApiKey, onValueChange = viewModel::updateHostedApiKey,
-            label = { Text("Coreply Cloud API Key") },
-            supportingText = { Text("Your API authentication key") },
+            label = { Text("Coreply Cloud Access Key") },
+            supportingText = { Text("Starts with 'ey...'") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp),
@@ -367,16 +371,30 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "🚧 Coming Soon",
+                    text = "\uD83D\uDE80 Get Started",
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 Text(
-                    text = "Hosted API service is currently available in a separate app. Please check our Github repo for details. It is planned to be integrated into this app in the future.",
+                    text = "The easiest way to get started is to obtain an access key from Coreply Cloud. After subscribing, reveal and copy the access key to paste it above. Free subscription plan available.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                Button(
+                    onClick = {
+                        val uri = "https://coreply.up.nadles.com/".toUri()
+                        val intent = Intent(Intent.ACTION_VIEW, uri)
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                ) {
+                    Text("Get Access Key For Free")
+                }
+
             }
         }
     }
