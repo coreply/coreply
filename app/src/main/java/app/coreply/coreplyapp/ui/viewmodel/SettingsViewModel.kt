@@ -50,7 +50,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             customSystemPrompt = preferencesManager.customSystemPromptState.value,
             temperature = preferencesManager.temperatureState.value,
             topP = preferencesManager.topPState.value,
-            hostedApiKey = preferencesManager.hostedApiKeyState.value
+            hostedApiKey = preferencesManager.hostedApiKeyState.value,
             suggestionPresentationType = preferencesManager.suggestionPresentationTypeState.value
         )
     }
