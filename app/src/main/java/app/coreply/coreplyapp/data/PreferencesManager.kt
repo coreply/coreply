@@ -44,8 +44,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val CUSTOM_SYSTEM_PROMPT = stringPreferencesKey("customSystemPrompt")
         val TEMPERATURE = floatPreferencesKey("temperature_float")
         val TOP_P = floatPreferencesKey("topp_float")
-        val HOSTED_API_KEY = stringPreferencesKey("hostedApiKey")
         val SUGGESTION_PRESENTATION_TYPE = intPreferencesKey("suggestion_presentation_type")
+        val HOSTED_API_KEY = stringPreferencesKey("hostedApiKey")
 
         // Default values
         private const val DEFAULT_MASTER_SWITCH = true
@@ -81,7 +81,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val customSystemPrompt: String? = null,
         val temperature: Float? = null,
         val topP: Float? = null,
-        val hostedApiKey: String? = null
+        val hostedApiKey: String? = null,
         val suggestionPresentationType: SuggestionPresentationType? = null
     )
 
