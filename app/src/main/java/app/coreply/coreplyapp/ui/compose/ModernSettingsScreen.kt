@@ -277,7 +277,7 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
             value = uiState.customSystemPrompt,
             onValueChange = viewModel::updateCustomSystemPrompt,
             label = { Text("System Prompt") },
-            supportingText = { Text("System instructions to the LLM") },
+            supportingText = { Text("Instructions for the AI assistant") },
             minLines = 3,
             maxLines = 6,
             modifier = Modifier
@@ -392,7 +392,7 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
                         .fillMaxWidth()
                         .padding(top = 16.dp),
                 ) {
-                    Text("Get Access Key For Free")
+                    Text("Manage Access Keys")
                 }
 
             }
