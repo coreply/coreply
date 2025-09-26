@@ -348,6 +348,7 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
         OutlinedTextField(
             value = uiState.hostedApiKey, onValueChange = viewModel::updateHostedApiKey,
             label = { Text("Coreply Cloud Access Key") },
+            placeholder = { Text("↓ Tap button below to get key ↓") },
             supportingText = { Text("Starts with 'ey...'") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -377,9 +378,9 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
                 )
 
                 Text(
-                    text = "The easiest way to get started is to obtain an access key from Coreply Cloud. After subscribing, reveal and copy the access key to paste it above. Free subscription plan available.",
+                    text = "Get started easily with Coreply Cloud. After subscribing, copy the access key and paste it above. Free subscription plan available.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 Button(
@@ -392,7 +393,7 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
                         .fillMaxWidth()
                         .padding(top = 16.dp),
                 ) {
-                    Text("Manage Access Keys")
+                    Text(if (uiState.hostedApiKey.isNotEmpty()) "Manage Access Keys" else "Get Your Access Key")
                 }
 
             }

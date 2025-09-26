@@ -1,5 +1,6 @@
 package app.coreply.coreplyapp.network
 
+import android.util.Log
 import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.utils.ChatMessage
 import okhttp3.MediaType.Companion.toMediaType
@@ -7,6 +8,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 object RequestObject {
     fun getCompletionJsonString(typing: String, pastMessages: List<ChatMessage>): String {
@@ -29,7 +31,8 @@ object RequestObject {
 
 object HostedSuggestionRequester : SuggestionRequester {
     val endpoint = "https://coreply.p.nadles.com/completion/"
-    val client = okhttp3.OkHttpClient.Builder().build()
+    val client = okhttp3.OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30,
+        TimeUnit.SECONDS).writeTimeout(30, TimeUnit.SECONDS).build()
 
     override suspend fun requestSuggestionsFromServer(
         typingInfo: TypingInfo,
@@ -50,8 +53,10 @@ object HostedSuggestionRequester : SuggestionRequester {
                 "Bearer ${preferencesManager.hostedApiKeyState.value}"
             )
             .build()
+//        Log.v("HostedSuggestionRequester", "Request: $request")
         client.newCall(request).execute().use { response ->
             val responseBody = response.body?.string()
+//            Log.v("HostedSuggestionRequester", "Response: $responseBody")
             if (responseBody != null) {
                 val jsonObject = JSONObject(responseBody)
                 val completion = jsonObject.getString("completion")
