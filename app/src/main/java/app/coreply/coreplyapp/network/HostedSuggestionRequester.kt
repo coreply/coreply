@@ -1,6 +1,5 @@
 package app.coreply.coreplyapp.network
 
-import android.util.Log
 import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.utils.ChatMessage
 import okhttp3.MediaType.Companion.toMediaType
