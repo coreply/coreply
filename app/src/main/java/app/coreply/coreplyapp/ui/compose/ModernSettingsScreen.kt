@@ -277,7 +277,7 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
             value = uiState.customSystemPrompt,
             onValueChange = viewModel::updateCustomSystemPrompt,
             label = { Text("System Prompt") },
-            supportingText = { Text("Instructions for the AI assistant") },
+            supportingText = { Text("System instructions to the LLM") },
             minLines = 3,
             maxLines = 6,
             modifier = Modifier
