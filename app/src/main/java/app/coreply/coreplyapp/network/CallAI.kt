@@ -189,7 +189,7 @@ open class CallAI(
         coroutineScope.launch {
             preferencesManager.loadPreferences()
             userInputFlow // adjust debounce delay as needed
-                .debounce(200)
+                .debounce(360)
                 .collect { typingInfo ->
                     networkScope.launch {
                         fetchSuggestions(typingInfo)
