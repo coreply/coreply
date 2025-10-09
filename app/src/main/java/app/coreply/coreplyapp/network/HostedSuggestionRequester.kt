@@ -7,6 +7,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
@@ -58,11 +59,17 @@ object HostedSuggestionRequester : SuggestionRequester {
             val responseBody = response.body?.string()
 //            Log.v("HostedSuggestionRequester", "Response: $responseBody")
             if (responseBody != null) {
-                val jsonObject = JSONObject(responseBody)
-                val completion = jsonObject.getString("completion")
-                return (if (typingInfo.currentTypingTrimmed.endsWith(" ")) (completion
-                    ?: "").trimEnd().trimEnd('>').trim() else (completion
-                    ?: "").trimEnd().trimEnd('>').trimEnd())
+                try {
+                    val jsonObject = JSONObject(responseBody)
+                    val completion = jsonObject.getString("completion")
+                    return (if (typingInfo.currentTypingTrimmed.endsWith(" ")) (completion
+                        ?: "").trimEnd().trimEnd('>').trim() else (completion
+                        ?: "").trimEnd().trimEnd('>').trimEnd())
+                } catch (e: JSONException){
+                    val jsonObject = JSONObject(responseBody)
+                    val message = jsonObject.getString("message")
+                    throw Exception(message)
+                }
             }
         }
         return ""
