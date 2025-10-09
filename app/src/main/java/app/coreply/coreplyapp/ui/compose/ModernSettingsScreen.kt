@@ -412,7 +412,7 @@ fun AboutSection() {
         modifier = Modifier.padding(16.dp)
     ) {
         Text(
-            text = "About",
+            text = "About & Support",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -434,7 +434,7 @@ fun AboutSection() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "🔗",
+                    text = "🐱",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(end = 12.dp)
                 )
@@ -462,7 +462,9 @@ fun AboutSection() {
                     )
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -479,7 +481,112 @@ fun AboutSection() {
                 )
             }
         }
+
+        // Telegram Discussion
+        Surface(
+            onClick = {
+                val uri = Uri.parse("https://t.me/coreplyappgroup")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                context.startActivity(intent)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "💬",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = "Telegram Discussion",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+
+        // Discord Server
+        Surface(
+            onClick = {
+                val uri = Uri.parse("https://discord.gg/zCsQKmTFTk")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                context.startActivity(intent)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🎮",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = "Discord Server",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+
+        // Email
+        Surface(
+            onClick = {
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:hello@coreply.app")
+                }
+                context.startActivity(intent)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "📧",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = "Email: hello@coreply.app",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+
+        // Official Website
+        Surface(
+            onClick = {
+                val uri = Uri.parse("https://coreply.app")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                context.startActivity(intent)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🌐",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = "Official Website",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
     }
 }
-
-
