@@ -108,7 +108,8 @@ fun TrailingSuggestionOverlay(
     text: String,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false
 ) {
     Surface(
         modifier = modifier
@@ -121,7 +122,10 @@ fun TrailingSuggestionOverlay(
                 onLongClickLabel = "Insert full suggestion"
             ),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = if (isError)
+            MaterialTheme.colorScheme.errorContainer
+        else
+            MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Box(
             modifier = Modifier
@@ -133,7 +137,10 @@ fun TrailingSuggestionOverlay(
             Text(
                 text = text,
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = if (isError)
+                    MaterialTheme.colorScheme.onErrorContainer
+                else
+                    MaterialTheme.colorScheme.onSecondaryContainer,
                 style = Typography().bodyMedium,
                 textAlign = TextAlign.Start,
                 maxLines = 1,

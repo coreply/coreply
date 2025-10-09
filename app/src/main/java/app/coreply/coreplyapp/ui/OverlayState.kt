@@ -37,7 +37,7 @@ data class OverlayStateData(
     val rect: Rect? = null,
     val node: AccessibilityNodeInfo? = null,
     val status: AppSupportStatus = AppSupportStatus.UNSUPPORTED,
-    val suggestion: String? = null,
+    val content: OverlayContent = OverlayContent.Empty,
     val textSize: Float? = null,
     val currentApp: SupportedAppProperty? = null,
     val running: Boolean = false,
@@ -61,8 +61,8 @@ class OverlayState {
         _state.value = _state.value.copy(node = node, status = status, nodeText = node.text?.toString() ?: "")
     }
 
-    fun updateSuggestion(suggestion: String?) {
-        _state.value = _state.value.copy(suggestion = suggestion)
+    fun updateContent(content: OverlayContent) {
+        _state.value = _state.value.copy(content = content)
     }
 
     fun updateTextSize(textSize: Float) {
@@ -85,7 +85,7 @@ class OverlayState {
         _state.value = _state.value.copy(
             isEnabled = false,
             running = false,
-            suggestion = null
+            content = OverlayContent.Empty
         )
     }
 

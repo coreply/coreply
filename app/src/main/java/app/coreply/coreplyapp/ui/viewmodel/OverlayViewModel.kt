@@ -25,13 +25,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import app.coreply.coreplyapp.applistener.AppSupportStatus
 import app.coreply.coreplyapp.data.SuggestionPresentationType
+import app.coreply.coreplyapp.ui.OverlayContent
+import app.coreply.coreplyapp.ui.OverlayContentType
 
 data class OverlayUiState(
     val inlineText: String = "",
     val trailingText: String = "",
     val inlineTextSize: Float = 18f,
     val showBubbleBackground: Boolean = false,
-    val isRunning: Boolean = false
+    val isRunning: Boolean = false,
+    val content: OverlayContent = OverlayContent.Empty,
+    val isError: Boolean = false
 )
 
 class OverlayViewModel : ViewModel() {
@@ -47,9 +51,23 @@ class OverlayViewModel : ViewModel() {
         uiState = uiState.copy(showBubbleBackground = showBackground)
     }
 
-    fun updateSuggestion(suggestion: String?, textActualWidth: Float, chatEntryWidth: Int, status: AppSupportStatus, presentationType: SuggestionPresentationType) {
-        val suggestion = suggestion ?: ""
-        
+    fun updateSuggestion(content: OverlayContent?, textActualWidth: Float, chatEntryWidth: Int, status: AppSupportStatus, presentationType: SuggestionPresentationType) {
+        val content = content ?: OverlayContent.Empty
+        val suggestion = content.fullText
+        val isError = content.type == OverlayContentType.ERROR
+
+        uiState = uiState.copy(content = content, isError = isError)
+
+        // For errors, always show as trailing bubble
+        if (isError) {
+            uiState = uiState.copy(
+                inlineText = "",
+                trailingText = suggestion.trimEnd(),
+                showBubbleBackground = false
+            )
+            return
+        }
+
         when {
             status == AppSupportStatus.API_BELOW_33 || presentationType == SuggestionPresentationType.BUBBLE -> {
                 uiState = uiState.copy(
@@ -83,7 +101,9 @@ class OverlayViewModel : ViewModel() {
         uiState = uiState.copy(
             isRunning = false,
             inlineText = "",
-            trailingText = ""
+            trailingText = "",
+            content = OverlayContent.Empty,
+            isError = false
         )
     }
 }

@@ -129,7 +129,8 @@ class Overlay(
                         TrailingSuggestionOverlay(
                             text = uiState.trailingText,
                             onClick = { onTrailingClick() },
-                            onLongClick = { onTrailingLongClick() }
+                            onLongClick = { onTrailingLongClick() },
+                            isError = uiState.isError
                         )
                     }
                 }
@@ -189,68 +190,36 @@ class Overlay(
             enable()
             state.rect?.let { setRect(it) }
             state.textSize?.let { updateTextSize(it) }
-            updateSuggestion(state.suggestion)
+            updateSuggestion(state.content)
         } else {
             disable()
         }
     }
 
-    // Text action methods now use shared state
+    // Text action methods now use shared state and pre-tokenized content
     fun onInlineClick() {
         val uiState = viewModel.uiState
-        performTextAction(uiState.inlineText)
+        performTextAction(uiState.content)
     }
 
     fun onInlineLongClick() {
         val uiState = viewModel.uiState
-        performFullTextAction(uiState.inlineText)
+        performFullTextAction(uiState.content)
     }
 
     fun onTrailingClick() {
         val uiState = viewModel.uiState
-        performTextAction(uiState.trailingText)
+        performTextAction(uiState.content)
     }
 
     fun onTrailingLongClick() {
         val uiState = viewModel.uiState
-        performFullTextAction(uiState.trailingText)
+        performFullTextAction(uiState.content)
     }
 
-    private fun tokenizeText(input: String): List<String> {
-        val PUNCTUATIONS = listOf(
-            "!", "\"", ")", ",", ".", ":",
-            ";", "?", "]", "~", "，", "：", "；", "？", "）", "】", "！", "、", "」",
-        )
-        val breakIterator = BreakIterator.getWordInstance(Locale.ROOT)
-        breakIterator.setText(input)
-        val tokens = mutableListOf<String>()
-        var start = breakIterator.first()
-        var end = breakIterator.next()
-        while (end != BreakIterator.DONE) {
-            val word = input.substring(start, end)
-            if (word.isNotEmpty()) {
-                tokens.add(word)
-            }
-            start = end
-            end = breakIterator.next()
-        }
-        if (tokens.isNotEmpty()) {
-            val lastToken = tokens.last()
-            if (tokens.size >= 2 && lastToken.length == 1 && PUNCTUATIONS.contains(lastToken)) {
-                tokens.removeAt(tokens.size - 1)
-                tokens[tokens.size - 1] = tokens[tokens.size - 1] + lastToken
-            }
-        }
-        return tokens
-    }
-
-    private fun performTextAction(text: String) {
+    private fun performTextAction(content: OverlayContent) {
         val arguments = Bundle()
-        val tokenizedString = tokenizeText(text.trimEnd())
-        var addText: String = if (tokenizedString.isNotEmpty()) tokenizedString[0] else ""
-        if (addText.isBlank() && tokenizedString.size > 1) {
-            addText += tokenizedString[1]
-        }
+        val addText = content.getFirstToken()
 
         val currentState = overlayState.getCurrentState()
         if (currentState.node?.isShowingHintText == true || currentState.status == AppSupportStatus.HINT_TEXT) {
@@ -268,18 +237,18 @@ class Overlay(
         currentState.node?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
     }
 
-    private fun performFullTextAction(text: String) {
+    private fun performFullTextAction(content: OverlayContent) {
         val arguments = Bundle()
         val currentState = overlayState.getCurrentState()
         if (currentState.node?.isShowingHintText == true || currentState.status == AppSupportStatus.HINT_TEXT) {
             arguments.putCharSequence(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                text.trimEnd()
+                content.fullText.trimEnd()
             )
         } else {
             arguments.putCharSequence(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                currentState.nodeText.replace("Compose Message", "") + text.trimEnd()
+                currentState.nodeText.replace("Compose Message", "") + content.fullText.trimEnd()
             )
         }
         currentState.node?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
@@ -349,13 +318,14 @@ class Overlay(
         }
     }
 
-    fun updateSuggestion(suggestion: String?) {
+    fun updateSuggestion(content: OverlayContent?) {
         MainScope().launch {
             withContext(Dispatchers.Main) {
+                val actualContent = content ?: OverlayContent.Empty
                 val currentState = overlayState.getCurrentState()
-                val textWidth = dummyPaint.measureText(suggestion ?: "")
+                val textWidth = dummyPaint.measureText(actualContent.fullText)
                 viewModel.updateSuggestion(
-                    suggestion,
+                    actualContent,
                     textWidth,
                     currentState.chatEntryWidth,
                     currentState.status,

@@ -44,7 +44,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.ConcurrentHashMap
 
 
-class SuggestionStorageClass(private var listener: SuggestionUpdateListener? = null) {
+class SuggestionStorageClass(var listener: SuggestionUpdateListener? = null) {
     private val _suggestionHistory = ConcurrentHashMap<String, String>()
     private val PUNCTUATIONS = listOf(
         "!", "\"", ")", ",", ".", ":",
@@ -232,6 +232,8 @@ open class CallAI(
         } catch (e: Exception) {
             // Handle exceptions such as network errors
             e.printStackTrace()
+            val errorMessage = e.toString()
+            suggestionStorage.listener?.onSuggestionError(typingInfo, errorMessage)
         }
     }
 }
