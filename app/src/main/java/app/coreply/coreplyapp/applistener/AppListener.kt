@@ -34,6 +34,7 @@ import app.coreply.coreplyapp.network.CallAI
 import app.coreply.coreplyapp.network.SuggestionStorageClass
 import app.coreply.coreplyapp.network.TypingInfo
 import app.coreply.coreplyapp.ui.Overlay
+import app.coreply.coreplyapp.ui.OverlayContent
 import app.coreply.coreplyapp.ui.OverlayState
 import app.coreply.coreplyapp.utils.ChatContents
 import app.coreply.coreplyapp.utils.PixelCalculator
@@ -125,9 +126,10 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
         overlayState?.updateNode(node, status)
 
         if (ai.suggestionStorage.getSuggestion(actualMessage) != null) {
-            overlayState?.updateSuggestion(ai.suggestionStorage.getSuggestion(actualMessage))
+            val suggestionText = ai.suggestionStorage.getSuggestion(actualMessage)!!
+            overlayState?.updateContent(OverlayContent.Suggestion.create(suggestionText))
         } else {
-            overlayState?.updateSuggestion("")
+            overlayState?.updateContent(OverlayContent.Empty)
             ai.onUserInputChanged(TypingInfo(conversationList, actualMessage))
         }
     }
@@ -277,7 +279,7 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
                         // Switch back to main thread for result handling
                         if (result) {
                             ai.suggestionStorage.clearSuggestion()
-                            overlayState?.updateSuggestion("")
+                            overlayState?.updateContent(OverlayContent.Empty)
                         }
                     } catch (e: Exception) {
                         Log.e("CoWA", "Error in getMessages background operation", e)
@@ -439,9 +441,18 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
 
     override fun onSuggestionUpdated(typingInfo: TypingInfo, newSuggestion: String) {
         if (running) {
-            overlayState?.updateSuggestion(ai.suggestionStorage.getSuggestion(currentText!!))
+            val suggestionText = ai.suggestionStorage.getSuggestion(currentText!!)
+            if (suggestionText != null) {
+                overlayState?.updateContent(OverlayContent.Suggestion.create(suggestionText))
+            }
         } else {
             ai.suggestionStorage.clearSuggestion()
+        }
+    }
+
+    override fun onSuggestionError(typingInfo: TypingInfo, errorMessage: String) {
+        if (running) {
+            overlayState?.updateContent(OverlayContent.Error(errorMessage))
         }
     }
 
