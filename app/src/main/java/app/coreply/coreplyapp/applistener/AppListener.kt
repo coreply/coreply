@@ -321,9 +321,10 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
                     RectF::class.java
                 )
             } else {
+                @Suppress("DEPRECATION")
                 node.extras.getParcelableArray(
                     AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-                ) as Array<RectF?>?
+                )?.mapNotNull { it as? RectF }?.toTypedArray()
             }
             // For loop in reverse order to get the last cursor position
             if (rectArray != null && rectArray.any { it != null }) {
