@@ -297,8 +297,23 @@ object SupportedApps {
                 generalMessageListProcessor(
                     node = node,
                     messageWidgets = arrayListOf("com.discord:id/accessories_view"),
-                    getChild = { msgNode: AccessibilityNodeInfo -> if (msgNode.childCount > 0) msgNode.getChild(0) else msgNode }
+                    getChild = { msgNode: AccessibilityNodeInfo ->
+                        if (msgNode.childCount > 0) msgNode.getChild(
+                            0
+                        ) else msgNode
+                    }
                 )
+            },
+            typeEnum = DetectedApp.OTHER
+        ),
+        SupportedAppProperty(
+            pkgName = "com.beeper.android",
+            triggerDetector = makeGeneralDetector("sendButton"),
+            inputJudger = { _, _, id, pkgName -> pkgName == "com.beeper.android" },
+            textInputFinder = null,
+            excludeWidgets = arrayOf<String>(),
+            messageListProcessor = { node: AccessibilityNodeInfo ->
+                beeperMessageListProcessor(node)
             },
             typeEnum = DetectedApp.OTHER
         )
