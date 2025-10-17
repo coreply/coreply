@@ -106,6 +106,29 @@ fun ModernSettingsScreen(
                 )
             }
 
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Show errors",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Display error messages in the overlay",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Checkbox(
+                    checked = uiState.showErrors,
+                    onCheckedChange = { viewModel.updateShowErrors(it) }
+                )
+            }
+
             ExposedDropdownMenuBox(
                 expanded = expandMenu,
                 onExpandedChange = { expandMenu = it },
@@ -275,5 +298,3 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
         }
     }
 }
-
-

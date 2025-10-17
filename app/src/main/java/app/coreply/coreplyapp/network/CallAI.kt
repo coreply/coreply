@@ -175,12 +175,11 @@ data class TypingInfo(val pastMessages: ChatContents, val currentTyping: String)
 @OptIn(FlowPreview::class)
 open class CallAI(
     open val suggestionStorage: SuggestionStorageClass,
-    context: Context?
+    context: Context
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val networkScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val preferencesManager =
-        if (context == null) null else PreferencesManager.getInstance(context)
+    private val preferencesManager = PreferencesManager.getInstance(context)
 
     // Flow to handle debouncing of user input
     private val userInputFlow = MutableSharedFlow<TypingInfo>(replay = 1)
@@ -188,7 +187,7 @@ open class CallAI(
     init {
         // Launch a coroutine to collect debounced user input and fetch suggestions
         coroutineScope.launch {
-            preferencesManager?.loadPreferences()
+            preferencesManager.loadPreferences()
             userInputFlow // adjust debounce delay as needed
                 .debounce(360)
                 .collect { typingInfo ->
@@ -222,15 +221,18 @@ open class CallAI(
         } catch (e: Exception) {
             // Handle exceptions such as network errors
             e.printStackTrace()
-            val errorMessage = e.toString()
-            suggestionStorage.listener?.onSuggestionError(typingInfo, errorMessage)
+            if(preferencesManager.showErrorsState.value){
+                val errorMessage = e.toString()
+                suggestionStorage.listener?.onSuggestionError(typingInfo, errorMessage)
+            }
+
         }
     }
 
     open suspend fun requestSuggestionsFromServer(
         typingInfo: TypingInfo
     ): String {
-        var baseUrl = preferencesManager!!.customApiUrlState.value
+        var baseUrl = preferencesManager.customApiUrlState.value
         if (!baseUrl.endsWith("/")) {
             baseUrl += "/"
         }
