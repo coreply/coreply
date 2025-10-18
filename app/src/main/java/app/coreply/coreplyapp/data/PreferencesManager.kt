@@ -59,7 +59,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         private const val DEFAULT_HOSTED_API_KEY = ""
         private const val DEFAULT_TOP_P = 1.0f
         private const val DEFAULT_SUGGESTION_PRESENTATION_TYPE = 2 // Both
-        private const val DEFAULT_SHOW_ERRORS = true
+        private const val DEFAULT_SHOW_ERRORS = false
     }
 
     // Mutable state for each preference field
