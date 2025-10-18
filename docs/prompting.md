@@ -1,14 +1,14 @@
-# Model Selection & Prompting v2
+# Prompting
 
 The new prompt format is now more flexible and can be used with mainstream LLMs. It has been briefly tested with the following models:
 
-| Model                   | Supported? |
-| ----------------------- | ---------- |
-| Claude 3 and 3.5 Family | ✅         |
-| Llama 3 & 4 Family      | ✅         |
-| Gemma 2 & 3 Family      | ✅         |
-| OpenAI GPT Family       | ✅         |
-| Google Gemini Family    | ✅         |
+| Model                | Supported? |
+|----------------------| ---------- |
+| Claude 3 & 4 Family  | ✅         |
+| Llama 3 & 4 Family   | ✅         |
+| Gemma 2 & 3 Family   | ✅         |
+| OpenAI GPT Family    | ✅         |
+| Google Gemini Family | ✅         |
 
 Many other models should work as well. You can try them out and find the best fit for your needs.
 
