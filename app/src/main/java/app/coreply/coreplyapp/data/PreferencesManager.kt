@@ -46,6 +46,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val TOP_P = floatPreferencesKey("topp_float")
         val SUGGESTION_PRESENTATION_TYPE = intPreferencesKey("suggestion_presentation_type")
         val HOSTED_API_KEY = stringPreferencesKey("hostedApiKey")
+        val SHOW_ERRORS = booleanPreferencesKey("show_errors")
 
         // Default values
         private const val DEFAULT_MASTER_SWITCH = true
@@ -58,6 +59,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         private const val DEFAULT_HOSTED_API_KEY = ""
         private const val DEFAULT_TOP_P = 1.0f
         private const val DEFAULT_SUGGESTION_PRESENTATION_TYPE = 2 // Both
+        private const val DEFAULT_SHOW_ERRORS = true
     }
 
     // Mutable state for each preference field
@@ -71,6 +73,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     val topPState: MutableState<Float> = mutableStateOf(DEFAULT_TOP_P)
     val hostedApiKeyState: MutableState<String> = mutableStateOf(DEFAULT_HOSTED_API_KEY)
     val suggestionPresentationTypeState: MutableState<SuggestionPresentationType> = mutableStateOf(SuggestionPresentationType.BOTH)
+    val showErrorsState: MutableState<Boolean> = mutableStateOf(DEFAULT_SHOW_ERRORS)
 
     data class PreferenceUpdate(
         val masterSwitch: Boolean? = null,
@@ -82,7 +85,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val temperature: Float? = null,
         val topP: Float? = null,
         val hostedApiKey: String? = null,
-        val suggestionPresentationType: SuggestionPresentationType? = null
+        val suggestionPresentationType: SuggestionPresentationType? = null,
+        val showErrors: Boolean? = null
     )
 
     /**
@@ -91,15 +95,16 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     suspend fun updatePreferences(updates: PreferenceUpdate) {
         dataStore.edit { preferences ->
             updates.masterSwitch?.let { preferences[MASTER_SWITCH] = it }
+            updates.apiType?.let { preferences[API_TYPE] = it }
             updates.customApiUrl?.let { preferences[CUSTOM_API_URL] = it }
             updates.customApiKey?.let { preferences[CUSTOM_API_KEY] = it }
-            updates.apiType?.let { preferences[API_TYPE] = it }
             updates.customModelName?.let { preferences[CUSTOM_MODEL_NAME] = it }
             updates.customSystemPrompt?.let { preferences[CUSTOM_SYSTEM_PROMPT] = it }
             updates.temperature?.let { preferences[TEMPERATURE] = it }
             updates.topP?.let { preferences[TOP_P] = it }
             updates.hostedApiKey?.let { preferences[HOSTED_API_KEY] = it }
             updates.suggestionPresentationType?.let { preferences[SUGGESTION_PRESENTATION_TYPE] = it.value }
+            updates.showErrors?.let { preferences[SHOW_ERRORS] = it }
         }
     }
 
@@ -110,15 +115,16 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val preferences = dataStore.data.firstOrNull()
         preferences?.let { prefs ->
             masterSwitchState.value = prefs[MASTER_SWITCH] ?: DEFAULT_MASTER_SWITCH
+            apiTypeState.value = prefs[API_TYPE] ?: DEFAULT_API_TYPE
             customApiUrlState.value = prefs[CUSTOM_API_URL] ?: DEFAULT_API_URL
             customApiKeyState.value = prefs[CUSTOM_API_KEY] ?: DEFAULT_API_KEY
-            apiTypeState.value = prefs[API_TYPE] ?: if (customApiKeyState.value.isEmpty()) "hosted" else "custom"
             customModelNameState.value = prefs[CUSTOM_MODEL_NAME] ?: DEFAULT_MODEL_NAME
             customSystemPromptState.value = prefs[CUSTOM_SYSTEM_PROMPT] ?: DEFAULT_SYSTEM_PROMPT
             temperatureState.value = prefs[TEMPERATURE] ?: DEFAULT_TEMPERATURE
             topPState.value = prefs[TOP_P] ?: DEFAULT_TOP_P
             hostedApiKeyState.value = prefs[HOSTED_API_KEY] ?: DEFAULT_HOSTED_API_KEY
             suggestionPresentationTypeState.value = SuggestionPresentationType.fromInt(prefs[SUGGESTION_PRESENTATION_TYPE] ?: DEFAULT_SUGGESTION_PRESENTATION_TYPE)
+            showErrorsState.value = prefs[SHOW_ERRORS] ?: DEFAULT_SHOW_ERRORS
         }
     }
 
@@ -195,6 +201,14 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         hostedApiKeyState.value = apiKey
         updatePreferences(PreferenceUpdate(hostedApiKey = apiKey))
     }
+    /**
+     * Update show errors state and persist to datastore
+     */
+    suspend fun updateShowErrors(show: Boolean) {
+        showErrorsState.value = show
+        updatePreferences(PreferenceUpdate(showErrors = show))
+    }
+
     /**
      * Get current master switch value (for backward compatibility)
      */

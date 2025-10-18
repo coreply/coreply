@@ -5,7 +5,8 @@
 [![Telegram](https://img.shields.io/badge/telegram-group-blue?logo=telegram&link=https://t.me/coreplyappgroup)](https://t.me/coreplyappgroup)
 
 ![Coreply banner](./docs/static/narrowbanner.png)
-**Coreply** is an open-source Android app providing texting suggestions while you type. It enhances your typing experience with intelligent, context-aware suggestions.
+**Coreply** is an open-source Android app providing texting suggestions while you type. It enhances
+your typing experience with intelligent, context-aware suggestions.
 
 <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/coreply/coreply">
 <img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60"/>
@@ -14,7 +15,7 @@
 ## Supported Texting Apps
 
 |                                                           |
-| --------------------------------------------------------- |
+|-----------------------------------------------------------|
 | **WhatsApp**                                              |
 | <img src="./docs/static/whatsapp.gif" width="360" />      |
 | **Instagram**                                             |
@@ -36,96 +37,65 @@
 | **Snapchat**<sup>2</sup>                                  |
 | **Microsoft Teams**                                       |
 | **Viber**                                                 |
+| **Discord**                                               |
 
 <sup>1</sup> Performance issues: Coreply may not follow smoothly the animations and transitions.  
-<sup>2</sup> Limited role detection: Coreply cannot detect whether the message is sent or received.  
-<sup>3</sup> In Gmail, Coreply only works on the quick reply text field at the bottom of the email.  
+<sup>2</sup> Limited role detection: Coreply cannot detect whether the message is sent or
+received.  
+<sup>3</sup> In Gmail, Coreply only works on the quick reply text field at the bottom of the
+email.  
 <sup>4</sup> Including Direct Download version, Play Store version, and Nekogram.
 
-_DISCLAIMER: Coreply is not affiliated with or endorsed by the above-mentioned apps or their parent companies._
+_DISCLAIMER: Coreply is not affiliated with or endorsed by the above-mentioned apps or their parent
+companies._
 
 ## Features
 
   <img src="./docs/static/coreply_demo.gif" width="360" />
 
--   **Real-time AI Suggestions**: Get accurate, context-aware suggestions as you type.
--   **Customizable LLM Settings**: Supports any inference service having an OpenAI compatible API.
--   **No Data Collection**: All traffic goes directly to the inference API. No data passes through intermediate servers (except for the hosted version).
+- **Real-time AI Suggestions**: Get accurate, context-aware suggestions as you type.
+- **Customizable LLM Settings**: Supports any inference service having an OpenAI compatible API.
+- **No Data Collection**: All traffic goes directly to the inference API. No data passes through
+  intermediate servers (except for the hosted version).
 
 ## Getting Started
 
 ### Prerequisites
 
--   **Android 8 or higher** (Android 13 or higher recommended)
--   API Key for OpenAI or an OpenAI-compatible inference API.
+- **Android 8 or higher** (Android 13 or higher recommended)
 
 ### Installation & Usage
 
 1. Install the latest APK from the [releases page](https://github.com/coreply/coreply/releases)
 2. Configure the app with your API key, URL and model name (see the section below).
-3. Toggle on the switch and grant necessary permissions. **If you encountered the "Restricted settings" dialog, you can follow [these steps](https://support.google.com/android/answer/12623953?hl=en).**
+3. Toggle on the switch and grant necessary permissions. **If you encountered the "Restricted
+   settings" dialog, you can
+   follow [these steps](https://support.google.com/android/answer/12623953?hl=en).**
 4. Start typing in your messaging app, and see suggestions appear!
     - Single tap on the suggestion to insert one word
     - Long press to insert the entire suggestion.
 
 ### Configurations
 
-| Chat Completion                                                                                                                       | Fill-in-the-middle (FIM) ✨NEW              |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Wide selection of models; Better multilingual support                                                                                 | Low latency; Uses fewer tokens              |
-| [OpenAI](#openai)<br/>[Google AI Studio](#google-ai-studio)<br/>[Openrouter](#openrouter)<br/>[Groq](#groq)<br/>Any OpenAI-compatible | [Codestral](#codestral-fim-newly-supported) |
+#### Coreply Cloud
 
-#### OpenAI
+Sign up and get an access key from [Coreply Cloud](https://coreply.up.nadles.com/), and paste it in
+the app.
 
-API URL: `https://api.openai.com/v1/`
+#### OpenAI-Compatible APIs
 
-API Key: [Grab it here](https://platform.openai.com/api-keys)
+| Provider                                                      | Guide                                        |
+|---------------------------------------------------------------|----------------------------------------------|
+| [Google AI Studio (Gemini API)](https://aistudio.google.com/) | [Here](./docs/providers.md#google-ai-studio) |
+| [Groq](https://groq.com/)                                     | [Here](./docs/providers.md#groq)             |
+| [Openrouter](https://openrouter.ai/)                          | [Here](./docs/providers.md#openrouter)       |
+| [OpenAI](https://platform.openai.com/)                        | [Here](./docs/providers.md#openai)           |
+| [Mistral](https://mistral.ai/)                                | [Here](./docs/providers.md#mistral)          |
+| Other OpenAI-compatible endpoints                             | [Here](./docs/providers.md#others)           |
 
-Model Name: `gpt-4.1`, `gpt-4.1-mini`, `gpt-4.1-nano`, `gpt-4o`, or `gpt-4o-mini`.
+## How does it work?
 
-_`gpt-5` family not recommended as they are reasoning models; `mini` variants are recommended for the best cost-performance ratio._
-
-#### Google AI Studio
-
-API URL: `https://generativelanguage.googleapis.com/v1beta/openai/`
-
-API Key: [Grab it here](https://aistudio.google.com/apikey)
-
-Model Name: `gemini-2.0-flash`, `gemini-2.0-flash-lite`, or `gemini-2.5-flash-lite`.
-
-_`gemini-2.5-flash` in AI Studio reasons by default. Therefore not recommended. `gemma-3` family in AI Studio doesn't support system instructions. Thus not compatible._
-
-#### Openrouter
-
-API URL: `https://openrouter.ai/api/v1/`
-
-API Key: [Grab it here](https://openrouter.ai/settings/keys)
-
-Model Name: `google/gemini-2.5-flash`, `google/gemini-2.5-flash-lite`, `google/gemini-2.0-flash-001`, `google/gemini-2.0-flash-lite-001`, `openai/gpt-4.1-mini`, `openai/gpt-4.1`, `mistralai/codestral-2508`, or `openai/gpt-oss-20b`.
-
-#### Groq
-
-API URL: `https://api.groq.com/openai/v1/`
-
-API Key: [Grab it here](https://console.groq.com/keys)
-
-Model Name: `openai/gpt-oss-20b`, `llama-3.1-8b-instant`, or `llama-3.3-70b-versatile`.
-
-#### Codestral FIM [Newly supported!]
-
-API URL: `https://api.mistral.ai/v1/fim/`
-
-API Key: [Grab it here](https://console.mistral.ai/api-keys)
-
-Model Name: `codestral-latest`
-
-#### Others
-
-Theoretically any OpenAI-compatible endpoint can be used. Find the API URL, API Key, and Model Name in the docs of the provider. The default system prompt works with mainstream models, but you can improve it if needed.
-
-Personal note: I like Gemini
-
-Note: Models listed here are just examples. You are welcome to experiment with those not listed. Although smaller models (<7B) tend to fail outputting in the desired format.
+See [Prompting](docs/prompting.md) for details.
 
 ## Build From Source
 
@@ -134,24 +104,24 @@ Note: Models listed here are just examples. You are welcome to experiment with t
 3. Sync the Gradle files and resolve any dependencies.
 4. Build and run the app on your preferred device or emulator.
 
-## Model Selection
-
-See [Model Selection & Providers](./docs/models.md) for details.
-
-## How does it work?
-
-See [Model Selection & Providers](./docs/models.md) for details.
 
 ## Contributing
 
-All contributions are welcome. However, please expect breaking changes as this project is in active development. A contributor license agreement (CLA), or change in license is under consideration. Feel free to reach out before making significant contributions.
+All contributions are welcome. However, please expect breaking changes as this project is in active
+development. A contributor license agreement (CLA), or change in license is under consideration.
+Please to reach out before making significant contributions.
 
 ## Known Issues
 
--   The app cannot read images, videos, voice notes, or other non-text content. Contextual suggestions may be limited in these cases.
--   Hint text 'Message' in WhatsApp is treated as typed text on devices running Android 12 or lower.
--   RTL support is limited.
--   Banking apps in asia commonly block apps from unknown sources having accessibility services permission due to security reasons. If you are facing this issue, you can setup [an accessibility shortcut](https://support.google.com/accessibility/android/answer/7650693?hl=en#step_1) to toggle the coreply on/off quickly. In the future there might be a Play Store listing to avoid this issue.
+- The app cannot read images, videos, voice notes, or other non-text content. Contextual suggestions
+  may be limited in these cases.
+- Hint text 'Message' in WhatsApp is treated as typed text on devices running Android 12 or lower.
+- RTL support is limited.
+- Banking apps in asia commonly block apps from unknown sources having accessibility services
+  permission due to security reasons. If you are facing this issue, you can
+  setup [an accessibility shortcut](https://support.google.com/accessibility/android/answer/7650693?hl=en#step_1)
+  to toggle the coreply on/off quickly. In the future there might be a Play Store listing to avoid
+  this issue.
 
 ## Star History
 
