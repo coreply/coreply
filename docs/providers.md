@@ -111,7 +111,7 @@ Model Name: `codestral-latest`
 
 #### Chat Completion (Other models)
 
-API URL: `https://api.mistral.ai/v1/fim/`
+API URL: `https://api.mistral.ai/v1/`
 
 API Key: [Grab it here](https://console.mistral.ai/api-keys)
 
