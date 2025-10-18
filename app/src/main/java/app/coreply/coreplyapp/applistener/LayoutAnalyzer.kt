@@ -252,3 +252,23 @@ fun teamsMessageListProcessor(
     //Log.v("CoWA", conversationList.toString())
     return chatMessages
 }
+
+fun beeperMessageListProcessor(node: AccessibilityNodeInfo): MutableList<ChatMessage> {
+    val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
+    val chatWidgets: MutableList<AccessibilityNodeInfo> = findNodesByCriteria(
+        node,
+        { it.viewIdResourceName == "messageBubbleTextContent" })
+    chatWidgets.sortWith(nodeComparator)
+
+    val rootRect = Rect()
+    node.getBoundsInScreen(rootRect)
+    for (chatNodeInfo in chatWidgets) {
+        val bounds = Rect()
+        chatNodeInfo.getBoundsInScreen(bounds)
+        val isMe = (bounds.left + bounds.right) / 2 > (rootRect.left + rootRect.right) / 2
+        val message_text = chatNodeInfo.text?.toString() ?: ""
+        chatMessages.add(ChatMessage(if (isMe) "Me" else "Others", message_text, ""))
+    }
+    //Log.v("CoWA", conversationList.toString())
+    return chatMessages
+}

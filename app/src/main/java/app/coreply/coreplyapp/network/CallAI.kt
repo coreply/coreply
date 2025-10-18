@@ -175,7 +175,7 @@ data class TypingInfo(val pastMessages: ChatContents, val currentTyping: String)
 @OptIn(FlowPreview::class)
 open class CallAI(
     open val suggestionStorage: SuggestionStorageClass,
-    private val context: Context
+    context: Context
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val networkScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -232,8 +232,11 @@ open class CallAI(
         } catch (e: Exception) {
             // Handle exceptions such as network errors
             e.printStackTrace()
-            val errorMessage = e.toString()
-            suggestionStorage.listener?.onSuggestionError(typingInfo, errorMessage)
+            if(preferencesManager.showErrorsState.value){
+                val errorMessage = e.toString()
+                suggestionStorage.listener?.onSuggestionError(typingInfo, errorMessage)
+            }
+
         }
     }
 }

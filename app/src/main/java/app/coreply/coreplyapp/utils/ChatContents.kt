@@ -29,7 +29,8 @@ class ChatContents {
         else {
             // Append new messages to the chatContents list
             if (other[0] in chatContents) {
-                val clearCurrentSuggestions = other.last().sender == "Me" && chatContents.last() == other[other.size-2]
+                val clearCurrentSuggestions = other.last().sender == "Me" && other.size > 1 && chatContents.last() == other[other.size-2]
+                // If the second last message in the new messages list is the same as the last message in the old messages list, that means the user has sent a new message
                 for (i in other) {
                     if (i !in chatContents) {
                         chatContents.add(i)

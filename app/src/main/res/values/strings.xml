@@ -30,7 +30,7 @@
     <string name="done">Done</string>
     <string name="setup_now">Setup Now</string>
     <string name="skip">Skip</string>
-    <string name="running">coreply is running</string>
+    <string name="running">Coreply is running</string>
     <string name="tap4settings">Tap for settings</string>
 
     <string name="permission_overlay_title">Grant Permission</string>
@@ -41,7 +41,7 @@
 
     <string name="permission_disable_title">Disable Manually</string>
     <string name="permission_disable_description"><b>Accessibility service</b> needs to be disabled by the following instructions:\n1. Press <b>Next</b>\n2. Select <b>coreply</b>.\n3. Toggle off the switch</string>
-    <string name="app_accessibility_started">coreply auto detection is started</string>
+    <string name="app_accessibility_started">Coreply auto detection is started</string>
     <string name="tutorial_permission_done">Everything is set up, you may continue to the next step</string>
 
     <string name="thank_support">Thank you for supporting our app!</string>
@@ -50,7 +50,7 @@
     <string name="pref_title_topp">TopP</string>
     <string name="pref_description_topp">TopP parameter of the LLM</string>
     <string name="pref_ig_follow">Follow Us on Instagram</string>
-    <string name="app_name">coreply</string>
+    <string name="app_name">Coreply</string>
     <string name="pref_description_system_prompt">The system prompt for the LLM</string>
 
 </resources>

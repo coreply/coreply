@@ -323,9 +323,24 @@ class Overlay(
             withContext(Dispatchers.Main) {
                 val actualContent = content ?: OverlayContent.Empty
                 val currentState = overlayState.getCurrentState()
-                val textWidth = dummyPaint.measureText(actualContent.fullText)
+
+                // Check if errors should be hidden
+                val shouldShowContent = if (actualContent.type == OverlayContentType.ERROR) {
+                    preferencesManager.showErrorsState.value
+                } else {
+                    true
+                }
+
+                val displayContent = if (!shouldShowContent) {
+                    // If errors are disabled, don't show error content
+                    OverlayContent.Empty
+                } else {
+                    actualContent
+                }
+
+                val textWidth = dummyPaint.measureText(displayContent.fullText)
                 viewModel.updateSuggestion(
-                    actualContent,
+                    displayContent,
                     textWidth,
                     currentState.chatEntryWidth,
                     currentState.status,

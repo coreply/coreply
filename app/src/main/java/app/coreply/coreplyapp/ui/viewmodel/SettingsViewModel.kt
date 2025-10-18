@@ -22,7 +22,8 @@ data class SettingsUiState(
     val temperature: Float = 0.3f,
     val topP: Float = 0.5f,
     val hostedApiKey: String = "",
-    val suggestionPresentationType: SuggestionPresentationType = SuggestionPresentationType.BOTH
+    val suggestionPresentationType: SuggestionPresentationType = SuggestionPresentationType.BOTH,
+    val showErrors: Boolean = false
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -51,7 +52,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             temperature = preferencesManager.temperatureState.value,
             topP = preferencesManager.topPState.value,
             hostedApiKey = preferencesManager.hostedApiKeyState.value,
-            suggestionPresentationType = preferencesManager.suggestionPresentationTypeState.value
+            suggestionPresentationType = preferencesManager.suggestionPresentationTypeState.value,
+            showErrors = preferencesManager.showErrorsState.value
         )
     }
     
@@ -120,6 +122,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         uiState = uiState.copy(suggestionPresentationType = type)
         viewModelScope.launch {
             preferencesManager.updateSuggestionPresentationType(type)
+        }
+    }
+
+    fun updateShowErrors(show: Boolean) {
+        uiState = uiState.copy(showErrors = show)
+        viewModelScope.launch {
+            preferencesManager.updateShowErrors(show)
         }
     }
 }
