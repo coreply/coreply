@@ -114,6 +114,12 @@ fun telegramDetector(node: AccessibilityNodeInfo, tgPkgName: String = "org.teleg
     return Pair(false, null)
 }
 
+fun beeperDetector(node: AccessibilityNodeInfo): Boolean {
+    return isContentNodeAboveInput(node.findAccessibilityNodeInfosByViewId("android:id/content").firstOrNull(),node.findFocus(
+        AccessibilityNodeInfo.FOCUS_INPUT))
+
+}
+
 fun iterNode(node: AccessibilityNodeInfo) {
     Log.v(
         "CoWA",

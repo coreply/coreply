@@ -308,8 +308,8 @@ object SupportedApps {
         ),
         SupportedAppProperty(
             pkgName = "com.beeper.android",
-            triggerDetector = makeGeneralDetector("sendButton"),
-            inputJudger = { _, _, id, pkgName -> pkgName == "com.beeper.android" },
+            triggerDetector = makeGeneralDetector("message_list"),
+            inputJudger = { root, focus, id, pkgName -> pkgName == "com.beeper.android" && beeperDetector(root) },
             textInputFinder = null,
             excludeWidgets = arrayOf<String>(),
             messageListProcessor = { node: AccessibilityNodeInfo ->
