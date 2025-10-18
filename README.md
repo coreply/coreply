@@ -63,7 +63,6 @@ companies._
 ### Prerequisites
 
 - **Android 8 or higher** (Android 13 or higher recommended)
-- API Key for OpenAI or an OpenAI-compatible inference API.
 
 ### Installation & Usage
 
