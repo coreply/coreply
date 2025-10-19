@@ -12,6 +12,8 @@ your typing experience with intelligent, context-aware suggestions.
 <img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60"/>
 </a>
 
+SHA-256 hash of the signing certificate: `87:95:62:D0:13:BD:E2:44:8E:D9:B2:F3:78:F0:DB:96:02:BF:BB:CF:70:E8:65:A0:25:F4:D2:52:D0:EB:AA:94`
+
 ## Supported Texting Apps
 
 |                                                           |
