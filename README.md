@@ -38,6 +38,7 @@ your typing experience with intelligent, context-aware suggestions.
 | **Microsoft Teams**                                       |
 | **Viber**                                                 |
 | **Discord**                                               |
+| **Beeper**                                                |
 
 <sup>1</sup> Performance issues: Coreply may not follow smoothly the animations and transitions.  
 <sup>2</sup> Limited role detection: Coreply cannot detect whether the message is sent or
