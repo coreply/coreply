@@ -46,6 +46,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -57,11 +58,10 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
     private var overlay: Overlay? = null
     private var overlayState: OverlayState? = null
     private var pixelCalculator: PixelCalculator = PixelCalculator(this)
-    private var currentApp: SupportedAppProperty? = null
     private var currentExcludeList = arrayOf<String>()
     private var running = false
     private var currentText: String? = null
-    private val conversationList = ChatContents()
+    private var currentStore: ScreenContextStore? = null
     open val ai by lazy { CallAI(SuggestionStorageClass(this), this) }
 
 
@@ -130,52 +130,47 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
             overlayState?.updateContent(OverlayContent.Suggestion.create(suggestionText))
         } else {
             overlayState?.updateContent(OverlayContent.Empty)
-            ai.onUserInputChanged(TypingInfo(conversationList, actualMessage))
+            ai.onUserInputChanged(currentStore?.toTypingInfo() ?: TypingInfo(ChatContents(),""))
         }
     }
 
     private fun refreshOverlay(event: AccessibilityEvent, root: AccessibilityNodeInfo): Boolean {
         var isSupportedApp = false
-        val (supportedAppProperty, inputWidget) = detectSupportedApp(root)
+        var previousInputNodeStillHere = false
+        if (currentStore != null) {
+            previousInputNodeStillHere = currentStore?.refreshInputNode() ?: false
+        }
+        val (supportedAppProperty, inputWidget) = if (previousInputNodeStillHere) Pair(
+            currentStore?.currentApp,
+            currentStore?.currentInput
+        ) else detectSupportedApp(root)
         if (supportedAppProperty != null && inputWidget != null) {
-//            var (detected: Boolean, inputWidget: AccessibilityNodeInfo?) =
-//                supportedAppProperty.triggerDetector(root, event)
-//            if (inputWidget == null) {
-////                Log.v("CoWA", "Input widget is null for ${supportedAppProperty.pkgName}")
-//                inputWidget = supportedAppProperty.textInputFinder?.invoke(root)
-////                Log.v("CoWA", "Input widget found: $inputWidget, detected: $detected")
-//            }
-            if (true) {//(detected && inputWidget != null) { // Only one trigger widget is supported
-                isSupportedApp = true
-                val info = this.serviceInfo
-                info.notificationTimeout = 0
-                info.eventTypes =
-                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
-                this.serviceInfo = info
-                currentApp = supportedAppProperty
-                currentExcludeList = supportedAppProperty.excludeWidgets
-                running = true
+            isSupportedApp = true
+            val info = this.serviceInfo
+            info.notificationTimeout = 0
+            info.eventTypes =
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
+            this.serviceInfo = info
+            currentExcludeList = supportedAppProperty.excludeWidgets
+            running = true
 
-                // Update state instead of direct overlay calls
-                overlayState?.updateEnabled(true)
-                overlayState?.updateRunning(true)
-                overlayState?.updateCurrentApp(supportedAppProperty)
+            // Update state instead of direct overlay calls
+            overlayState?.updateEnabled(true)
+            overlayState?.updateRunning(true)
+            overlayState?.updateCurrentApp(supportedAppProperty)
 
-                // Use throttled version to offload heavy operations
-                measureWindowThrottled(inputWidget)
-                getMessagesThrottled(root)
-                //onEditTextUpdate(inputWidget, status)
-//                var actualMessage =
-//                    inputWidget.text?.toString()?.replace("Compose Message", "") ?: ""
-//                if (actualMessage == "Message") {
-//                    actualMessage = ""
-//                }
-//                if (actualMessage != currentText) {
-//                    // Use throttled version to offload heavy operations
-//                    getMessagesThrottled(root)
-//                    onEditTextUpdate(inputWidget, status)
-//                }                 //break
+            if (currentStore == null) {
+                currentStore = ScreenContextStore.create(
+                    currentInput = inputWidget,
+                    currentApp = supportedAppProperty,
+                    currentMessageListNode = root,
+                    messageListProcessor = supportedAppProperty.messageListProcessor
+                )
             }
+            // Use throttled version to offload heavy operations
+            measureWindowThrottled(inputWidget)
+            getMessagesThrottled(root)
+
         }
         if (!isSupportedApp) {
             if (running) {
@@ -190,9 +185,10 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
                 autoDetect = false
                 running = false
                 ai.suggestionStorage.clearSuggestion()
-                conversationList.clear()
                 currentText = null
+                currentStore = null
             }
+
         }
         return isSupportedApp
     }
@@ -273,6 +269,7 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
         }
         serviceScope.launch {
             getMessagesFlow
+                .debounce(500)
                 .collect { rootNode ->
                     try {
                         val result = getMessagesInternal(rootNode)
@@ -308,12 +305,17 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
             AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
             node.text?.length ?: 0
         )
-
+        val startTime = System.currentTimeMillis()
         if (node.refreshWithExtraData(
                 AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
                 arguments
             )
         ) {
+            val endTime = System.currentTimeMillis()
+            Log.v(
+                "CoWA",
+                "Cursor position refresh time: ${endTime - startTime} ms"
+            )
 
             val rectArray: Array<RectF?>? = if (android.os.Build.VERSION.SDK_INT >= 33) {
                 node.extras.getParcelableArray(
@@ -403,12 +405,10 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
      */
     private suspend fun getMessagesInternal(rootInActiveWindow: AccessibilityNodeInfo): Boolean =
         // This is the heavy operation that processes message list
-        if (currentApp == null) {
+        if (currentStore == null) {
             false
         } else {
-            conversationList.combineChatContents(
-                currentApp!!.messageListProcessor(rootInActiveWindow)
-            )
+            currentStore?.refreshMessageListNode() ?: false
         }
 
 

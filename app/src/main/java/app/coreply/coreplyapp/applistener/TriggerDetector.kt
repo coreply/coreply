@@ -28,7 +28,10 @@ enum class DetectedApp {
 
 
 fun detectSupportedApp(rootNode: AccessibilityNodeInfo?): Pair<SupportedAppProperty?, AccessibilityNodeInfo?> {
+    val startTime = System.currentTimeMillis()
     val inputNode = rootNode?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+    val endTime = System.currentTimeMillis()
+    Log.d("TriggerDetector", "Input node search time: ${endTime - startTime} ms")
 //    iterNode(rootNode!!)
     if (inputNode != null) {
         val inputNodeId = inputNode.viewIdResourceName ?: ""

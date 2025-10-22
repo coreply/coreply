@@ -22,7 +22,7 @@ class ChatContents {
     fun combineChatContents(other: MutableList<ChatMessage>): Boolean {
         if (chatContents.size == 0 || other.size == 0) {
             chatContents = other
-            return true
+            return false
         } else if (chatContents == other) (
             return false
         )
@@ -36,7 +36,7 @@ class ChatContents {
                         chatContents.add(i)
                     }
                 }
-                return clearCurrentSuggestions
+                return false//clearCurrentSuggestions && chatContents.size>1
             } else if (chatContents[0] in other) {
                 // Insert new messages to the top of chatContents list
                 for (i in chatContents) {
