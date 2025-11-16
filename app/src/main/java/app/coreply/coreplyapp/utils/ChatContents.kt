@@ -1,7 +1,7 @@
 package app.coreply.coreplyapp.utils
 
 import android.util.Log
-import app.coreply.coreplyapp.network.TypingInfo
+import app.coreply.coreplyapp.suggestions.TypingInfo
 
 
 class ChatContents {
@@ -22,7 +22,7 @@ class ChatContents {
     fun combineChatContents(other: MutableList<ChatMessage>): Boolean {
         if (chatContents.size == 0 || other.size == 0) {
             chatContents = other
-            return false
+            return other.size > 0
         } else if (chatContents == other) (
             return false
         )
