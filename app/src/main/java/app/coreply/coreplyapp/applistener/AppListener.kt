@@ -21,48 +21,33 @@ package app.coreply.coreplyapp.applistener
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.graphics.Rect
-import android.graphics.RectF
-import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
 import app.coreply.coreplyapp.R
-import app.coreply.coreplyapp.network.CallAI
-import app.coreply.coreplyapp.network.SuggestionStorageClass
-import app.coreply.coreplyapp.network.TypingInfo
 import app.coreply.coreplyapp.ui.Overlay
-import app.coreply.coreplyapp.ui.OverlayContent
-import app.coreply.coreplyapp.ui.OverlayState
-import app.coreply.coreplyapp.utils.ChatContents
+import app.coreply.coreplyapp.ui.viewmodel.OverlayViewModel
+import app.coreply.coreplyapp.ui.viewmodel.RefreshType
 import app.coreply.coreplyapp.utils.PixelCalculator
-import app.coreply.coreplyapp.utils.SuggestionUpdateListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Created on 10/13/16.
  */
 @OptIn(kotlinx.coroutines.FlowPreview::class)
-open class AppListener : AccessibilityService(), SuggestionUpdateListener {
-    private var overlay: Overlay? = null
-    private var overlayState: OverlayState? = null
+open class AppListener : AccessibilityService() {
+    private lateinit var overlay: Overlay
+    private lateinit var overlayViewModel: OverlayViewModel
     private var pixelCalculator: PixelCalculator = PixelCalculator(this)
-    private var currentApp: SupportedAppProperty? = null
-    private var currentExcludeList = arrayOf<String>()
-    private var running = false
-    private var currentText: String? = null
-    private val conversationList = ChatContents()
-    open val ai by lazy { CallAI(SuggestionStorageClass(this), this) }
 
 
     // Coroutine scope for background operations
@@ -80,10 +65,6 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-
-    // Results storage for latest operations
-    private var latestMeasureWindowResult: AppSupportStatus = AppSupportStatus.SUPPORTED_UNKOWN
-    private var latestGetMessagesResult: Boolean = false
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         Log.v("CoWA", "event triggered")
@@ -108,77 +89,34 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
 
 
     override fun onInterrupt() {
-        overlay!!.disable()
+        overlay.removeOverlays()
     }
 
-    private fun onEditTextUpdate(node: AccessibilityNodeInfo, status: AppSupportStatus) {
-        var actualMessage = node.text?.toString()?.replace("Compose Message", "") ?: ""
-        if (status == AppSupportStatus.HINT_TEXT || node.isShowingHintText) {
-            actualMessage = ""
-        }
-
-        if (actualMessage == currentText) {
-            return
-        }
-        currentText = actualMessage
-
-        // Update state instead of direct overlay calls
-        overlayState?.updateNode(node, status)
-
-        if (ai.suggestionStorage.getSuggestion(actualMessage) != null) {
-            val suggestionText = ai.suggestionStorage.getSuggestion(actualMessage)!!
-            overlayState?.updateContent(OverlayContent.Suggestion.create(suggestionText))
-        } else {
-            overlayState?.updateContent(OverlayContent.Empty)
-            ai.onUserInputChanged(TypingInfo(conversationList, actualMessage))
-        }
-    }
 
     private fun refreshOverlay(event: AccessibilityEvent, root: AccessibilityNodeInfo): Boolean {
         var isSupportedApp = false
-        val (supportedAppProperty, inputWidget) = detectSupportedApp(root)
+        var previousInputNodeStillHere = false
+        previousInputNodeStillHere = overlayViewModel.refresh(RefreshType.NORMAL, false)
+        val (supportedAppProperty, inputWidget) = if (previousInputNodeStillHere) Pair(
+            overlayViewModel.uiState.value.currentApp,
+            overlayViewModel.uiState.value.currentInput
+        ) else detectSupportedApp(root)
         if (supportedAppProperty != null && inputWidget != null) {
-//            var (detected: Boolean, inputWidget: AccessibilityNodeInfo?) =
-//                supportedAppProperty.triggerDetector(root, event)
-//            if (inputWidget == null) {
-////                Log.v("CoWA", "Input widget is null for ${supportedAppProperty.pkgName}")
-//                inputWidget = supportedAppProperty.textInputFinder?.invoke(root)
-////                Log.v("CoWA", "Input widget found: $inputWidget, detected: $detected")
-//            }
-            if (true) {//(detected && inputWidget != null) { // Only one trigger widget is supported
-                isSupportedApp = true
-                val info = this.serviceInfo
-                info.notificationTimeout = 0
-                info.eventTypes =
-                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
-                this.serviceInfo = info
-                currentApp = supportedAppProperty
-                currentExcludeList = supportedAppProperty.excludeWidgets
-                running = true
+            isSupportedApp = true
+            val info = this.serviceInfo
+            info.notificationTimeout = 0
+            info.eventTypes =
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
+            this.serviceInfo = info
+            // Update state instead of direct overlay calls
+            overlayViewModel.enable(supportedAppProperty, inputWidget, root)
 
-                // Update state instead of direct overlay calls
-                overlayState?.updateEnabled(true)
-                overlayState?.updateRunning(true)
-                overlayState?.updateCurrentApp(supportedAppProperty)
+            measureWindowFlow.tryEmit(inputWidget)
+            getMessagesFlow.tryEmit(root)
 
-                // Use throttled version to offload heavy operations
-                measureWindowThrottled(inputWidget)
-                getMessagesThrottled(root)
-                //onEditTextUpdate(inputWidget, status)
-//                var actualMessage =
-//                    inputWidget.text?.toString()?.replace("Compose Message", "") ?: ""
-//                if (actualMessage == "Message") {
-//                    actualMessage = ""
-//                }
-//                if (actualMessage != currentText) {
-//                    // Use throttled version to offload heavy operations
-//                    getMessagesThrottled(root)
-//                    onEditTextUpdate(inputWidget, status)
-//                }                 //break
-            }
         }
         if (!isSupportedApp) {
-            if (running) {
+            if (overlayViewModel.uiState.value.isRunning) {
                 val info = this.serviceInfo
                 info.notificationTimeout = 2000
                 info.eventTypes =
@@ -186,13 +124,9 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
                 this.serviceInfo = info
 
                 // Update state instead of direct overlay calls
-                overlayState?.disable()
-                autoDetect = false
-                running = false
-                ai.suggestionStorage.clearSuggestion()
-                conversationList.clear()
-                currentText = null
+                overlayViewModel.disable()
             }
+
         }
         return isSupportedApp
     }
@@ -213,43 +147,14 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
             .show()
         val appContext = applicationContext
 
-        // Initialize state management
-        overlayState = OverlayState()
-
-        if (overlay == null) {
-            overlay = Overlay(
-                appContext,
-                getSystemService(WINDOW_SERVICE) as WindowManager,
-                overlayState!!
-            )
-            overlay!!.disable()
-        } else {
-            overlay!!.disable()
-        }
-
-        // Set up reactive state observation
-        setupStateObservation()
+        overlay = Overlay(
+            appContext,
+            getSystemService(WINDOW_SERVICE) as WindowManager,
+        )
+        overlayViewModel = overlay.viewModel
 
         // Initialize throttled flows for heavy operations
         initializeThrottledFlows()
-    }
-
-    /**
-     * Set up observation of state changes to update overlay reactively
-     */
-    private fun setupStateObservation() {
-        serviceScope.launch {
-            overlayState?.state?.collectLatest { state ->
-                try {
-                    //Log.v("CoWA", "Overlay state updated: $state")
-                    withContext(Dispatchers.Main) {
-                        overlay?.updateFromState(state)
-                    }
-                } catch (e: Exception) {
-                    Log.e("CoWA", "Error updating overlay from state", e)
-                }
-            }
-        }
     }
 
     /**
@@ -261,11 +166,8 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
             measureWindowFlow
                 .collect { node ->
                     try {
-                        val result = measureWindowInternal(node)
-                        // Switch back to main thread for UI updates
-                        withContext(Dispatchers.Main) {
-                            latestMeasureWindowResult = result
-                        }
+                        overlayViewModel.refresh(RefreshType.CHAR_LOCATION, true)
+
                     } catch (e: Exception) {
                         Log.e("CoWA", "Error in measureWindow background operation", e)
                     }
@@ -273,14 +175,10 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
         }
         serviceScope.launch {
             getMessagesFlow
+                .debounce(500)
                 .collect { rootNode ->
                     try {
-                        val result = getMessagesInternal(rootNode)
-                        // Switch back to main thread for result handling
-                        if (result) {
-                            ai.suggestionStorage.clearSuggestion()
-                            overlayState?.updateContent(OverlayContent.Empty)
-                        }
+                        getMessagesInternal()
                     } catch (e: Exception) {
                         Log.e("CoWA", "Error in getMessages background operation", e)
                     }
@@ -288,176 +186,21 @@ open class AppListener : AccessibilityService(), SuggestionUpdateListener {
         }
     }
 
-    /**
-     * Internal implementation of measureWindow that runs on background thread
-     */
-    private fun measureWindowInternal(node: AccessibilityNodeInfo): AppSupportStatus {
-        val rect = Rect()
-        var status: AppSupportStatus = AppSupportStatus.SUPPORTED_UNKOWN
-
-        // This operation can be heavy, so we run it on background thread
-        node.getBoundsInScreen(rect)
-
-        // Use EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY to get the cursor position
-        val arguments = Bundle()
-        arguments.putInt(
-            AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX,
-            0
-        )
-        arguments.putInt(
-            AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
-            node.text?.length ?: 0
-        )
-
-        if (node.refreshWithExtraData(
-                AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-                arguments
-            )
-        ) {
-
-            val rectArray: Array<RectF?>? = if (android.os.Build.VERSION.SDK_INT >= 33) {
-                node.extras.getParcelableArray(
-                    AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-                    RectF::class.java
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                node.extras.getParcelableArray(
-                    AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-                )?.mapNotNull { it as? RectF }?.toTypedArray()
-            }
-            // For loop in reverse order to get the last cursor position
-            if (rectArray != null && rectArray.any { it != null }) {
-                status = AppSupportStatus.TYPING
-                var rtl = false
-                for (rectF in rectArray) {
-                    if (rectF != null) {
-                        // Check if is RTL by comparing the distance to left and right edges
-                        val distanceToLeft = Math.abs(rectF.left - rect.left)
-                        val distanceToRight = Math.abs(rectF.right - rect.right)
-                        if (distanceToLeft > distanceToRight) {
-                            rtl = true
-                        }
-                        break
-                    }
-                }
-                for (i in rectArray.indices.reversed()) {
-                    val rectF = rectArray[i]
-                    if (rectF != null) {
-                        if (rtl) {
-                            // RTL, align to left edge
-                            rect.right = rectF.left.toInt()
-                        } else {
-                            // LTR, align to right edge
-                            rect.left = rectF.right.toInt()
-                        }
-                        rect.top = rectF.top.toInt()
-                        rect.bottom = rectF.bottom.toInt()
-                        break
-                    }
-                }
-            } else {
-                rect.left += (rect.width() * 0.25).toInt()
-                rect.right -= (rect.width() * 0.25).toInt()
-                status = AppSupportStatus.HINT_TEXT
-            }
-
-        } else {
-            Log.v("CoWA", "Failed to refresh cursor position")
-        }
-        Log.v("CoWA", "Measured rect: $rect, status: $status")
-
-        // Update shared state instead of direct overlay calls
-
-        overlayState?.updateRect(rect)
-        overlayState?.updateNode(node, status)
-
-
-        if (node.refreshWithExtraData(
-                AccessibilityNodeInfo.EXTRA_DATA_RENDERING_INFO_KEY,
-                arguments
-            )
-        ) {
-            //Log.v("CoWA", "Text size in px: ${node.extraRenderingInfo?.textSizeInPx}")
-
-            overlayState?.updateTextSize(
-                if (android.os.Build.VERSION.SDK_INT >= 30 && node.extraRenderingInfo != null) {
-                    node.extraRenderingInfo!!.textSizeInPx
-                } else {
-                    pixelCalculator.spToPx(
-                        18f
-                    )
-                }
-            )
-
-        }
-        onEditTextUpdate(
-            node, status
-        )
-
-        return status
-    }
 
     /**
      * Internal implementation of getMessages that runs on background thread
      */
-    private suspend fun getMessagesInternal(rootInActiveWindow: AccessibilityNodeInfo): Boolean =
-        // This is the heavy operation that processes message list
-        if (currentApp == null) {
-            false
-        } else {
-            conversationList.combineChatContents(
-                currentApp!!.messageListProcessor(rootInActiveWindow)
-            )
-        }
-
-
-    /**
-     * Lightweight version of measureWindow that triggers background processing
-     * and returns cached result for immediate use
-     */
-    private fun measureWindowThrottled(node: AccessibilityNodeInfo): AppSupportStatus {
-        // Emit to flow for background processing
-        measureWindowFlow.tryEmit(node)
-        // Return cached result for immediate response
-        return latestMeasureWindowResult
-    }
-
-    /**
-     * Lightweight version of getMessages that triggers background processing
-     * and returns cached result for immediate use
-     */
-    private fun getMessagesThrottled(rootInActiveWindow: AccessibilityNodeInfo) {
-        // Emit to flow for background processing
-        getMessagesFlow.tryEmit(rootInActiveWindow)
+    private fun getMessagesInternal() {
+        overlayViewModel.refresh(RefreshType.TEXT_SIZE, false, pixelCalculator.spToPx(18f))
+        overlayViewModel.refreshMessageListNode()
     }
 
 
     override fun onDestroy() {
         super.onDestroy()
-        if (overlay != null) overlay!!.disable()
+        overlayViewModel.disable()
         // Cancel all background operations
         serviceScope.cancel()
     }
 
-    override fun onSuggestionUpdated(typingInfo: TypingInfo, newSuggestion: String) {
-        if (running) {
-            val suggestionText = ai.suggestionStorage.getSuggestion(currentText!!)
-            if (suggestionText != null) {
-                overlayState?.updateContent(OverlayContent.Suggestion.create(suggestionText))
-            }
-        } else {
-            ai.suggestionStorage.clearSuggestion()
-        }
-    }
-
-    override fun onSuggestionError(typingInfo: TypingInfo, errorMessage: String) {
-        if (running) {
-            overlayState?.updateContent(OverlayContent.Error(errorMessage))
-        }
-    }
-
-    companion object {
-        var autoDetect: Boolean = false
-    }
 }

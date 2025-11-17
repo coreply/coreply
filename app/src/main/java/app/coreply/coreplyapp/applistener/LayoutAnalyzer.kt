@@ -149,11 +149,12 @@ fun telegramMessageListProcessor(node: AccessibilityNodeInfo): MutableList<ChatM
     val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
     val contentNodes = node.findAccessibilityNodeInfosByViewId("android:id/content")
     if (contentNodes != null && contentNodes.size == 1) {
-
+        val startTime = System.currentTimeMillis()
         val chatWidgets: MutableList<AccessibilityNodeInfo> = findNodesByCriteria(
             node,
             { (it.className == "android.view.ViewGroup" && it.text != null && it.text.isNotBlank()) })
-
+        val endTime = System.currentTimeMillis()
+        Log.d("TelegramProcessor", "Time taken to find chat widgets: ${endTime - startTime} ms")
         chatWidgets.sortWith(nodeComparator)
 
         val rootRect = Rect()

@@ -72,6 +72,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     val suggestionPresentationTypeState: MutableState<SuggestionPresentationType> = mutableStateOf(SuggestionPresentationType.BOTH)
     val showErrorsState: MutableState<Boolean> = mutableStateOf(DEFAULT_SHOW_ERRORS)
 
+
     data class PreferenceUpdate(
         val masterSwitch: Boolean? = null,
         val apiType: String? = null,
@@ -101,6 +102,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             updates.suggestionPresentationType?.let { preferences[SUGGESTION_PRESENTATION_TYPE] = it.value }
             updates.showErrors?.let { preferences[SHOW_ERRORS] = it }
         }
+
     }
 
     /**
