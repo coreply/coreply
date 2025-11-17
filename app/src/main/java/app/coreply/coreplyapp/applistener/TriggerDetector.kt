@@ -42,6 +42,8 @@ fun detectSupportedApp(rootNode: AccessibilityNodeInfo?, selectedApps: Set<Strin
                     app,
                     inputNode
                 )
+            } else if(selectedApps.contains(app.pkgName)){
+                return Pair(null, null) // Not a chat layout
             }
         }
         if (selectedApps.contains(inputNodePackage) && inputNode.className.contains("android.widget.EditText")) {
