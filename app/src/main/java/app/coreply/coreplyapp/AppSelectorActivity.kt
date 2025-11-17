@@ -82,12 +82,14 @@ fun AppSelectorScreen(
                 uiState.isLoading -> {
                     LoadingContent()
                 }
+
                 uiState.error != null -> {
                     ErrorContent(
                         error = uiState.error,
                         onRetry = { viewModel.retryLoadApps() }
                     )
                 }
+
                 else -> {
                     AppListContent(
                         supportedApps = uiState.supportedApps,
@@ -169,11 +171,11 @@ fun AppListContent(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Officially Supported Apps Section
+        // Supported Apps Section
         if (supportedApps.isNotEmpty()) {
             item {
                 Text(
-                    text = "Officially Supported Apps",
+                    text = "Coreply Supported Apps",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -236,63 +238,62 @@ fun AppSelectionItem(
     isSelected: Boolean,
     onSelectionChanged: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-            ) {
-                // App Icon
-                app.appIcon?.let { icon ->
-                    Image(
-                        bitmap = icon.toBitmap(48, 48).asImageBitmap(),
-                        contentDescription = "${app.appName} icon",
-                        modifier = Modifier.size(48.dp)
-                    )
-                } ?: run {
-                    Box(
-                        modifier = Modifier.size(48.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("?", style = MaterialTheme.typography.headlineMedium)
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column {
-                    Text(
-                        text = app.appName,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = app.packageName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (app.isSupported) {
-                        Text(
-                            text = "Officially Supported",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+            // App Icon
+            app.appIcon?.let { icon ->
+                Image(
+                    bitmap = icon.toBitmap(48, 48).asImageBitmap(),
+                    contentDescription = "${app.appName} icon",
+                    modifier = Modifier.size(48.dp)
+                )
+            } ?: run {
+                Box(
+                    modifier = Modifier.size(48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("?", style = MaterialTheme.typography.headlineMedium)
                 }
             }
 
-            Switch(
-                checked = isSelected,
-                onCheckedChange = { onSelectionChanged() }
-            )
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(
+                    text = app.appName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = app.packageName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (app.isSupported) {
+                    Text(
+                        text = "Supported",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Switch(
+            checked = isSelected,
+            onCheckedChange = { onSelectionChanged() }
+        )
     }
+
 }
