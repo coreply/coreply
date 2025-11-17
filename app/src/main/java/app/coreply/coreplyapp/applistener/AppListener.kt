@@ -27,6 +27,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
 import app.coreply.coreplyapp.R
+import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.ui.Overlay
 import app.coreply.coreplyapp.ui.viewmodel.OverlayViewModel
 import app.coreply.coreplyapp.ui.viewmodel.RefreshType
@@ -47,7 +48,8 @@ import kotlinx.coroutines.launch
 open class AppListener : AccessibilityService() {
     private lateinit var overlay: Overlay
     private lateinit var overlayViewModel: OverlayViewModel
-    private var pixelCalculator: PixelCalculator = PixelCalculator(this)
+    private val pixelCalculator: PixelCalculator = PixelCalculator(this)
+    private val preferencesManager: PreferencesManager = PreferencesManager.getInstance(this)
 
 
     // Coroutine scope for background operations
@@ -100,7 +102,7 @@ open class AppListener : AccessibilityService() {
         val (supportedAppProperty, inputWidget) = if (previousInputNodeStillHere) Pair(
             overlayViewModel.uiState.value.currentApp,
             overlayViewModel.uiState.value.currentInput
-        ) else detectSupportedApp(root)
+        ) else detectSupportedApp(root, preferencesManager.selectedAppsState.value)
         if (supportedAppProperty != null && inputWidget != null) {
             isSupportedApp = true
             val info = this.serviceInfo

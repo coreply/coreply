@@ -27,7 +27,7 @@ enum class DetectedApp {
 }
 
 
-fun detectSupportedApp(rootNode: AccessibilityNodeInfo?): Pair<SupportedAppProperty?, AccessibilityNodeInfo?> {
+fun detectSupportedApp(rootNode: AccessibilityNodeInfo?, selectedApps: Set<String>): Pair<SupportedAppProperty?, AccessibilityNodeInfo?> {
     val startTime = System.currentTimeMillis()
     val inputNode = rootNode?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
     val endTime = System.currentTimeMillis()
@@ -37,22 +37,22 @@ fun detectSupportedApp(rootNode: AccessibilityNodeInfo?): Pair<SupportedAppPrope
         val inputNodeId = inputNode.viewIdResourceName ?: ""
         val inputNodePackage = inputNode.packageName ?: ""
         for (app in SupportedApps.supportedApps){
-            if (app.inputJudger(rootNode, inputNode, inputNodeId, inputNodePackage.toString())) {
+            if (selectedApps.contains(app.pkgName) && app.inputJudger(rootNode, inputNode, inputNodeId, inputNodePackage.toString())) {
                 return Pair(
                     app,
                     inputNode
                 )
             }
         }
-        if (inputNodePackage == "com.snapchat.android") {
-            return Pair(SupportedAppProperty("com.snapchat.android", makeGeneralDetector("dummy"),
+        if (selectedApps.contains(inputNodePackage) && inputNode.className.contains("android.widget.EditText")) {
+            return Pair(SupportedAppProperty(inputNodePackage.toString(), makeGeneralDetector("dummy"),
                 { _, _, id, _ -> true },
                 { generalTextInputFinder(it) },
                 arrayOf<String>(),
                 {
                     onScreenContentProcessor(it)
                 },
-                DetectedApp.INSTAGRAM), inputNode)
+                DetectedApp.OTHER), inputNode)
         }
 
     }
