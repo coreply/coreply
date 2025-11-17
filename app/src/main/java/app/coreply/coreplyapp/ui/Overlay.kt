@@ -87,14 +87,15 @@ class Overlay(
 
     init {
         _viewModel = ViewModelProvider(this)[OverlayViewModel::class.java]
-        val suggestionStorage = SuggestionStorage(_viewModel)
-        val ai = CallAI(suggestionStorage, this)
-        _viewModel.supplyExtras(ai.userInputFlow, suggestionStorage)
         MainScope().launch {
+            preferencesManager.loadPreferences()
             _viewModel.uiState.collect { uiState ->
                 updateFromState(uiState)
             }
         }
+        val suggestionStorage = SuggestionStorage(_viewModel)
+        val ai = CallAI(suggestionStorage, preferencesManager)
+        _viewModel.supplyExtras(ai.userInputFlow, suggestionStorage)
 
 
         // Create ComposeViews with click handlers pointing to Overlay methods

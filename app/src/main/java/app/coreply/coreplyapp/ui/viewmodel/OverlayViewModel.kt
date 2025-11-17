@@ -23,7 +23,6 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.lifecycle.ViewModel
 import app.coreply.coreplyapp.applistener.AppSupportStatus
@@ -170,11 +169,7 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
     }
 
     fun refreshInputNode(refreshText: Boolean = false): Boolean {
-        val startTime = System.currentTimeMillis()
         val refreshResult = _uiState.value.currentInput?.refresh() ?: false
-        val endTime = System.currentTimeMillis()
-        // Log the time taken to refresh the input node
-        Log.d("ScreenContextStore", "Input node refresh time: ${endTime - startTime} ms")
         if (!refreshResult) {
             reset()
         } else if (refreshText) {
@@ -197,17 +192,10 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
             _uiState.value.currentInput?.text?.length ?: 0
         )
 
-        val startTime = System.currentTimeMillis()
         val refreshResult = _uiState.value.currentInput?.refreshWithExtraData(
             AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
             arguments
         ) ?: false
-        val endTime = System.currentTimeMillis()
-        // Log the time taken to refresh the input node
-        Log.d(
-            "ScreenContextStore",
-            "Input node refresh (with char location) time: ${endTime - startTime} ms"
-        )
         if (!refreshResult) {
             reset()
         } else {
@@ -271,16 +259,12 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
     fun refreshInputNodeWithTextSize(
         defaultTextSizeInPx: Float
     ) {
-        val startTime = System.currentTimeMillis()
         if (Build.VERSION.SDK_INT >= 30) {
             val refreshResult = (_uiState.value.currentInput?.refreshWithExtraData(
                 AccessibilityNodeInfo.EXTRA_DATA_RENDERING_INFO_KEY,
                 Bundle()
             ) ?: false)
                     && _uiState.value.currentInput?.extraRenderingInfo != null
-            val endTime = System.currentTimeMillis()
-            // Log the time taken to refresh the input node
-            Log.d("ScreenContextStore", "Input node refresh time: ${endTime - startTime} ms")
             if (!refreshResult) {
                 reset()
             } else {
@@ -344,10 +328,6 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
 
 
     fun toTypingInfo(): TypingInfo {
-        Log.v(
-            "ScreenContextStore",
-            "Generating TypingInfo with pastMessages: ${_uiState.value.currentChatContents} and currentTyping: ${_uiState.value.currentTyping}"
-        )
         return TypingInfo(
             pastMessages = _uiState.value.currentChatContents,
             currentTyping = _uiState.value.currentTyping
@@ -360,7 +340,6 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
             if (_uiState.value.isRunning) {
                 val suggestionText =
                     it.getSuggestion(_uiState.value.currentTyping)
-                Log.v("CoWA", "Fetched suggestion for current typing: $suggestionText")
                 if (suggestionText != null) {
                     updateContent(OverlayContent.Suggestion.create(suggestionText))
                 }

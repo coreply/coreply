@@ -43,11 +43,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 @OptIn(FlowPreview::class)
 open class CallAI(
     open val suggestionStorage: SuggestionStorage,
-    context: Context
+    private val preferencesManager: PreferencesManager
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val networkScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val preferencesManager = PreferencesManager.getInstance(context)
 
     // Flow to handle debouncing of user input
     private val _userInputFlow = MutableSharedFlow<TypingInfo>(replay = 1)
@@ -57,7 +56,6 @@ open class CallAI(
     init {
         // Launch a coroutine to collect debounced user input and fetch suggestions
         coroutineScope.launch {
-            preferencesManager.loadPreferences()
             _userInputFlow // adjust debounce delay as needed
                 .debounce(360)
                 .collect { typingInfo ->
@@ -84,7 +82,7 @@ open class CallAI(
         } catch (e: Exception) {
             // Handle exceptions such as network errors
             e.printStackTrace()
-            if(preferencesManager.showErrorsState.value){
+            if (preferencesManager.showErrorsState.value) {
                 val errorMessage = e.toString()
                 suggestionStorage.listener.onSuggestionError(typingInfo, errorMessage)
             }
@@ -112,9 +110,13 @@ open class CallAI(
         val openAI = OpenAI(config)
 
         if (baseUrl.contains("/fim/")) {
-            val userPrompt = "# Mocking a texting conversation. Messages never repeat. send_message() sends a message. mock_received() means receiving a message from others.\n# Start of Chat History\n" +
-                    typingInfo.pastMessages.getFIMFormat() + "\n" +
-                    "# Craft a new text\nsend_message(\"" + typingInfo.currentTyping.replace("\\s+".toRegex(), " ")
+            val userPrompt =
+                "# Mocking a texting conversation. Messages never repeat. send_message() sends a message. mock_received() means receiving a message from others.\n# Start of Chat History\n" +
+                        typingInfo.pastMessages.getFIMFormat() + "\n" +
+                        "# Craft a new text\nsend_message(\"" + typingInfo.currentTyping.replace(
+                    "\\s+".toRegex(),
+                    " "
+                )
 
             val client = okhttp3.OkHttpClient()
             val mediaType = "application/json".toMediaTypeOrNull()
@@ -143,7 +145,7 @@ open class CallAI(
             val message = choices.getJSONObject(0).getJSONObject("message")
             val completionText = message.getString("content")
             return (typingInfo.currentTyping.replace("\\s+".toRegex(), " ") + completionText).trim()
-        } else{
+        } else {
             var userPrompt = "Given this chat history\n" +
                     typingInfo.pastMessages.getCoreply2Format() + "\nIn addition to the message I sent,\n" +
                     "What else should I send? Or start a new topic?"
@@ -163,14 +165,12 @@ open class CallAI(
                 messages = listOf(
                     ChatMessage(
                         role = ChatRole.System,
-                        content = preferencesManager.customSystemPromptState.value.takeIf { it.isNotBlank() }
-                            ?: "You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks"
+                        content = preferencesManager.customSystemPromptState.value
                     ),
                     ChatMessage(
                         role = ChatRole.User,
                         content = userPrompt
                     ),
-
 
                     ),
             )
