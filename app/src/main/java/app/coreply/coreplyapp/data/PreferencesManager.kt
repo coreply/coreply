@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -44,6 +45,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val CUSTOM_SYSTEM_PROMPT = stringPreferencesKey("customSystemPrompt")
         val TEMPERATURE = floatPreferencesKey("temperature_float")
         val TOP_P = floatPreferencesKey("topp_float")
+        val SUGGESTION_PRESENTATION_TYPE = intPreferencesKey("suggestion_presentation_type")
+        val SHOW_ERRORS = booleanPreferencesKey("show_errors")
         val SELECTED_APPS = stringSetPreferencesKey("selected_apps_set")
 
         // Default values
@@ -56,6 +59,9 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         private const val DEFAULT_TEMPERATURE = 0.3f
         private const val DEFAULT_TOP_P = 0.5f
         private val DEFAULT_SELECTED_APPS = emptySet<String>()
+        private const val DEFAULT_TOP_P = 1.0f
+        private const val DEFAULT_SUGGESTION_PRESENTATION_TYPE = 2 // Both
+        private const val DEFAULT_SHOW_ERRORS = true
     }
 
     // Mutable state for each preference field
@@ -68,6 +74,9 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     val temperatureState: MutableState<Float> = mutableStateOf(DEFAULT_TEMPERATURE)
     val topPState: MutableState<Float> = mutableStateOf(DEFAULT_TOP_P)
     val selectedAppsState: MutableState<Set<String>> = mutableStateOf(DEFAULT_SELECTED_APPS)
+    val suggestionPresentationTypeState: MutableState<SuggestionPresentationType> = mutableStateOf(SuggestionPresentationType.BOTH)
+    val showErrorsState: MutableState<Boolean> = mutableStateOf(DEFAULT_SHOW_ERRORS)
+
 
     data class PreferenceUpdate(
         val masterSwitch: Boolean? = null,
@@ -79,6 +88,9 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val temperature: Float? = null,
         val topP: Float? = null,
         val selectedApps: Set<String>? = null
+        val topP: Float? = null,
+        val suggestionPresentationType: SuggestionPresentationType? = null,
+        val showErrors: Boolean? = null
     )
 
     /**
@@ -94,8 +106,11 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             updates.customSystemPrompt?.let { preferences[CUSTOM_SYSTEM_PROMPT] = it }
             updates.temperature?.let { preferences[TEMPERATURE] = it }
             updates.topP?.let { preferences[TOP_P] = it }
+            updates.suggestionPresentationType?.let { preferences[SUGGESTION_PRESENTATION_TYPE] = it.value }
+            updates.showErrors?.let { preferences[SHOW_ERRORS] = it }
             updates.selectedApps?.let { preferences[SELECTED_APPS] = it }
         }
+
     }
 
     /**
@@ -113,6 +128,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             temperatureState.value = prefs[TEMPERATURE] ?: DEFAULT_TEMPERATURE
             topPState.value = prefs[TOP_P] ?: DEFAULT_TOP_P
             selectedAppsState.value = prefs[SELECTED_APPS] ?: DEFAULT_SELECTED_APPS
+            suggestionPresentationTypeState.value = SuggestionPresentationType.fromInt(prefs[SUGGESTION_PRESENTATION_TYPE] ?: DEFAULT_SUGGESTION_PRESENTATION_TYPE)
+            showErrorsState.value = prefs[SHOW_ERRORS] ?: DEFAULT_SHOW_ERRORS
         }
     }
 
@@ -178,6 +195,19 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     suspend fun updateTopP(topP: Float) {
         topPState.value = topP
         updatePreferences(PreferenceUpdate(topP = topP))
+    }
+
+    suspend fun updateSuggestionPresentationType(type: SuggestionPresentationType) {
+        suggestionPresentationTypeState.value = type
+        updatePreferences(PreferenceUpdate(suggestionPresentationType = type))
+    }
+
+    /**
+     * Update show errors state and persist to datastore
+     */
+    suspend fun updateShowErrors(show: Boolean) {
+        showErrorsState.value = show
+        updatePreferences(PreferenceUpdate(showErrors = show))
     }
 
     /**

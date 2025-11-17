@@ -1,85 +1,130 @@
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/coreply/coreply/total)
 ![GitHub Tag](https://img.shields.io/github/v/tag/coreply/coreply)
 ![GitHub License](https://img.shields.io/github/license/coreply/coreply)
+[![Discord](https://img.shields.io/discord/1367457809742172192?logo=discord&color=violet)](https://discord.gg/zCsQKmTFTk)
+[![Telegram](https://img.shields.io/badge/telegram-group-blue?logo=telegram&link=https://t.me/coreplyappgroup)](https://t.me/coreplyappgroup)
 
 ![Coreply banner](./docs/static/narrowbanner.png)
-**Coreply** is an open-source Android app designed to make texting faster and smarter by providing texting suggestions while you type. Whether you're replying to friends, family, or colleagues, Coreply enhances your typing experience with intelligent, context-aware suggestions.
+**Coreply** is an open-source Android app providing texting suggestions while you type. It enhances
+your typing experience with intelligent, context-aware suggestions.
+
+<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/coreply/coreply">
+<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60"/>
+</a>
+
+SHA-256 hash of the signing certificate: `87:95:62:D0:13:BD:E2:44:8E:D9:B2:F3:78:F0:DB:96:02:BF:BB:CF:70:E8:65:A0:25:F4:D2:52:D0:EB:AA:94`
 
 ## Supported Texting Apps
 
-|                                      |                               |
-|--------------------------------------| ----------------------------- |
-| **WhatsApp**                         | **Instagram**                 |
-| ![](./docs/static/whatsapp.gif)      | ![](./docs/static/insta.gif)  |
-| **Tinder**                           | **Signal**                    |
-| ![](./docs/static/tinder.gif)        | ![](./docs/static/signal.gif) |
-| **Notification Replies**             | **Hinge**                     |
-| ![](./docs/static/notifications.gif) | _no screenshot yet_           |
-| **LINE**                             | **Heymandi**                  |
-| _no screenshot yet_                  | _no screenshot yet_           |
-| **Gmail (Limited)**                  | **Telegram**                  |
-| _no screenshot yet_                  | _no screenshot yet_           |
-| **Mattermost**                       |                               |
-| _no screenshot yet_                  |                               |
+|                                                           |
+|-----------------------------------------------------------|
+| **WhatsApp**                                              |
+| <img src="./docs/static/whatsapp.gif" width="360" />      |
+| **Instagram**                                             |
+| <img src="./docs/static/insta.gif" width="360" />         |
+| **Tinder**                                                |
+| <img src="./docs/static/tinder.gif" width="360" />        |
+| **Signal**                                                |
+| <img src="./docs/static/signal.gif" width="360" />        |
+| **Notification Replies**<sup>1,2</sup>                    |
+| <img src="./docs/static/notifications.gif" width="360" /> |
+| **Hinge**                                                 |
+| **LINE**                                                  |
+| **Heymandi**                                              |
+| **Gmail**<sup>3</sup>                                     |
+| **Telegram**<sup>4</sup>                                  |
+| **Mattermost**<sup>2</sup>                                |
+| **Facebook Messenger**<sup>1</sup>                        |
+| **Google Messages**<sup>1</sup>                           |
+| **Snapchat**<sup>2</sup>                                  |
+| **Microsoft Teams**                                       |
+| **Viber**                                                 |
+| **Discord**                                               |
+| **Beeper**                                                |
 
-_DISCLAIMER: Coreply is not affiliated with or endorsed by the above-mentioned apps or their parent companies._
+<sup>1</sup> Performance issues: Coreply may not follow smoothly the animations and transitions.  
+<sup>2</sup> Limited role detection: Coreply cannot detect whether the message is sent or
+received.  
+<sup>3</sup> In Gmail, Coreply only works on the quick reply text field at the bottom of the
+email.  
+<sup>4</sup> Including Direct Download version, Play Store version, and Nekogram.
+
+_DISCLAIMER: Coreply is not affiliated with or endorsed by the above-mentioned apps or their parent
+companies._
 
 ## Features
 
-<div align="center">
   <img src="./docs/static/coreply_demo.gif" width="360" />
-</div>
 
--   **Real-time AI Suggestions**: Get accurate, context-aware suggestions as you type.
--   **Customizable LLM Settings**: Supports any inference service having an OpenAI compatible API.
--   **No Data Collection**: All traffic goes directly to the inference API. No data passes through intermediate servers (except for the hosted version).
+- **Real-time AI Suggestions**: Get accurate, context-aware suggestions as you type.
+- **Customizable LLM Settings**: Supports any inference service having an OpenAI compatible API.
+- **No Data Collection**: All traffic goes directly to the inference API. No data passes through
+  intermediate servers (except for the hosted version).
 
 ## Getting Started
 
 ### Prerequisites
 
--   Device running **Android 10 or higher** (Android 13 or higher recommended)
--   API key for OpenAI or an OpenAI-compatible inference service, such as [Groq](https://console.groq.com/) and [Openrouter](https://openrouter.ai/)
+- **Android 8 or higher** (Android 13 or higher recommended)
 
 ### Installation & Usage
 
-1. Download the latest APK from the [releases page](https://github.com/coreply/coreply/releases)
-2. Install the APK on your Android device.
-3. Setup the app with your API key, baseURL (if not using OpenAI) and model name.
-4. Toggle the switch and grant necessary permissions to enable the service. If you encountered the "Restricted settings" dialog, you can follow [these steps](https://support.google.com/android/answer/12623953?hl=en).
-5. Start typing in your messaging app, and see suggestions appear! Single tap on the suggestion to insert one word, or long press to insert the entire suggestion.
+1. Install the latest APK from the [releases page](https://github.com/coreply/coreply/releases)
+2. Configure the app with your API key, URL and model name (see the section below).
+3. Toggle on the switch and grant necessary permissions. **If you encountered the "Restricted
+   settings" dialog, you can
+   follow [these steps](https://support.google.com/android/answer/12623953?hl=en).**
+4. Start typing in your messaging app, and see suggestions appear!
+    - Single tap on the suggestion to insert one word
+    - Long press to insert the entire suggestion.
 
-### Build From Source
+### Configurations
+
+#### Coreply Cloud
+
+Sign up and get an access key from [Coreply Cloud](https://coreply.up.nadles.com/), and paste it in
+the app.
+
+#### OpenAI-Compatible APIs
+
+| Provider                                                      | Guide                                        |
+|---------------------------------------------------------------|----------------------------------------------|
+| [Google AI Studio (Gemini API)](https://aistudio.google.com/) | [Here](./docs/providers.md#google-ai-studio) |
+| [Groq](https://groq.com/)                                     | [Here](./docs/providers.md#groq)             |
+| [Openrouter](https://openrouter.ai/)                          | [Here](./docs/providers.md#openrouter)       |
+| [OpenAI](https://platform.openai.com/)                        | [Here](./docs/providers.md#openai)           |
+| [Mistral](https://mistral.ai/)                                | [Here](./docs/providers.md#mistral)          |
+| Other OpenAI-compatible endpoints                             | [Here](./docs/providers.md#others)           |
+
+## How does it work?
+
+See [Prompting](docs/prompting.md) for details.
+
+## Build From Source
 
 1. Clone the repository:
 2. Open the project in Android Studio.
 3. Sync the Gradle files and resolve any dependencies.
 4. Build and run the app on your preferred device or emulator.
 
-## Model Selection
-
-See [Model Selection & Providers](./docs/models.md) for details.
-
-## How does it work?
-
-See [Model Selection & Providers](./docs/models.md) for details.
-
-## Example setup with Groq
-
-1. Get your API Keys [here](https://console.groq.com/keys)
-2. In the coreply app, set the API Endpoint to `https://api.groq.com/openai/v1/` and the model name to `gemma2-9b-it`, `llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, or any other model listed [here](https://console.groq.com/docs/models)
-3. Set the API Key to the key you got in step 1.
-4. Grant the necessary permissions as described in the installation section. And you are good to go!
 
 ## Contributing
 
-All contributions are welcome! However, the code was based on an old project in 2016, so please be patient with the code quality and expect major architectural changes in the future.
+All contributions are welcome. However, please expect breaking changes as this project is in active
+development. A contributor license agreement (CLA), or change in license is under consideration.
+Please to reach out before making significant contributions.
 
 ## Known Issues
 
--   The app cannot read images, videos, voice notes, or other non-text content. Contextual suggestions may be limited in these cases.
--   Hint text 'Message' in WhatsApp is treated as typed text on devices running Android 12 or lower.
--   Banking apps in asia commonly block apps from unknown sources having accessibility services permission due to security reasons. If you are facing this issue, you can setup [an accessibility shortcut](https://support.google.com/accessibility/android/answer/7650693?hl=en#step_1) to toggle the coreply on/off quickly. In the future there might be a Play Store listing to avoid this issue.
+- The app cannot read images, videos, voice notes, or other non-text content. Contextual suggestions
+  may be limited in these cases.
+- Hint text 'Message' in WhatsApp is treated as typed text on devices running Android 12 or lower.
+- RTL support is limited.
+- Banking apps in asia commonly block apps from unknown sources having accessibility services
+  permission due to security reasons. If you are facing this issue, you can
+  setup [an accessibility shortcut](https://support.google.com/accessibility/android/answer/7650693?hl=en#step_1)
+  to toggle the coreply on/off quickly. In the future there might be a Play Store listing to avoid
+  this issue.
 
 ## Star History
 

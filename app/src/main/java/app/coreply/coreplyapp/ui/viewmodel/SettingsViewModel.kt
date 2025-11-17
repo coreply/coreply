@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.coreply.coreplyapp.data.PreferencesManager
+import app.coreply.coreplyapp.data.SuggestionPresentationType
 import app.coreply.coreplyapp.utils.GlobalPref
 import kotlinx.coroutines.launch
 
@@ -19,6 +20,9 @@ data class SettingsUiState(
     val customModelName: String = "gpt-4.1-mini",
     val customSystemPrompt: String = "",
     val temperature: Float = 0.3f,
+    val topP: Float = 0.5f,
+    val suggestionPresentationType: SuggestionPresentationType = SuggestionPresentationType.BOTH,
+    val showErrors: Boolean = false
     val topP: Float = 0.5f,
     val selectedApps: Set<String> = emptySet()
 )
@@ -49,6 +53,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             temperature = preferencesManager.temperatureState.value,
             topP = preferencesManager.topPState.value,
             selectedApps = preferencesManager.selectedAppsState.value
+            topP = preferencesManager.topPState.value,
+            suggestionPresentationType = preferencesManager.suggestionPresentationTypeState.value,
+            showErrors = preferencesManager.showErrorsState.value
         )
     }
     
@@ -103,6 +110,20 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         uiState = uiState.copy(topP = topP)
         viewModelScope.launch { 
             preferencesManager.updateTopP(topP)
+        }
+    }
+
+    fun updateSuggestionPresentationType(type: SuggestionPresentationType) {
+        uiState = uiState.copy(suggestionPresentationType = type)
+        viewModelScope.launch {
+            preferencesManager.updateSuggestionPresentationType(type)
+        }
+    }
+
+    fun updateShowErrors(show: Boolean) {
+        uiState = uiState.copy(showErrors = show)
+        viewModelScope.launch {
+            preferencesManager.updateShowErrors(show)
         }
     }
 

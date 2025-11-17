@@ -61,7 +61,7 @@ fun InlineSuggestionOverlay(
 ) {
     Box(
         modifier = modifier
-            .wrapContentWidth(Alignment.Start)
+            .wrapContentWidth(if (showBackground) { Alignment.End } else { Alignment.Start })
             .wrapContentHeight(if (showBackground) { Alignment.CenterVertically } else { Alignment.Bottom }) // Adjust height based on background visibility
             .combinedClickable(
                 onClick = onClick,
@@ -89,7 +89,7 @@ fun InlineSuggestionOverlay(
             color = if (showBackground)
                 MaterialTheme.colorScheme.onSecondaryContainer
             else
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                Color(0xEE999999), // A color that fits both light and dark backgrounds
             style = Typography().bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -108,7 +108,8 @@ fun TrailingSuggestionOverlay(
     text: String,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false
 ) {
     Surface(
         modifier = modifier
@@ -121,7 +122,10 @@ fun TrailingSuggestionOverlay(
                 onLongClickLabel = "Insert full suggestion"
             ),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = if (isError)
+            MaterialTheme.colorScheme.errorContainer
+        else
+            MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Box(
             modifier = Modifier
@@ -133,7 +137,10 @@ fun TrailingSuggestionOverlay(
             Text(
                 text = text,
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = if (isError)
+                    MaterialTheme.colorScheme.onErrorContainer
+                else
+                    MaterialTheme.colorScheme.onSecondaryContainer,
                 style = Typography().bodyMedium,
                 textAlign = TextAlign.Start,
                 maxLines = 1,

@@ -25,8 +25,7 @@ object GlobalPref {
     }
 
     fun getFirstRunActivityPageNumber(context: Context?, activityName: String): Int {
-        if (!Settings.canDrawOverlays(context)) return 1 //page=1 means enable draw over other apps page
-        else if (!isAccessibilityEnabled(context, activityName)) {
+        if (!isAccessibilityEnabled(context, activityName)) {
             return 2 //page=2 means enable accessibility page
         }
         return 4

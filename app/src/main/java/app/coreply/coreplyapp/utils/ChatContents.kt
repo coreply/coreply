@@ -1,7 +1,7 @@
 package app.coreply.coreplyapp.utils
 
 import android.util.Log
-import app.coreply.coreplyapp.network.TypingInfo
+import app.coreply.coreplyapp.suggestions.TypingInfo
 
 
 class ChatContents {
@@ -22,20 +22,21 @@ class ChatContents {
     fun combineChatContents(other: MutableList<ChatMessage>): Boolean {
         if (chatContents.size == 0 || other.size == 0) {
             chatContents = other
-            return true
+            return other.size > 0
         } else if (chatContents == other) (
             return false
         )
         else {
             // Append new messages to the chatContents list
             if (other[0] in chatContents) {
-                val clearCurrentSuggestions = other.last().sender == "Me" && chatContents.last() == other[other.size-2]
+                val clearCurrentSuggestions = other.last().sender == "Me" && other.size > 1 && chatContents.last() == other[other.size-2]
+                // If the second last message in the new messages list is the same as the last message in the old messages list, that means the user has sent a new message
                 for (i in other) {
                     if (i !in chatContents) {
                         chatContents.add(i)
                     }
                 }
-                return clearCurrentSuggestions
+                return false//clearCurrentSuggestions && chatContents.size>1
             } else if (chatContents[0] in other) {
                 // Insert new messages to the top of chatContents list
                 for (i in chatContents) {
@@ -114,6 +115,14 @@ class ChatContents {
         var msgBlock: String = ""
         for (msg in chatContents.takeLast(20)) {
             msgBlock += msg.toCoreply2String()
+        }
+        return msgBlock
+    }
+
+    fun getFIMFormat(): String{
+        var msgBlock: String = ""
+        for (msg in chatContents.takeLast(20)) {
+            msgBlock += msg.toFIMString()
         }
         return msgBlock
     }
