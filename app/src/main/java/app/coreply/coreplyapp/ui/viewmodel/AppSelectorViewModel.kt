@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.coreply.coreplyapp.applistener.DetectedApp
 import app.coreply.coreplyapp.applistener.SupportedApps
 import app.coreply.coreplyapp.data.PreferencesManager
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +20,6 @@ data class AppInfo(
     val appName: String,
     val appIcon: Drawable?,
     val isSupported: Boolean = false,
-    val supportedAppType: DetectedApp? = null
 )
 
 data class AppSelectorUiState(
@@ -82,7 +80,7 @@ class AppSelectorViewModel(application: Application) : AndroidViewModel(applicat
             .filter { app ->
                 // Filter out system apps that users can't interact with
                 (app.flags and ApplicationInfo.FLAG_SYSTEM) == 0 ||
-                packageManager.getLaunchIntentForPackage(app.packageName) != null
+                        packageManager.getLaunchIntentForPackage(app.packageName) != null
             }
             .map { app ->
                 val appName = packageManager.getApplicationLabel(app).toString()
@@ -93,17 +91,17 @@ class AppSelectorViewModel(application: Application) : AndroidViewModel(applicat
                 }
 
                 // Check if app is officially supported
-                val supportedApp = SupportedApps.supportedApps.find { it.pkgName == app.packageName }
+                val supportedApp =
+                    SupportedApps.supportedApps.find { it.pkgName == app.packageName }
 
                 AppInfo(
                     packageName = app.packageName,
                     appName = appName,
                     appIcon = appIcon,
                     isSupported = supportedApp != null,
-                    supportedAppType = supportedApp?.typeEnum
                 )
             }
-            .sortedWith(compareBy<AppInfo> { !it.isSupported }.thenBy { it.appName })
+            .sortedWith(compareBy<AppInfo> { !uiState.selectedApps.contains(it.packageName) }.thenBy { it.appName })
     }
 
     fun toggleAppSelection(packageName: String) {
