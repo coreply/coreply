@@ -7,7 +7,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 
-class LifeCycleThings: LifecycleOwner,SavedStateRegistryOwner {
+class LifeCycleThings: SavedStateRegistryOwner {
 
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
     private var savedStateRegistryController: SavedStateRegistryController =
@@ -24,10 +24,7 @@ class LifeCycleThings: LifecycleOwner,SavedStateRegistryOwner {
         savedStateRegistryController.performAttach()
         savedStateRegistryController.performRestore(null)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
-    }
-
-    fun refreshLifecycle() {
+        lifecycleRegistry.currentState = Lifecycle.State.STARTED
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
-
     }
 }

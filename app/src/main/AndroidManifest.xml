@@ -3,6 +3,7 @@
     package="app.coreply.coreplyapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <application
         android:name="app.coreply.coreplyapp.MainApplication"
@@ -41,6 +42,11 @@
             android:name="app.coreply.coreplyapp.WelcomeActivity"
             android:label="Welcome Activity"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name="app.coreply.coreplyapp.AppSelectorActivity"
+            android:label="Select Apps"
+            android:parentActivityName="app.coreply.coreplyapp.SettingsActivity" />
 
     </application>
 

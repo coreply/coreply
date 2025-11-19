@@ -1,6 +1,7 @@
 package app.coreply.coreplyapp.network
 
 import app.coreply.coreplyapp.data.PreferencesManager
+import app.coreply.coreplyapp.suggestions.TypingInfo
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole

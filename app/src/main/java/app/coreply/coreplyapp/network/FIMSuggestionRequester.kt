@@ -1,6 +1,7 @@
 package app.coreply.coreplyapp.network
 
 import app.coreply.coreplyapp.data.PreferencesManager
+import app.coreply.coreplyapp.suggestions.TypingInfo
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 

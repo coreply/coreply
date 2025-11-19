@@ -3,32 +3,59 @@ package app.coreply.coreplyapp.ui.compose
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import app.coreply.coreplyapp.WelcomeActivity
-import app.coreply.coreplyapp.ui.viewmodel.SettingsViewModel
-import app.coreply.coreplyapp.utils.GlobalPref
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
+import app.coreply.coreplyapp.AppSelectorActivity
+import app.coreply.coreplyapp.WelcomeActivity
 import app.coreply.coreplyapp.data.SuggestionPresentationType
+import app.coreply.coreplyapp.ui.viewmodel.SettingsViewModel
+import app.coreply.coreplyapp.utils.GlobalPref
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +67,8 @@ fun ModernSettingsScreen(
     var expandMenu by remember { mutableStateOf(false) }
     val uiState = viewModel.uiState
 
-    val suggestionPresentationTypeStrings = listOf("Bubble below text field only", "Inline only", "Bubble and inline")
+    val suggestionPresentationTypeStrings =
+        listOf("Bubble below text field only", "Inline only", "Bubble and inline")
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -70,8 +98,11 @@ fun ModernSettingsScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
+
+            // Master Switch Section
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth().padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -107,33 +138,12 @@ fun ModernSettingsScreen(
                 )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Show errors",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Display error messages in the overlay",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
 
-                Checkbox(
-                    checked = uiState.showErrors,
-                    onCheckedChange = { viewModel.updateShowErrors(it) }
-                )
-            }
 
             ExposedDropdownMenuBox(
                 expanded = expandMenu,
                 onExpandedChange = { expandMenu = it },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
             ) {
                 OutlinedTextField(
                     value = suggestionPresentationTypeStrings[uiState.suggestionPresentationType.ordinal],
@@ -176,6 +186,62 @@ fun ModernSettingsScreen(
                     }
                 }
             }
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth().clickable{viewModel.updateShowErrors(!uiState.showErrors)}.padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Show errors",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Display error messages in the overlay",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Checkbox(
+                    checked = uiState.showErrors,
+                    onCheckedChange = { viewModel.updateShowErrors(it) }
+                )
+            }
+
+
+            // Select Apps Button
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent = Intent(context, AppSelectorActivity::class.java)
+                        context.startActivity(intent)
+                    }.padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+
+                ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "[BETA] Select Apps",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "Choose apps enabling Coreply",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+            }
+
+
         }
 
 
@@ -388,7 +454,7 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
             },
             visualTransformation = if (showApiKey) VisualTransformation.None else PasswordVisualTransformation()
         )
-        Card(
+        Card (
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(
@@ -442,7 +508,7 @@ fun AboutSection() {
         )
 
         // GitHub Link
-        Surface(
+        Surface (
             onClick = {
                 val uri = Uri.parse("https://github.com/coreply/coreply")
                 val intent = Intent(Intent.ACTION_VIEW, uri)
