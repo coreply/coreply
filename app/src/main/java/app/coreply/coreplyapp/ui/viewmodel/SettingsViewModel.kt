@@ -23,7 +23,9 @@ data class SettingsUiState(
     val topP: Float = 0.5f,
     val hostedApiKey: String = "",
     val suggestionPresentationType: SuggestionPresentationType = SuggestionPresentationType.BOTH,
-    val showErrors: Boolean = false
+    val showErrors: Boolean = false,
+    val topP: Float = 0.5f,
+    val selectedApps: Set<String> = emptySet()
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -50,6 +52,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             customModelName = preferencesManager.customModelNameState.value,
             customSystemPrompt = preferencesManager.customSystemPromptState.value,
             temperature = preferencesManager.temperatureState.value,
+            selectedApps = preferencesManager.selectedAppsState.value,
             topP = preferencesManager.topPState.value,
             hostedApiKey = preferencesManager.hostedApiKeyState.value,
             suggestionPresentationType = preferencesManager.suggestionPresentationTypeState.value,
@@ -129,6 +132,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         uiState = uiState.copy(showErrors = show)
         viewModelScope.launch {
             preferencesManager.updateShowErrors(show)
+        }
+    }
+
+    fun updateSelectedApps(apps: Set<String>) {
+        uiState = uiState.copy(selectedApps = apps)
+        viewModelScope.launch {
+            preferencesManager.updateSelectedApps(apps)
         }
     }
 }
