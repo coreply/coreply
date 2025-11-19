@@ -142,6 +142,8 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
                 currentTyping = "-",
                 isRunning = false,
                 content = OverlayContent.Empty,
+                currentInput = null,
+                currentApp = null,
             )
         }
     }
@@ -336,6 +338,7 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
         _uiState.value.currentMessageListNode?.recycle()
         _uiState.value.currentChatContents.clear()
         suggestionStorage?.clearSuggestion()
+        //disable()
     }
 
 

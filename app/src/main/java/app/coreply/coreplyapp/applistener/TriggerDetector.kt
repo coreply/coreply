@@ -6,10 +6,16 @@ import android.view.accessibility.AccessibilityNodeInfo
 
 
 fun detectSupportedApp(
-    rootNode: AccessibilityNodeInfo?,
+    rootNode: AccessibilityNodeInfo,
     selectedApps: Set<String>
 ): Pair<SupportedAppProperty?, AccessibilityNodeInfo?> {
-    val inputNode = rootNode?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+    val inputNode = try {
+        rootNode.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+    } catch (e: IllegalStateException){
+        e.printStackTrace()
+        null
+    }
+
 //    iterNode(rootNode!!)
     if (inputNode != null) {
         val inputNodeId = inputNode.viewIdResourceName ?: ""
@@ -27,6 +33,8 @@ fun detectSupportedApp(
                     app,
                     inputNode
                 )
+            } else{
+                return Pair(null, null)
             }
         }
         if (selectedApps.contains(inputNodePackage) && inputNode.className.contains("android.widget.EditText")) {
@@ -39,6 +47,7 @@ fun detectSupportedApp(
                         onScreenContentProcessor(it)
                     }), inputNode
             )
+
         }
 
     }
