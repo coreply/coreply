@@ -153,17 +153,24 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
         defaultTextSizeInPx: Float = 0.0f
     ): Boolean {
         synchronized(lock = this) {
-            return when (refreshType) {
-                RefreshType.NORMAL -> refreshInputNode(refreshText)
-                RefreshType.CHAR_LOCATION -> refreshInputNodeWithCharLocation(
-                    refreshText
-                )
+            try {
+                return when (refreshType) {
+                    RefreshType.NORMAL -> refreshInputNode(refreshText)
+                    RefreshType.CHAR_LOCATION -> refreshInputNodeWithCharLocation(
+                        refreshText
+                    )
 
-                RefreshType.TEXT_SIZE -> {
-                    refreshInputNodeWithTextSize(defaultTextSizeInPx)
-                    true
+                    RefreshType.TEXT_SIZE -> {
+                        refreshInputNodeWithTextSize(defaultTextSizeInPx)
+                        true
+                    }
                 }
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
+//                reset()
+                return false
             }
+
         }
 
     }
@@ -282,20 +289,25 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
     // Returns true if clear current suggestions is needed
     fun refreshMessageListNode() {
         synchronized(lock = this) {
-            val refreshResult = _uiState.value.currentMessageListNode?.refresh() ?: false
-            if (!refreshResult) {
-                reset()
-            }
-            _uiState.value.currentMessageListNode?.let {
-                val chatMessages = _uiState.value.messageListProcessor(it)
-                val clearSuggestions: Boolean = _uiState.value.currentChatContents.combineChatContents(chatMessages)
-                if (clearSuggestions) {
-                    suggestionStorage?.clearSuggestion()
-                    if(uiState.value.currentTyping == ""){
-                        onEditTextUpdate("")
+            try {
+                val refreshResult = _uiState.value.currentMessageListNode?.refresh() ?: false
+                if (!refreshResult) {
+                    reset()
+                }
+                _uiState.value.currentMessageListNode?.let {
+                    val chatMessages = _uiState.value.messageListProcessor(it)
+                    val clearSuggestions: Boolean =
+                        _uiState.value.currentChatContents.combineChatContents(chatMessages)
+                    if (clearSuggestions) {
+                        suggestionStorage?.clearSuggestion()
+                        if (uiState.value.currentTyping == "") {
+                            onEditTextUpdate("")
+                        }
                     }
                 }
+            } catch (e: IllegalStateException) {
             }
+
         }
     }
 
