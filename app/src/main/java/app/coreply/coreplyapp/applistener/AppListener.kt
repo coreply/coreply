@@ -34,6 +34,8 @@ import app.coreply.coreplyapp.ui.viewmodel.RefreshType
 import app.coreply.coreplyapp.utils.PixelCalculator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -44,12 +46,12 @@ import kotlinx.coroutines.launch
 /**
  * Created on 10/13/16.
  */
-@OptIn(kotlinx.coroutines.FlowPreview::class)
+@OptIn(FlowPreview::class)
 open class AppListener : AccessibilityService() {
     private lateinit var overlay: Overlay
     private lateinit var overlayViewModel: OverlayViewModel
     private val pixelCalculator: PixelCalculator = PixelCalculator(this)
-    private val preferencesManager: PreferencesManager = PreferencesManager.getInstance(this)
+    private lateinit var preferencesManager: PreferencesManager
 
 
     // Coroutine scope for background operations
@@ -97,8 +99,8 @@ open class AppListener : AccessibilityService() {
 
     private fun refreshOverlay(event: AccessibilityEvent, root: AccessibilityNodeInfo): Boolean {
         var isSupportedApp = false
-        var previousInputNodeStillHere = false
-        previousInputNodeStillHere = overlayViewModel.refresh(RefreshType.NORMAL, false)
+        val previousInputNodeStillHere: Boolean =
+            overlayViewModel.refresh(RefreshType.NORMAL, false)
         val (supportedAppProperty, inputWidget) = if (previousInputNodeStillHere) Pair(
             overlayViewModel.uiState.value.currentApp,
             overlayViewModel.uiState.value.currentInput
@@ -157,6 +159,10 @@ open class AppListener : AccessibilityService() {
 
         // Initialize throttled flows for heavy operations
         initializeThrottledFlows()
+        preferencesManager = PreferencesManager.getInstance(appContext)
+        MainScope().launch {
+            preferencesManager.loadPreferences()
+        }
     }
 
     /**
