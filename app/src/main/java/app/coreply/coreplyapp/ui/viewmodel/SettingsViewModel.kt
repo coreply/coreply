@@ -20,7 +20,6 @@ data class SettingsUiState(
     val customModelName: String = "gpt-4.1-mini",
     val customSystemPrompt: String = "",
     val temperature: Float = 0.3f,
-    val topP: Float = 0.5f,
     val hostedApiKey: String = "",
     val suggestionPresentationType: SuggestionPresentationType = SuggestionPresentationType.BOTH,
     val showErrors: Boolean = false,

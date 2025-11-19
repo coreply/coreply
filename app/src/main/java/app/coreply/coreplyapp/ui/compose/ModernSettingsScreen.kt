@@ -1,6 +1,8 @@
 package app.coreply.coreplyapp.ui.compose
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,17 +16,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -448,7 +454,7 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
             },
             visualTransformation = if (showApiKey) VisualTransformation.None else PasswordVisualTransformation()
         )
-        Card(
+        Card (
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(
@@ -502,7 +508,7 @@ fun AboutSection() {
         )
 
         // GitHub Link
-        Surface(
+        Surface (
             onClick = {
                 val uri = Uri.parse("https://github.com/coreply/coreply")
                 val intent = Intent(Intent.ACTION_VIEW, uri)
