@@ -47,18 +47,20 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val TEMPERATURE = floatPreferencesKey("temperature_float")
         val TOP_P = floatPreferencesKey("topp_float")
         val SUGGESTION_PRESENTATION_TYPE = intPreferencesKey("suggestion_presentation_type")
+        val HOSTED_API_KEY = stringPreferencesKey("hostedApiKey")
         val SHOW_ERRORS = booleanPreferencesKey("show_errors")
         val SELECTED_APPS = stringSetPreferencesKey("selected_apps_set")
 
         // Default values
         private const val DEFAULT_MASTER_SWITCH = true
-        private const val DEFAULT_API_TYPE = "custom"
+        private const val DEFAULT_API_TYPE = "hosted"
         private const val DEFAULT_API_URL = "https://api.openai.com/v1/"
         private const val DEFAULT_API_KEY = ""
         private const val DEFAULT_MODEL_NAME = "gpt-4.1-mini"
         private const val DEFAULT_SYSTEM_PROMPT = "You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks"
         private const val DEFAULT_TEMPERATURE = 0.3f
         private val DEFAULT_SELECTED_APPS = SupportedApps.supportedApps.map { it.pkgName }.toSet()
+        private const val DEFAULT_HOSTED_API_KEY = ""
         private const val DEFAULT_TOP_P = 1.0f
         private const val DEFAULT_SUGGESTION_PRESENTATION_TYPE = 2 // Both
         private const val DEFAULT_SHOW_ERRORS = true
@@ -74,6 +76,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     val temperatureState: MutableState<Float> = mutableStateOf(DEFAULT_TEMPERATURE)
     val topPState: MutableState<Float> = mutableStateOf(DEFAULT_TOP_P)
     val selectedAppsState: MutableState<Set<String>> = mutableStateOf(DEFAULT_SELECTED_APPS)
+    val hostedApiKeyState: MutableState<String> = mutableStateOf(DEFAULT_HOSTED_API_KEY)
     val suggestionPresentationTypeState: MutableState<SuggestionPresentationType> = mutableStateOf(SuggestionPresentationType.BOTH)
     val showErrorsState: MutableState<Boolean> = mutableStateOf(DEFAULT_SHOW_ERRORS)
 
@@ -88,6 +91,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val temperature: Float? = null,
         val selectedApps: Set<String>? = null,
         val topP: Float? = null,
+        val hostedApiKey: String? = null,
         val suggestionPresentationType: SuggestionPresentationType? = null,
         val showErrors: Boolean? = null
     )
@@ -105,6 +109,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             updates.customSystemPrompt?.let { preferences[CUSTOM_SYSTEM_PROMPT] = it }
             updates.temperature?.let { preferences[TEMPERATURE] = it }
             updates.topP?.let { preferences[TOP_P] = it }
+            updates.hostedApiKey?.let { preferences[HOSTED_API_KEY] = it }
             updates.suggestionPresentationType?.let { preferences[SUGGESTION_PRESENTATION_TYPE] = it.value }
             updates.showErrors?.let { preferences[SHOW_ERRORS] = it }
             updates.selectedApps?.let { preferences[SELECTED_APPS] = it }
@@ -126,6 +131,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             customSystemPromptState.value = prefs[CUSTOM_SYSTEM_PROMPT] ?: DEFAULT_SYSTEM_PROMPT
             temperatureState.value = prefs[TEMPERATURE] ?: DEFAULT_TEMPERATURE
             topPState.value = prefs[TOP_P] ?: DEFAULT_TOP_P
+            hostedApiKeyState.value = prefs[HOSTED_API_KEY] ?: DEFAULT_HOSTED_API_KEY
             selectedAppsState.value = prefs[SELECTED_APPS] ?: DEFAULT_SELECTED_APPS
             suggestionPresentationTypeState.value = SuggestionPresentationType.fromInt(prefs[SUGGESTION_PRESENTATION_TYPE] ?: DEFAULT_SUGGESTION_PRESENTATION_TYPE)
             showErrorsState.value = prefs[SHOW_ERRORS] ?: DEFAULT_SHOW_ERRORS
@@ -201,6 +207,10 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         updatePreferences(PreferenceUpdate(suggestionPresentationType = type))
     }
 
+    suspend fun updateHostedApiKey(apiKey: String) {
+        hostedApiKeyState.value = apiKey
+        updatePreferences(PreferenceUpdate(hostedApiKey = apiKey))
+    }
     /**
      * Update show errors state and persist to datastore
      */

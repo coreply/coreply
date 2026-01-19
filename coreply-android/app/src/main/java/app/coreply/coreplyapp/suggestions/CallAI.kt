@@ -21,6 +21,10 @@ package app.coreply.coreplyapp.suggestions
 
 import android.content.Context
 import app.coreply.coreplyapp.data.PreferencesManager
+import app.coreply.coreplyapp.network.CustomAPISuggestionRequester
+import app.coreply.coreplyapp.network.FIMSuggestionRequester
+import app.coreply.coreplyapp.network.HostedSuggestionRequester
+import app.coreply.coreplyapp.network.SuggestionRequester
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
@@ -72,8 +76,19 @@ open class CallAI(
                 // If no current typing and no past messages, do nothing
                 return
             }
+            val baseURL = preferencesManager.customApiUrlState.value
+            val apiType = preferencesManager.apiTypeState.value
+            val suggestionRequester: SuggestionRequester = if (apiType=="hosted") {
+                HostedSuggestionRequester
+            } else {
+                if (baseURL.endsWith("/fim") || baseURL.endsWith("/fim/")) {
+                    FIMSuggestionRequester
+                } else {
+                    CustomAPISuggestionRequester
+                }
+            }
             var suggestions =
-                requestSuggestionsFromServer(typingInfo)
+                suggestionRequester.requestSuggestionsFromServer(typingInfo, preferencesManager)
             suggestions = suggestions.replace("\n", " ")
             if (suggestions.startsWith(" ")) {
                 suggestions = " " + suggestions.trim()
