@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="72dp"
+    android:layout_height="match_parent"
+    android:minWidth="72dp"
+    android:theme="@style/AppTheme"
+    android:id="@+id/overlay_main_layout"
+    android:background="@drawable/bubble_backgroud"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+            <TextView
+                android:id="@+id/trailingSuggestions"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:textColor="#444444"
+                android:fontFamily="sans-serif-condensed"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:text="This is a trailing suggestion" />
+
+
+</LinearLayout>

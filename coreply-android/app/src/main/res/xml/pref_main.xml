@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        android:title="@string/app_name"
+        app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="master_switch"
+            android:summary="@string/pref_description_master_switch"
+            android:title="@string/pref_title_master_switch"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_customization"
+        app:iconSpaceReserved="false">
+        <EditTextPreference
+            android:defaultValue="https://api.openai.com/v1/"
+            android:key="customApiUrl"
+            android:summary="@string/pref_description_api_url"
+            android:title="@string/pref_api_url"
+            app:iconSpaceReserved="false" />
+        <EditTextPreference
+            android:key="customApiKey"
+            android:summary="@string/pref_description_api_key"
+            android:title="@string/pref_api_key"
+            app:iconSpaceReserved="false" />
+        <EditTextPreference
+            android:defaultValue="gpt-4.1-mini"
+            android:key="customModelName"
+            android:summary="Model name of the LLM."
+            android:title="Model Name"
+            app:iconSpaceReserved="false" />
+        <EditTextPreference
+            android:defaultValue="You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks"
+            android:key="customSystemPrompt"
+            android:summary="@string/pref_description_system_prompt"
+            android:title="System Prompt"
+            app:iconSpaceReserved="false" />
+        <SeekBarPreference
+            android:defaultValue="3"
+            android:key="temperature"
+            android:max="10"
+            android:summary="@string/pref_description_temperature"
+            android:title="@string/pref_title_temperature"
+            app:iconSpaceReserved="false"
+            app:min="0" />
+        <SeekBarPreference
+            android:defaultValue="5"
+            android:key="topp"
+            android:max="10"
+            android:summary="@string/pref_description_topp"
+            android:title="@string/pref_title_topp"
+            app:iconSpaceReserved="false"
+            app:min="0" />
+
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="@string/pref_about"
+        app:iconSpaceReserved="false">
+        <Preference
+            android:key="followIG"
+            android:title="@string/pref_ig_follow"
+            app:iconSpaceReserved="false" />
+        <Preference
+            android:key="github"
+            android:title="@string/pref_github"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
