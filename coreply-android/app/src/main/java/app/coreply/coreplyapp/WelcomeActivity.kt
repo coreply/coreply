@@ -1,15 +1,20 @@
 package app.coreply.coreplyapp
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.VideoView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +23,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import app.coreply.coreplyapp.theme.CoreplyTheme
 import app.coreply.coreplyapp.utils.GlobalPref.isAccessibilityEnabled
 
@@ -47,7 +55,71 @@ fun WelcomeScreen(
     onFinish: () -> Unit
 ) {
     val context = LocalContext.current
-    
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        // Show video tutorial dialog
+        Dialog(
+            onDismissRequest = { showDialog = false }
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                tonalElevation = 4.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Allow Restricted Settings",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = "Click the greyed out option (important), then go to Settings > Apps > Coreply. 'Allow restricted settings' is somewhere in the app info screen.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    // Video player
+                    AndroidView(
+                        factory = { ctx ->
+                            VideoView(ctx).apply {
+                                // Set video URI to the raw resource
+                                val videoUri = Uri.parse("android.resource://${ctx.packageName}/${R.raw.restricted_setting_tut}")
+                                setVideoURI(videoUri)
+
+                                // Loop the video
+                                setOnPreparedListener { mp ->
+                                    mp.isLooping = true
+                                }
+
+                                // Start video automatically
+                                start()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                    )
+
+                    // Close button
+                    Button(
+                        onClick = { showDialog = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
@@ -117,6 +189,31 @@ fun WelcomeScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
+                    },
+                    extraContent = {
+                        // Clickable help text for restricted settings
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showDialog = true }
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Item greyed out saying 'Restricted Setting'?",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        }
                     },
                     buttonContent = {
                         Button(
@@ -189,6 +286,7 @@ private fun ColumnScope.PermissionContent(
     cardColors: CardColors,
     cardHorizontalAlignment: Alignment.Horizontal = Alignment.Start,
     cardContent: @Composable ColumnScope.() -> Unit,
+    extraContent: (@Composable ColumnScope.() -> Unit)? = null,
     buttonContent: @Composable ColumnScope.() -> Unit
 ) {
     // App icon
@@ -225,6 +323,9 @@ private fun ColumnScope.PermissionContent(
         )
     }
     
+    // Extra content below the card (e.g., help text)
+    extraContent?.invoke(this)
+
     Spacer(modifier = Modifier.weight(1f))
     
     Column(
