@@ -89,6 +89,17 @@ open class CallAI(
                     CustomAPISuggestionRequester
                 }
 
+            val baseURL = preferencesManager.customApiUrlState.value
+            val apiType = preferencesManager.apiTypeState.value
+            val suggestionRequester: SuggestionRequester = if (apiType=="hosted") {
+                HostedSuggestionRequester
+            } else {
+                if (baseURL.endsWith("/fim") || baseURL.endsWith("/fim/")) {
+                    FIMSuggestionRequester
+                } else {
+                    CustomAPISuggestionRequester
+                }
+            }
             var suggestions =
                 suggestionRequester.requestSuggestionsFromServer(typingInfo, preferencesManager)
             suggestions = suggestions.replace("\n", " ")
