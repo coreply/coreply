@@ -1,6 +1,6 @@
 ---
-name: Before you open an issue
-about: Please read the carefully before you open an issue
+name: Please read before opening an issue
+about: Please read the template in the next page carefully before you open an issue
 title: ''
 labels: ''
 assignees: ''
