@@ -15,10 +15,6 @@ android {
         versionName = "2.2.2"
         vectorDrawables.useSupportLibrary = true
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
     buildFeatures {
         compose = true
     }
@@ -34,9 +30,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
 }
 val ktor_version: String by project
