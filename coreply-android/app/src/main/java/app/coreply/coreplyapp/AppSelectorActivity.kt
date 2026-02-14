@@ -8,15 +8,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,13 +58,13 @@ fun AppSelectorScreen(
                 title = { Text("Select Apps") },
                 navigationIcon = {
                     IconButton(onClick = onBackPressed) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(painter = painterResource(R.drawable.arrow_back_24px), contentDescription = "Back")
                     }
                 },
                 actions = {
                     if (!uiState.isLoading) {
                         IconButton(onClick = { viewModel.retryLoadApps() }) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                            Icon(painter = painterResource(R.drawable.refresh_24px), contentDescription = "Refresh")
                         }
                     }
                 }

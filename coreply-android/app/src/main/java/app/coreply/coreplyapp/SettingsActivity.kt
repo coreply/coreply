@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text as ComposeText
 import app.coreply.coreplyapp.ui.compose.ModernSettingsScreen
 import app.coreply.coreplyapp.theme.CoreplyTheme
@@ -42,6 +44,7 @@ class SettingsActivity : ComponentActivity() {
                                 Icon(
                                     painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                                     contentDescription = "App Icon",
+                                    modifier = Modifier.height(48.dp),
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             },
