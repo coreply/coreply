@@ -93,7 +93,8 @@ fun ModernSettingsScreen(
             // Master Switch Section
             Row(
                 modifier = Modifier
-                    .fillMaxWidth().padding(vertical = 8.dp),
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -134,7 +135,9 @@ fun ModernSettingsScreen(
             ExposedDropdownMenuBox(
                 expanded = expandMenu,
                 onExpandedChange = { expandMenu = it },
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             ) {
                 OutlinedTextField(
                     value = suggestionPresentationTypeStrings[uiState.suggestionPresentationType.ordinal],
@@ -181,7 +184,9 @@ fun ModernSettingsScreen(
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth().clickable{viewModel.updateShowErrors(!uiState.showErrors)}.padding(vertical = 8.dp),
+                    .fillMaxWidth()
+                    .clickable { viewModel.updateShowErrors(!uiState.showErrors) }
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -212,7 +217,8 @@ fun ModernSettingsScreen(
                     .clickable {
                         val intent = Intent(context, AppSelectorActivity::class.java)
                         context.startActivity(intent)
-                    }.padding(vertical = 8.dp),
+                    }
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
 
@@ -232,17 +238,89 @@ fun ModernSettingsScreen(
 
             }
 
-
         }
         CustomApiSettingsSection(viewModel)
+
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Customizations",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            // Custom Debounce Slider
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Text(
+                    text = "Debounce: ${uiState.customDebounceMs}ms",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Slider(
+                    value = uiState.customDebounceMs.toFloat(),
+                    onValueChange = { viewModel.updateCustomDebounceMs(it.toInt()) },
+                    valueRange = 150f..1200f,
+                    steps = 20,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    text = "Delay before fetching suggestions",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Typing Regex Enabled Checkbox
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { viewModel.updateTypingRegexEnabled(!uiState.typingRegexEnabled) }
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Enable Regex Filter",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Only fetch suggestions after regex match",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Checkbox(
+                    checked = uiState.typingRegexEnabled,
+                    onCheckedChange = { viewModel.updateTypingRegexEnabled(it) }
+                )
+            }
+
+            // Typing Regex Pattern Text Field
+            OutlinedTextField(
+                value = uiState.typingRegexPattern,
+                onValueChange = { viewModel.updateTypingRegexPattern(it) },
+                label = { Text("Typing Regex Pattern") },
+                supportingText = { Text("Regex to limit suggestions after matching text") },
+                minLines = 1,
+                maxLines = 1,
+                enabled = uiState.typingRegexEnabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            )
+
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
     val uiState = viewModel.uiState
     var showApiKey by remember { mutableStateOf(false) }
-
 
     Column(
         modifier = Modifier.padding(16.dp)
@@ -253,6 +331,40 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
         )
+
+        // Config Type Radio Buttons
+        Row(modifier = Modifier.padding(bottom = 12.dp)) {
+            Row(
+                modifier = Modifier
+                    .clickable { viewModel.updateConfigType("simple") },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                androidx.compose.material3.RadioButton(
+                    selected = uiState.configType == "simple",
+                    onClick = { viewModel.updateConfigType("simple") }
+                )
+                Text(
+                    text = "Simple",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .clickable { viewModel.updateConfigType("advanced") }
+                    .padding(start = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                androidx.compose.material3.RadioButton(
+                    selected = uiState.configType == "advanced",
+                    onClick = { viewModel.updateConfigType("advanced") }
+                )
+                Text(
+                    text = "Advanced",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+        }
 
         // API URL
         OutlinedTextField(
@@ -288,68 +400,85 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
             visualTransformation = if (showApiKey) VisualTransformation.None else PasswordVisualTransformation()
         )
 
-        // Model Name
-        OutlinedTextField(
-            value = uiState.customModelName,
-            onValueChange = viewModel::updateCustomModelName,
-            label = { Text("Model Name") },
-            supportingText = { Text("Model name of the LLM") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp)
-        )
-
-        // System Prompt
-        OutlinedTextField(
-            value = uiState.customSystemPrompt,
-            onValueChange = viewModel::updateCustomSystemPrompt,
-            label = { Text("System Prompt") },
-            supportingText = { Text("Instructions for the AI assistant") },
-            minLines = 3,
-            maxLines = 6,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        // Temperature Slider
-        Column(modifier = Modifier.padding(bottom = 12.dp)) {
-            Text(
-                text = "Temperature: ${String.format("%.1f", uiState.temperature)}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+        // Conditional rendering based on config type
+        if (uiState.configType == "simple") {
+            // Simple mode - show individual fields
+            // Model Name
+            OutlinedTextField(
+                value = uiState.customModelName,
+                onValueChange = viewModel::updateCustomModelName,
+                label = { Text("Model Name") },
+                supportingText = { Text("Model name of the LLM") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
             )
-            Slider(
-                value = uiState.temperature,
-                onValueChange = viewModel::updateTemperature,
-                valueRange = 0f..1f,
-                steps = 9,
 
+            // System Prompt
+            OutlinedTextField(
+                value = uiState.customSystemPrompt,
+                onValueChange = viewModel::updateCustomSystemPrompt,
+                label = { Text("System Prompt") },
+                supportingText = { Text("Instructions for the AI assistant") },
+                minLines = 3,
+                maxLines = 6,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+
+            // Temperature Slider
+            Column(modifier = Modifier.padding(bottom = 12.dp)) {
+                Text(
+                    text = "Temperature: ${String.format("%.1f", uiState.temperature)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-            Text(
-                text = "Controls randomness in responses",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+                Slider(
+                    value = uiState.temperature,
+                    onValueChange = viewModel::updateTemperature,
+                    valueRange = 0f..1f,
+                    steps = 9,
 
-        // Top-P Slider
-        Column {
-            Text(
-                text = "Top-P: ${String.format("%.1f", uiState.topP)}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Slider(
-                value = uiState.topP,
-                onValueChange = viewModel::updateTopP,
-                valueRange = 0f..1f,
-                steps = 9
-            )
-            Text(
-                text = "Controls diversity of token selection",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                Text(
+                    text = "Controls randomness in responses",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Top-P Slider
+            Column {
+                Text(
+                    text = "Top-P: ${String.format("%.1f", uiState.topP)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Slider(
+                    value = uiState.topP,
+                    onValueChange = viewModel::updateTopP,
+                    valueRange = 0f..1f,
+                    steps = 9
+                )
+                Text(
+                    text = "Controls diversity of token selection",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            // Advanced mode - show JSON text box
+            OutlinedTextField(
+                value = uiState.advancedConfigBody,
+                onValueChange = viewModel::updateAdvancedConfigBody,
+                label = { Text("Request Body") },
+                supportingText = { Text("The request body to the API, usually a JSON") },
+                minLines = 15,
+                maxLines = 150,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
             )
         }
     }

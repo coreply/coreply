@@ -16,17 +16,22 @@ fun detectSupportedApp(
         val inputNodePackage = inputNode.packageName ?: ""
         val app = SupportedApps.supportedApps.firstOrNull { supportedAppProperty -> supportedAppProperty.pkgName == inputNodePackage }
         app?.let {
-            if (selectedApps.contains(app.pkgName) && app.inputJudger(
-                    rootNode,
-                    inputNode,
-                    inputNodeId,
-                    inputNodePackage.toString()
-                )
+            if (selectedApps.contains(app.pkgName)
             ) {
-                return Pair(
-                    app,
-                    inputNode
-                )
+                return if(app.inputJudger(
+                        rootNode,
+                        inputNode,
+                        inputNodeId,
+                        inputNodePackage.toString()
+                    )){
+                    Pair(
+                        app,
+                        inputNode
+                    )
+                } else{
+                    Pair(null, null)
+                }
+
             }
         }
         if (selectedApps.contains(inputNodePackage) && inputNode.className.contains("android.widget.EditText")) {

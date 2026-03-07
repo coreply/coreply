@@ -23,7 +23,12 @@ data class SettingsUiState(
     val suggestionPresentationType: SuggestionPresentationType = SuggestionPresentationType.BOTH,
     val showErrors: Boolean = false,
     val topP: Float = 0.5f,
-    val selectedApps: Set<String> = emptySet()
+    val selectedApps: Set<String> = emptySet(),
+    val configType: String = "simple",
+    val advancedConfigBody: String = "{}",
+    val typingRegexPattern: String = "^.*[\\s.!?,;:]$",
+    val typingRegexEnabled: Boolean = false,
+    val customDebounceMs: Int = 350
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -53,7 +58,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             selectedApps = preferencesManager.selectedAppsState.value,
             topP = preferencesManager.topPState.value,
             suggestionPresentationType = preferencesManager.suggestionPresentationTypeState.value,
-            showErrors = preferencesManager.showErrorsState.value
+            showErrors = preferencesManager.showErrorsState.value,
+            configType = preferencesManager.configTypeState.value,
+            advancedConfigBody = preferencesManager.advancedConfigBodyState.value,
+            typingRegexPattern = preferencesManager.typingRegexPatternState.value,
+            typingRegexEnabled = preferencesManager.typingRegexEnabledState.value,
+            customDebounceMs = preferencesManager.customDebounceState.value
         )
     }
     
@@ -129,6 +139,41 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         uiState = uiState.copy(selectedApps = apps)
         viewModelScope.launch {
             preferencesManager.updateSelectedApps(apps)
+        }
+    }
+
+    fun updateConfigType(type: String) {
+        uiState = uiState.copy(configType = type)
+        viewModelScope.launch {
+            preferencesManager.updateConfigType(type)
+        }
+    }
+
+    fun updateAdvancedConfigBody(json: String) {
+        uiState = uiState.copy(advancedConfigBody = json)
+        viewModelScope.launch {
+            preferencesManager.updateAdvancedConfigBody(json)
+        }
+    }
+
+    fun updateTypingRegexPattern(pattern: String) {
+        uiState = uiState.copy(typingRegexPattern = pattern)
+        viewModelScope.launch {
+            preferencesManager.updateTypingRegexPattern(pattern)
+        }
+    }
+
+    fun updateTypingRegexEnabled(enabled: Boolean) {
+        uiState = uiState.copy(typingRegexEnabled = enabled)
+        viewModelScope.launch {
+            preferencesManager.updateTypingRegexEnabled(enabled)
+        }
+    }
+
+    fun updateCustomDebounceMs(debounceMs: Int) {
+        uiState = uiState.copy(customDebounceMs = debounceMs)
+        viewModelScope.launch {
+            preferencesManager.updateCustomDebounceMs(debounceMs)
         }
     }
 }

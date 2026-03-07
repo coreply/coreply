@@ -49,6 +49,11 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val SUGGESTION_PRESENTATION_TYPE = intPreferencesKey("suggestion_presentation_type")
         val SHOW_ERRORS = booleanPreferencesKey("show_errors")
         val SELECTED_APPS = stringSetPreferencesKey("selected_apps_set")
+        val CONFIG_TYPE = stringPreferencesKey("config_type")
+        val ADVANCED_CONFIG_BODY = stringPreferencesKey("advanced_config_body")
+        val TYPING_REGEX_PATTERN = stringPreferencesKey("typing_regex_pattern")
+        val TYPING_REGEX_ENABLED = booleanPreferencesKey("typing_regex_enabled")
+        val CUSTOM_DEBOUNCE_MS = intPreferencesKey("custom_debounce_ms")
 
         // Default values
         private const val DEFAULT_MASTER_SWITCH = true
@@ -56,12 +61,29 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         private const val DEFAULT_API_URL = "https://api.openai.com/v1/"
         private const val DEFAULT_API_KEY = ""
         private const val DEFAULT_MODEL_NAME = "gpt-4.1-mini"
-        private const val DEFAULT_SYSTEM_PROMPT = "You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks"
+        private const val DEFAULT_SYSTEM_PROMPT =
+            "You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks"
         private const val DEFAULT_TEMPERATURE = 0.3f
         private val DEFAULT_SELECTED_APPS = SupportedApps.supportedApps.map { it.pkgName }.toSet()
         private const val DEFAULT_TOP_P = 1.0f
         private const val DEFAULT_SUGGESTION_PRESENTATION_TYPE = 2 // Both
         private const val DEFAULT_SHOW_ERRORS = true
+        private const val DEFAULT_CONFIG_TYPE = "simple"
+        private var DEFAULT_ADVANCED_CONFIG_BODY = """{
+            |  "model": "gpt-4.1-mini",
+            |  "temperature": 0.7,
+            |  "top_p": 1.0,
+            |  "messages": [
+            |    {"role": "system", "content": "You are an AI texting assistant."},
+            |    {"role": "user", "content": ""}
+            |  ],
+            |  "max_tokens": 25,
+            |  "stream": false
+            |}
+        """.trimMargin()
+        private const val DEFAULT_TYPING_REGEX_PATTERN = "^.*[\\s.!?,;:]$"
+        private const val DEFAULT_TYPING_REGEX_ENABLED = false
+        private const val DEFAULT_CUSTOM_DEBOUNCE_MS = 350
     }
 
     // Mutable state for each preference field
@@ -74,8 +96,15 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     val temperatureState: MutableState<Float> = mutableStateOf(DEFAULT_TEMPERATURE)
     val topPState: MutableState<Float> = mutableStateOf(DEFAULT_TOP_P)
     val selectedAppsState: MutableState<Set<String>> = mutableStateOf(DEFAULT_SELECTED_APPS)
-    val suggestionPresentationTypeState: MutableState<SuggestionPresentationType> = mutableStateOf(SuggestionPresentationType.BOTH)
+    val suggestionPresentationTypeState: MutableState<SuggestionPresentationType> =
+        mutableStateOf(SuggestionPresentationType.BOTH)
     val showErrorsState: MutableState<Boolean> = mutableStateOf(DEFAULT_SHOW_ERRORS)
+    val configTypeState: MutableState<String> = mutableStateOf(DEFAULT_CONFIG_TYPE)
+    val advancedConfigBodyState: MutableState<String> = mutableStateOf(DEFAULT_ADVANCED_CONFIG_BODY)
+    val typingRegexPatternState: MutableState<String> = mutableStateOf(DEFAULT_TYPING_REGEX_PATTERN)
+    val typingRegexEnabledState: MutableState<Boolean> =
+        mutableStateOf(DEFAULT_TYPING_REGEX_ENABLED)
+    val customDebounceState: MutableState<Int> = mutableStateOf(DEFAULT_CUSTOM_DEBOUNCE_MS)
 
 
     data class PreferenceUpdate(
@@ -89,7 +118,12 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val selectedApps: Set<String>? = null,
         val topP: Float? = null,
         val suggestionPresentationType: SuggestionPresentationType? = null,
-        val showErrors: Boolean? = null
+        val showErrors: Boolean? = null,
+        val configType: String? = null,
+        val advancedConfigBody: String? = null,
+        val typingRegexPattern: String? = null,
+        val typingRegexEnabled: Boolean? = null,
+        val customDebounceMs: Int? = null
     )
 
     /**
@@ -105,9 +139,16 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             updates.customSystemPrompt?.let { preferences[CUSTOM_SYSTEM_PROMPT] = it }
             updates.temperature?.let { preferences[TEMPERATURE] = it }
             updates.topP?.let { preferences[TOP_P] = it }
-            updates.suggestionPresentationType?.let { preferences[SUGGESTION_PRESENTATION_TYPE] = it.value }
+            updates.suggestionPresentationType?.let {
+                preferences[SUGGESTION_PRESENTATION_TYPE] = it.value
+            }
             updates.showErrors?.let { preferences[SHOW_ERRORS] = it }
             updates.selectedApps?.let { preferences[SELECTED_APPS] = it }
+            updates.configType?.let { preferences[CONFIG_TYPE] = it }
+            updates.advancedConfigBody?.let { preferences[ADVANCED_CONFIG_BODY] = it }
+            updates.typingRegexPattern?.let { preferences[TYPING_REGEX_PATTERN] = it }
+            updates.typingRegexEnabled?.let { preferences[TYPING_REGEX_ENABLED] = it }
+            updates.customDebounceMs?.let { preferences[CUSTOM_DEBOUNCE_MS] = it }
         }
 
     }
@@ -127,8 +168,18 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             temperatureState.value = prefs[TEMPERATURE] ?: DEFAULT_TEMPERATURE
             topPState.value = prefs[TOP_P] ?: DEFAULT_TOP_P
             selectedAppsState.value = prefs[SELECTED_APPS] ?: DEFAULT_SELECTED_APPS
-            suggestionPresentationTypeState.value = SuggestionPresentationType.fromInt(prefs[SUGGESTION_PRESENTATION_TYPE] ?: DEFAULT_SUGGESTION_PRESENTATION_TYPE)
+            suggestionPresentationTypeState.value = SuggestionPresentationType.fromInt(
+                prefs[SUGGESTION_PRESENTATION_TYPE] ?: DEFAULT_SUGGESTION_PRESENTATION_TYPE
+            )
             showErrorsState.value = prefs[SHOW_ERRORS] ?: DEFAULT_SHOW_ERRORS
+            configTypeState.value = prefs[CONFIG_TYPE] ?: DEFAULT_CONFIG_TYPE
+            advancedConfigBodyState.value =
+                prefs[ADVANCED_CONFIG_BODY] ?: DEFAULT_ADVANCED_CONFIG_BODY
+            typingRegexPatternState.value =
+                prefs[TYPING_REGEX_PATTERN] ?: DEFAULT_TYPING_REGEX_PATTERN
+            typingRegexEnabledState.value =
+                prefs[TYPING_REGEX_ENABLED] ?: DEFAULT_TYPING_REGEX_ENABLED
+            customDebounceState.value = prefs[CUSTOM_DEBOUNCE_MS] ?: DEFAULT_CUSTOM_DEBOUNCE_MS
         }
     }
 
@@ -215,6 +266,46 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     suspend fun updateSelectedApps(apps: Set<String>) {
         selectedAppsState.value = apps
         updatePreferences(PreferenceUpdate(selectedApps = apps))
+    }
+
+    /**
+     * Update config type state and persist to datastore
+     */
+    suspend fun updateConfigType(type: String) {
+        configTypeState.value = type
+        updatePreferences(PreferenceUpdate(configType = type))
+    }
+
+    /**
+     * Update advanced config JSON state and persist to datastore
+     */
+    suspend fun updateAdvancedConfigBody(json: String) {
+        advancedConfigBodyState.value = json
+        updatePreferences(PreferenceUpdate(advancedConfigBody = json))
+    }
+
+    /**
+     * Update typing regex pattern state and persist to datastore
+     */
+    suspend fun updateTypingRegexPattern(pattern: String) {
+        typingRegexPatternState.value = pattern
+        updatePreferences(PreferenceUpdate(typingRegexPattern = pattern))
+    }
+
+    /**
+     * Update typing regex enabled state and persist to datastore
+     */
+    suspend fun updateTypingRegexEnabled(enabled: Boolean) {
+        typingRegexEnabledState.value = enabled
+        updatePreferences(PreferenceUpdate(typingRegexEnabled = enabled))
+    }
+
+    /**
+     * Update custom debounce milliseconds state and persist to datastore
+     */
+    suspend fun updateCustomDebounceMs(debounceMs: Int) {
+        customDebounceState.value = debounceMs
+        updatePreferences(PreferenceUpdate(customDebounceMs = debounceMs))
     }
 
     /**
