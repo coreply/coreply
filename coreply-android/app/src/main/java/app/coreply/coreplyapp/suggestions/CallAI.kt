@@ -19,16 +19,10 @@
 
 package app.coreply.coreplyapp.suggestions
 
-import android.content.Context
 import app.coreply.coreplyapp.data.PreferencesManager
-import com.aallam.openai.api.chat.ChatCompletionRequest
-import com.aallam.openai.api.chat.ChatMessage
-import com.aallam.openai.api.chat.ChatRole
-import com.aallam.openai.api.core.RequestOptions
-import com.aallam.openai.api.model.ModelId
-import com.aallam.openai.client.OpenAI
-import com.aallam.openai.client.OpenAIConfig
-import com.aallam.openai.client.OpenAIHost
+import app.coreply.coreplyapp.network.CustomAPISuggestionRequester
+import app.coreply.coreplyapp.network.FIMSuggestionRequester
+import app.coreply.coreplyapp.network.SuggestionRequester
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -36,8 +30,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 
 
 @OptIn(FlowPreview::class)
@@ -56,8 +48,8 @@ open class CallAI(
     init {
         // Launch a coroutine to collect debounced user input and fetch suggestions
         coroutineScope.launch {
-            _userInputFlow // adjust debounce delay as needed
-                .debounce(360)
+            _userInputFlow
+                .debounce { preferencesManager.customDebounceState.value.toLong() }
                 .collect { typingInfo ->
                     networkScope.launch {
                         fetchSuggestions(typingInfo)
@@ -66,14 +58,39 @@ open class CallAI(
         }
     }
 
+
     private suspend fun fetchSuggestions(typingInfo: TypingInfo) {
         try {
             if (typingInfo.currentTyping.isBlank() && typingInfo.pastMessages.chatContents.isEmpty()) {
                 // If no current typing and no past messages, do nothing
                 return
             }
+
+            // Check regex filter
+            if (preferencesManager.typingRegexEnabledState.value) {
+                val pattern = preferencesManager.typingRegexPatternState.value
+                if (pattern.isNotEmpty()) {
+                    val regex = try {
+                        Regex(pattern)
+                    } catch (e: Exception) {
+                        null
+                    }
+                    if (regex != null && !regex.containsMatchIn(typingInfo.currentTyping)) {
+                        return
+                    }
+                }
+            }
+            val baseURL = preferencesManager.customApiUrlState.value
+            val apiType = preferencesManager.apiTypeState.value
+            val suggestionRequester: SuggestionRequester =
+                if (baseURL.endsWith("/fim") || baseURL.endsWith("/fim/")) {
+                    FIMSuggestionRequester
+                } else {
+                    CustomAPISuggestionRequester
+                }
+
             var suggestions =
-                requestSuggestionsFromServer(typingInfo)
+                suggestionRequester.requestSuggestionsFromServer(typingInfo, preferencesManager)
             suggestions = suggestions.replace("\n", " ")
             if (suggestions.startsWith(" ")) {
                 suggestions = " " + suggestions.trim()
@@ -88,105 +105,5 @@ open class CallAI(
             }
 
         }
-    }
-
-    open suspend fun requestSuggestionsFromServer(
-        typingInfo: TypingInfo
-    ): String {
-        var baseUrl = preferencesManager.customApiUrlState.value
-        if (!baseUrl.endsWith("/")) {
-            baseUrl += "/"
-        }
-        val host = OpenAIHost(
-            baseUrl = baseUrl,
-        )
-        val config = OpenAIConfig(
-            host = host,
-            token = preferencesManager.customApiKeyState.value,
-        )
-
-        val modelName = preferencesManager.customModelNameState.value
-
-        val openAI = OpenAI(config)
-
-        if (baseUrl.contains("/fim/")) {
-            val userPrompt =
-                "# Mocking a texting conversation. Messages never repeat. send_message() sends a message. mock_received() means receiving a message from others.\n# Start of Chat History\n" +
-                        typingInfo.pastMessages.getFIMFormat() + "\n" +
-                        "# Craft a new text\nsend_message(\"" + typingInfo.currentTyping.replace(
-                    "\\s+".toRegex(),
-                    " "
-                )
-
-            val client = okhttp3.OkHttpClient()
-            val mediaType = "application/json".toMediaTypeOrNull()
-            val requestBody = org.json.JSONObject().apply {
-                put("model", modelName)
-                put("temperature", preferencesManager.temperatureState.value.toDouble())
-                put("top_p", preferencesManager.topPState.value.toDouble())
-                put("max_tokens", 100)
-                put("stream", false)
-                put("stop", "\")")
-                put("prompt", userPrompt)
-            }.toString().toRequestBody(mediaType)
-
-            val request = okhttp3.Request.Builder()
-                .url("${baseUrl}completions") // Replace with actual endpoint
-                .post(requestBody)
-                .addHeader("Authorization", "Bearer ${preferencesManager.customApiKeyState.value}")
-                .addHeader("Content-Type", "application/json")
-                .build()
-
-            val response = client.newCall(request).execute()
-            val responseBody = response.body?.string() ?: ""
-            //Log.v("CallAI", "Response: $responseBody")
-            val jsonResponse = org.json.JSONObject(responseBody)
-            val choices = jsonResponse.getJSONArray("choices")
-            val message = choices.getJSONObject(0).getJSONObject("message")
-            val completionText = message.getString("content")
-            return (typingInfo.currentTyping.replace("\\s+".toRegex(), " ") + completionText).trim()
-        } else {
-            var userPrompt = "Given this chat history\n" +
-                    typingInfo.pastMessages.getCoreply2Format() + "\nIn addition to the message I sent,\n" +
-                    "What else should I send? Or start a new topic?"
-            if (typingInfo.currentTyping.isNotBlank()) {
-                userPrompt += "The reply should start with '${
-                    typingInfo.currentTyping.replace(
-                        "\\s+".toRegex(),
-                        " "
-                    )
-                }'\n"
-            }
-            val request = ChatCompletionRequest(
-                temperature = preferencesManager.temperatureState.value.toDouble(),
-                model = ModelId(modelName),
-                topP = preferencesManager.topPState.value.toDouble(),
-                maxTokens = 1000,
-                messages = listOf(
-                    ChatMessage(
-                        role = ChatRole.System,
-                        content = preferencesManager.customSystemPromptState.value
-                    ),
-                    ChatMessage(
-                        role = ChatRole.User,
-                        content = userPrompt
-                    ),
-
-                    ),
-            )
-            //Log.v("CallAI", "Requesting suggestions with prompt: $userPrompt")
-            val response = openAI.chatCompletion(
-                request,
-                RequestOptions(
-                    headers = mapOf(
-                        "HTTP-Referer" to "https://coreply.app",
-                        "X-Title" to "Coreply: Autocomplete for Texting"
-                    )
-                )
-            )
-            //Log.v("CallAI", "Response: ${response.choices.first().message.content?.trim()}")
-            return response.choices.first().message.content?.trim() ?: ""
-        }
-
     }
 }

@@ -54,6 +54,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val TYPING_REGEX_PATTERN = stringPreferencesKey("typing_regex_pattern")
         val TYPING_REGEX_ENABLED = booleanPreferencesKey("typing_regex_enabled")
         val CUSTOM_DEBOUNCE_MS = intPreferencesKey("custom_debounce_ms")
+        val SUGGESTION_CONTENT_TEMPLATE = stringPreferencesKey("suggestion_content_template")
 
         // Default values
         private const val DEFAULT_MASTER_SWITCH = true
@@ -70,20 +71,27 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         private const val DEFAULT_SHOW_ERRORS = true
         private const val DEFAULT_CONFIG_TYPE = "simple"
         private var DEFAULT_ADVANCED_CONFIG_BODY = """{
-            |  "model": "gpt-4.1-mini",
+            |  "model": "gpt-4o-mini",
             |  "temperature": 0.7,
             |  "top_p": 1.0,
             |  "messages": [
-            |    {"role": "system", "content": "You are an AI texting assistant."},
-            |    {"role": "user", "content": ""}
+            |    {
+            |      "role": "system",
+            |      "content": "You are an AI texting assistant. Generate a suggested reply based on the conversation history and current typing. Output only the suggested text without quotation marks or extra formatting."
+            |    },
+            |    {
+            |      "role": "user",
+            |      "content": "Chat history:\n{{#pastMessages}}{{#sent}}Me: {{/sent}}{{#received}}Them: {{/received}}{{content.jsonEscaped}}\n{{/pastMessages}}{{#currentTyping}}Current typing: {{currentTyping.jsonEscaped}}{{/currentTyping}}{{^currentTyping}}Suggest a reply.{{/currentTyping}}"
+            |    }
             |  ],
-            |  "max_tokens": 25,
+            |  "max_tokens": 50,
             |  "stream": false
             |}
         """.trimMargin()
         private const val DEFAULT_TYPING_REGEX_PATTERN = "^.*[\\s.!?,;:]$"
         private const val DEFAULT_TYPING_REGEX_ENABLED = false
         private const val DEFAULT_CUSTOM_DEBOUNCE_MS = 350
+        private const val DEFAULT_SUGGESTION_CONTENT_TEMPLATE = "{{assistantMessage}}"
     }
 
     // Mutable state for each preference field
@@ -105,6 +113,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     val typingRegexEnabledState: MutableState<Boolean> =
         mutableStateOf(DEFAULT_TYPING_REGEX_ENABLED)
     val customDebounceState: MutableState<Int> = mutableStateOf(DEFAULT_CUSTOM_DEBOUNCE_MS)
+    val suggestionContentTemplateState: MutableState<String> =
+        mutableStateOf(DEFAULT_SUGGESTION_CONTENT_TEMPLATE)
 
 
     data class PreferenceUpdate(
@@ -123,7 +133,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
         val advancedConfigBody: String? = null,
         val typingRegexPattern: String? = null,
         val typingRegexEnabled: Boolean? = null,
-        val customDebounceMs: Int? = null
+        val customDebounceMs: Int? = null,
+        val suggestionContentTemplate: String? = null
     )
 
     /**
@@ -149,6 +160,7 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             updates.typingRegexPattern?.let { preferences[TYPING_REGEX_PATTERN] = it }
             updates.typingRegexEnabled?.let { preferences[TYPING_REGEX_ENABLED] = it }
             updates.customDebounceMs?.let { preferences[CUSTOM_DEBOUNCE_MS] = it }
+            updates.suggestionContentTemplate?.let { preferences[SUGGESTION_CONTENT_TEMPLATE] = it }
         }
 
     }
@@ -180,6 +192,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
             typingRegexEnabledState.value =
                 prefs[TYPING_REGEX_ENABLED] ?: DEFAULT_TYPING_REGEX_ENABLED
             customDebounceState.value = prefs[CUSTOM_DEBOUNCE_MS] ?: DEFAULT_CUSTOM_DEBOUNCE_MS
+            suggestionContentTemplateState.value =
+                prefs[SUGGESTION_CONTENT_TEMPLATE] ?: DEFAULT_SUGGESTION_CONTENT_TEMPLATE
         }
     }
 
@@ -306,6 +320,14 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
     suspend fun updateCustomDebounceMs(debounceMs: Int) {
         customDebounceState.value = debounceMs
         updatePreferences(PreferenceUpdate(customDebounceMs = debounceMs))
+    }
+
+    /**
+     * Update suggestion content template state and persist to datastore
+     */
+    suspend fun updateSuggestionContentTemplate(template: String) {
+        suggestionContentTemplateState.value = template
+        updatePreferences(PreferenceUpdate(suggestionContentTemplate = template))
     }
 
     /**

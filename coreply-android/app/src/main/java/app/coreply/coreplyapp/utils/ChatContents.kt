@@ -63,6 +63,25 @@ class ChatContents {
         }.toMutableList()
     }
 
+    /**
+     * Return a list of maps for each message with fields:
+     * - "sent": true if sender is "Me", otherwise false
+     * - "received": opposite of sent
+     * - "content": map with raw/jsonEscaped/regexEscaped/regexJsonEscaped variants
+     * - "sender": map with raw/jsonEscaped/regexEscaped/regexJsonEscaped variants
+     */
+    fun getMessageMapList(): MutableList<Map<String, Any?>> {
+        return chatContents.map {
+            val sent = it.sender == "Me"
+            mapOf<String, Any?>(
+                "sent" to sent,
+                "received" to !sent,
+                "content" to it.message.toTemplateMap(),
+                "sender" to it.sender.toTemplateMap()
+            )
+        }.toMutableList()
+    }
+
     fun getCoreplyFormat(typingInfo: TypingInfo): MutableList<com.aallam.openai.api.chat.ChatMessage> {
         var msgBlock: String = ">>"
         val msgList: MutableList<com.aallam.openai.api.chat.ChatMessage> = mutableListOf()

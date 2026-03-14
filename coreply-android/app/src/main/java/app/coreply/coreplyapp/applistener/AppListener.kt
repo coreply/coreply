@@ -21,6 +21,7 @@ package app.coreply.coreplyapp.applistener
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.os.Build
 import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
@@ -113,7 +114,16 @@ open class AppListener : AccessibilityService() {
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
             this.serviceInfo = info
             // Update state instead of direct overlay calls
-            overlayViewModel.enable(supportedAppProperty, inputWidget, root)
+
+            overlayViewModel.enable(
+                supportedAppProperty,
+                inputWidget,
+                root,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    inputMethod
+                } else null
+            )
+
 
             measureWindowFlow.tryEmit(inputWidget)
             getMessagesFlow.tryEmit(root)
@@ -141,7 +151,9 @@ open class AppListener : AccessibilityService() {
         info.eventTypes =
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
         info.flags =
-            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INPUT_METHOD_EDITOR
+            } else AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
         this.serviceInfo = info
         Toast.makeText(
             applicationContext,

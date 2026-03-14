@@ -19,6 +19,7 @@
 
 package app.coreply.coreplyapp.ui.viewmodel
 
+import android.accessibilityservice.InputMethod
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Build
@@ -63,6 +64,7 @@ data class OverlayUiState(
     var currentStatus: AppSupportStatus = AppSupportStatus.UNKNOWN,
     var currentTyping: String = "-",
     var messageListProcessor: (AccessibilityNodeInfo) -> MutableList<ChatMessage> = { mutableListOf() },
+    var currentInputMethod: InputMethod? = null
 )
 
 class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
@@ -115,6 +117,7 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
         currentApp: SupportedAppProperty,
         currentInput: AccessibilityNodeInfo,
         currentMessageListNode: AccessibilityNodeInfo,
+        currentInputMethod: InputMethod?
     ) {
         _uiState.update { state ->
             state.copy(
@@ -122,7 +125,8 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
                 currentApp = currentApp,
                 currentInput = currentInput,
                 currentMessageListNode = currentMessageListNode,
-                messageListProcessor = currentApp.messageListProcessor
+                messageListProcessor = currentApp.messageListProcessor,
+                currentInputMethod = currentInputMethod
             )
         }
     }
@@ -342,7 +346,8 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
     fun toTypingInfo(): TypingInfo {
         return TypingInfo(
             pastMessages = _uiState.value.currentChatContents,
-            currentTyping = _uiState.value.currentTyping
+            currentTyping = _uiState.value.currentTyping,
+            pkgName = _uiState.value.currentApp?.pkgName ?: ""
         )
     }
 

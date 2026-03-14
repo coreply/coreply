@@ -480,6 +480,17 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
             )
+            // Suggestion Content template
+            OutlinedTextField(
+                value = uiState.suggestionContentTemplate,
+                onValueChange = viewModel::updateSuggestionContentTemplate,
+                label = { Text("Suggestion Content") },
+                supportingText = { Text("Mustache template for the final suggestion. Use {{assistantMessage}} for the model response.") },
+                minLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+            )
         }
     }
 }

@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Paint
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -146,10 +147,10 @@ class Overlay(
         mainParams.gravity = Gravity.TOP or Gravity.START
         mainParams.height = DP48
         mainParams.alpha = 1.0f
-        if (android.os.Build.VERSION.SDK_INT >= 30) {
+        if (Build.VERSION.SDK_INT >= 30) {
             mainParams.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-        } else if (android.os.Build.VERSION.SDK_INT >= 28) {
+        } else if (Build.VERSION.SDK_INT >= 28) {
             mainParams.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
@@ -178,10 +179,10 @@ class Overlay(
         trailingParams.height = DP20
         trailingParams.alpha = 1.0f
         trailingParams.x = DP8
-        if (android.os.Build.VERSION.SDK_INT >= 30) {
+        if (Build.VERSION.SDK_INT >= 30) {
             trailingParams.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-        } else if (android.os.Build.VERSION.SDK_INT >= 28) {
+        } else if (Build.VERSION.SDK_INT >= 28) {
             trailingParams.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
@@ -234,27 +235,44 @@ class Overlay(
                 currentState.currentTyping.replace("Compose Message", "") + addText
             )
         }
-        currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            currentState.currentInputMethod?.currentInputConnection?.commitText(addText, 1, null)
+        } else {
+            currentState.currentInput?.performAction(
+                AccessibilityNodeInfo.ACTION_SET_TEXT,
+                arguments
+            )
+        }
+
+
     }
 
     private fun performFullTextAction(content: OverlayContent) {
         val arguments = Bundle()
         val currentState = viewModel.uiState.value
-        if (currentState.currentInput?.isShowingHintText == true || currentState.currentStatus == AppSupportStatus.HINT_TEXT) {
-            arguments.putCharSequence(
-                AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                content.fullText.trimEnd()
-            )
+
+        // Build the text we want to set/commit depending on whether hint text is showing
+        val toSet = if (currentState.currentInput?.isShowingHintText == true || currentState.currentStatus == AppSupportStatus.HINT_TEXT) {
+            content.fullText.trimEnd()
         } else {
-            arguments.putCharSequence(
-                AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                currentState.currentTyping.replace(
-                    "Compose Message",
-                    ""
-                ) + content.fullText.trimEnd()
-            )
+            currentState.currentTyping.replace(
+                "Compose Message",
+                ""
+            ) + content.fullText.trimEnd()
         }
-        currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
+
+        // Prepare arguments for the Accessibility action (used on older APIs)
+        arguments.putCharSequence(
+            AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
+            toSet
+        )
+
+        // On newer APIs prefer committing text via the input connection (mirrors performTextAction)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            currentState.currentInputMethod?.currentInputConnection?.commitText(content.fullText.trimEnd(), 1, null)
+        } else {
+            currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
+        }
     }
 
     fun getInlineText(): String {

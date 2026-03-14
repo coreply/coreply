@@ -28,7 +28,8 @@ data class SettingsUiState(
     val advancedConfigBody: String = "{}",
     val typingRegexPattern: String = "^.*[\\s.!?,;:]$",
     val typingRegexEnabled: Boolean = false,
-    val customDebounceMs: Int = 350
+    val customDebounceMs: Int = 350,
+    val suggestionContentTemplate: String = "{{assistantMessage}}"
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -63,7 +64,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             advancedConfigBody = preferencesManager.advancedConfigBodyState.value,
             typingRegexPattern = preferencesManager.typingRegexPatternState.value,
             typingRegexEnabled = preferencesManager.typingRegexEnabledState.value,
-            customDebounceMs = preferencesManager.customDebounceState.value
+            customDebounceMs = preferencesManager.customDebounceState.value,
+            suggestionContentTemplate = preferencesManager.suggestionContentTemplateState.value
         )
     }
     
@@ -174,6 +176,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         uiState = uiState.copy(customDebounceMs = debounceMs)
         viewModelScope.launch {
             preferencesManager.updateCustomDebounceMs(debounceMs)
+        }
+    }
+
+    fun updateSuggestionContentTemplate(template: String) {
+        uiState = uiState.copy(suggestionContentTemplate = template)
+        viewModelScope.launch {
+            preferencesManager.updateSuggestionContentTemplate(template)
         }
     }
 }

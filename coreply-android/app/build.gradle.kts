@@ -59,4 +59,5 @@ dependencies {
     implementation("androidx.compose.ui:ui-text-google-fonts:1.10.3")
 
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("com.samskivert:jmustache:1.16")
 }
