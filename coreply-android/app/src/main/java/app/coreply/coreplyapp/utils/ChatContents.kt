@@ -20,9 +20,9 @@ class ChatContents {
     // compare the chatContents list with another ChatContents list and combine them if they have ChatMessage objects in common
     // Returns a boolean, true if needs new suggestions
     fun combineChatContents(other: MutableList<ChatMessage>): Boolean {
-        if (chatContents.size == 0 || other.size == 0) {
+        if (chatContents.isEmpty() || other.isEmpty()) {
             chatContents = other
-            return other.size > 0
+            return other.isNotEmpty()
         } else if (chatContents == other) (
             return false
         )
@@ -36,7 +36,7 @@ class ChatContents {
                         chatContents.add(i)
                     }
                 }
-                return false//clearCurrentSuggestions && chatContents.size>1
+                return clearCurrentSuggestions && chatContents.size>1
             } else if (chatContents[0] in other) {
                 // Insert new messages to the top of chatContents list
                 for (i in chatContents) {
@@ -64,22 +64,71 @@ class ChatContents {
     }
 
     /**
-     * Return a list of maps for each message with fields:
+     * Return a list of turn objects, where each turn contains consecutive messages from the same sender.
+     * Each turn object has fields:
      * - "sent": true if sender is "Me", otherwise false
      * - "received": opposite of sent
-     * - "content": map with raw/jsonEscaped/regexEscaped/regexJsonEscaped variants
-     * - "sender": map with raw/jsonEscaped/regexEscaped/regexJsonEscaped variants
+     * - "sender": sender name
+     * - "messages": list of message maps, each with "sent", "received", "sender", and "content" fields
      */
     fun getMessageMapList(): MutableList<Map<String, Any?>> {
-        return chatContents.map {
-            val sent = it.sender == "Me"
-            mapOf<String, Any?>(
-                "sent" to sent,
-                "received" to !sent,
-                "content" to it.message.toTemplateMap(),
-                "sender" to it.sender.toTemplateMap()
+        val turns = mutableListOf<Map<String, Any?>>()
+        if (chatContents.isEmpty()) return turns
+        
+        var currentTurnMessages = mutableListOf<Map<String, Any?>>()
+        var currentSender = chatContents[0].sender
+        
+        for (message in chatContents) {
+            if (message.sender == currentSender) {
+                // Same sender, add to current turn
+                val sent = message.sender == "Me"
+                currentTurnMessages.add(
+                    mapOf(
+                        "sent" to sent,
+                        "received" to !sent,
+                        "sender" to message.sender.toTemplateMap(),
+                        "content" to message.message.toTemplateMap()
+                    )
+                )
+            } else {
+                // Different sender, save current turn and start a new one
+                val sent = currentSender == "Me"
+                turns.add(
+                    mapOf<String, Any?>(
+                        "sent" to sent,
+                        "received" to !sent,
+                        "sender" to currentSender.toTemplateMap(),
+                        "messages" to currentTurnMessages
+                    )
+                )
+                currentTurnMessages = mutableListOf()
+                currentSender = message.sender
+                val sent2 = message.sender == "Me"
+                currentTurnMessages.add(
+                    mapOf(
+                        "sent" to sent2,
+                        "received" to !sent2,
+                        "sender" to message.sender.toTemplateMap(),
+                        "content" to message.message.toTemplateMap()
+                    )
+                )
+            }
+        }
+        
+        // Add the last turn
+        if (currentTurnMessages.isNotEmpty()) {
+            val sent = currentSender == "Me"
+            turns.add(
+                mapOf<String, Any?>(
+                    "sent" to sent,
+                    "received" to !sent,
+                    "sender" to currentSender.toTemplateMap(),
+                    "messages" to currentTurnMessages
+                )
             )
-        }.toMutableList()
+        }
+        
+        return turns
     }
 
     fun getCoreplyFormat(typingInfo: TypingInfo): MutableList<com.aallam.openai.api.chat.ChatMessage> {

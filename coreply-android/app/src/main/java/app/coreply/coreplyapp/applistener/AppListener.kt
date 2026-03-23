@@ -102,6 +102,10 @@ open class AppListener : AccessibilityService() {
         var isSupportedApp = false
         val previousInputNodeStillHere: Boolean =
             overlayViewModel.refresh(RefreshType.NORMAL, false)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            overlayViewModel.updateInputMethod(inputMethod)
+        }
+
         val (supportedAppProperty, inputWidget) = if (previousInputNodeStillHere) Pair(
             overlayViewModel.uiState.value.currentApp,
             overlayViewModel.uiState.value.currentInput

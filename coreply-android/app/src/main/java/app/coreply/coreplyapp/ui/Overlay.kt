@@ -235,7 +235,11 @@ class Overlay(
                 currentState.currentTyping.replace("Compose Message", "") + addText
             )
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && currentState.currentInputMethod?.currentInputConnection != null) {
+            currentState.currentInputMethod?.currentInputConnection?.setSelection(
+                currentState.currentTyping.length,
+                currentState.currentTyping.length
+            )
             currentState.currentInputMethod?.currentInputConnection?.commitText(addText, 1, null)
         } else {
             currentState.currentInput?.performAction(
@@ -268,7 +272,11 @@ class Overlay(
         )
 
         // On newer APIs prefer committing text via the input connection (mirrors performTextAction)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && currentState.currentInputMethod?.currentInputConnection != null) {
+            currentState.currentInputMethod?.currentInputConnection?.setSelection(
+                currentState.currentTyping.length,
+                currentState.currentTyping.length
+            )
             currentState.currentInputMethod?.currentInputConnection?.commitText(content.fullText.trimEnd(), 1, null)
         } else {
             currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)

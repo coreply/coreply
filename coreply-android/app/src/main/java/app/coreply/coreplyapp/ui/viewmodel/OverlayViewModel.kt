@@ -131,6 +131,14 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
         }
     }
 
+    fun updateInputMethod(inputMethod: InputMethod?) {
+        _uiState.update { state ->
+            state.copy(
+                currentInputMethod = inputMethod
+            )
+        }
+    }
+
     fun supplyExtras(
         userInputFlow: MutableSharedFlow<TypingInfo>,
         suggestionStorage: SuggestionStorage
@@ -302,6 +310,13 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
                     val chatMessages = _uiState.value.messageListProcessor(it)
                     val clearSuggestions: Boolean =
                         _uiState.value.currentChatContents.combineChatContents(chatMessages)
+
+                    // On first initialization of chat contents in this session, trigger suggestion update
+                    if (!chatContentsInitializedInSession) {
+                        chatContentsInitializedInSession = true
+                        onEditTextUpdate(_uiState.value.currentTyping)
+                    }
+
                     if (clearSuggestions) {
                         suggestionStorage?.clearSuggestion()
                         if (uiState.value.currentTyping == "") {
@@ -377,6 +392,11 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
     }
 
     fun onEditTextUpdate(newText: String) {
+        // Only process suggestions and emit after chat contents have been initialized in this session
+        if (!chatContentsInitializedInSession) {
+            return
+        }
+
         suggestionStorage?.let {
             if (it.getSuggestion(newText) != null) {
                 val suggestionText = it.getSuggestion(newText)!!
