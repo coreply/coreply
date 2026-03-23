@@ -1,6 +1,8 @@
 package app.coreply.coreplyapp.ui.compose
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -242,7 +246,64 @@ fun ModernSettingsScreen(
             }
 
         }
-        CustomApiSettingsSection(viewModel)
+
+        // API Type Selection
+
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "API Configuration",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Tab-like selection for API type
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    onClick = { viewModel.updateApiType("hosted") },
+                    label = { Text("Coreply Cloud") },
+                    selected = uiState.apiType == "hosted",
+                    trailingIcon = if (uiState.apiType == "hosted") {
+                        {
+                            Icon(
+                                painter = painterResource(R.drawable.check_24px),
+                                contentDescription = "Selected"
+                            )
+                        }
+                    } else null,
+                    modifier = Modifier.weight(1f)
+                )
+
+                FilterChip(
+                    onClick = { viewModel.updateApiType("custom") },
+                    label = { Text("Custom API") },
+                    selected = uiState.apiType == "custom",
+                    trailingIcon = if (uiState.apiType == "custom") {
+                        {
+                            Icon(
+                                painter = painterResource(R.drawable.check_24px),
+                                contentDescription = "Selected"
+                            )
+                        }
+                    } else null,
+                    modifier = Modifier.weight(1f)
+                )
+
+
+            }
+        }
+
+
+        // Content based on API type selection
+        when (uiState.apiType) {
+            "custom" -> CustomApiSettingsSection(viewModel)
+            "hosted" -> HostedApiSettingsSection(viewModel)
+        }
 
         Column(
             modifier = Modifier.padding(16.dp)
@@ -295,66 +356,12 @@ fun ModernSettingsScreen(
                     )
                 }
 
-
-        // API Type Selection
-
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "API Configuration",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Tab-like selection for API type
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    onClick = { viewModel.updateApiType("hosted") },
-                    label = { Text("Coreply Cloud") },
-                    selected = uiState.apiType == "hosted",
-                    trailingIcon = if (uiState.apiType == "hosted") {
-                        { Icon(Icons.Default.Check, contentDescription = "Selected") }
-                    } else null,
-                    modifier = Modifier.weight(1f)
-                )
-
-                FilterChip(
-                    onClick = { viewModel.updateApiType("custom") },
-                    label = { Text("Custom API") },
-                    selected = uiState.apiType == "custom",
-                    trailingIcon = if (uiState.apiType == "custom") {
-                        { Icon(Icons.Default.Check, contentDescription = "Selected") }
-                    } else null,
-                    modifier = Modifier.weight(1f)
-                )
-
-
-            }
-        }
-
-
-        // Content based on API type selection
-        when (uiState.apiType) {
-            "custom" -> CustomApiSettingsSection(viewModel)
-            "hosted" -> HostedApiSettingsSection(viewModel)
-        }
-
-        // About Section
-        AboutSection()
-
-
-    }
-}
-
                 Checkbox(
                     checked = uiState.typingRegexEnabled,
                     onCheckedChange = { viewModel.updateTypingRegexEnabled(it) }
                 )
+
+
             }
 
             // Typing Regex Pattern Text Field
@@ -370,10 +377,14 @@ fun ModernSettingsScreen(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             )
-
         }
+        // About Section
+        AboutSection()
     }
 }
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -584,7 +595,7 @@ fun HostedApiSettingsSection(viewModel: SettingsViewModel) {
                     showApiKey = !showApiKey
                 }) {
                     Icon(
-                        imageVector = if (showApiKey) Icons.Default.Lock else Icons.Default.Info,
+                        painter = painterResource(if (showApiKey) R.drawable.visibility_off_24px else R.drawable.visibility_24px),
                         contentDescription = if (showApiKey) "Hide API Key" else "Show API Key"
                     )
                 }

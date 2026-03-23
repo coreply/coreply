@@ -22,6 +22,7 @@ package app.coreply.coreplyapp.suggestions
 import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.network.CustomAPISuggestionRequester
 import app.coreply.coreplyapp.network.FIMSuggestionRequester
+import app.coreply.coreplyapp.network.HostedSuggestionRequester
 import app.coreply.coreplyapp.network.SuggestionRequester
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,15 +81,6 @@ open class CallAI(
                     }
                 }
             }
-            val baseURL = preferencesManager.customApiUrlState.value
-            val apiType = preferencesManager.apiTypeState.value
-            val suggestionRequester: SuggestionRequester =
-                if (baseURL.endsWith("/fim") || baseURL.endsWith("/fim/")) {
-                    FIMSuggestionRequester
-                } else {
-                    CustomAPISuggestionRequester
-                }
-
             val baseURL = preferencesManager.customApiUrlState.value
             val apiType = preferencesManager.apiTypeState.value
             val suggestionRequester: SuggestionRequester = if (apiType=="hosted") {
