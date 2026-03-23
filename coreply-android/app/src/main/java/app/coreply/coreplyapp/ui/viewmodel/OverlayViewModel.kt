@@ -75,6 +75,8 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
     private var userInputFlow: MutableSharedFlow<TypingInfo>? = null
     private var suggestionStorage: SuggestionStorage? = null
 
+    private var chatContentsInitializedInSession: Boolean = false
+
     fun updateTextSize(textSize: Float) {
         _uiState.update { state -> state.copy(inlineTextSize = textSize) }
     }
@@ -355,6 +357,7 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
         _uiState.value.currentMessageListNode?.recycle()
         _uiState.value.currentChatContents.clear()
         suggestionStorage?.clearSuggestion()
+        chatContentsInitializedInSession = false
     }
 
 
