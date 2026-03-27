@@ -26,7 +26,7 @@ data class TypingInfo(val pastMessages: ChatContents, val currentTyping: String,
 
     /**
      * Unified context map for both request body templates and suggestion templates.
-     * String fields are maps with raw/jsonEscaped/regexEscaped/regexJsonEscaped variants.
+     * String fields are maps with raw/jsonEscaped/regexLiteral/regexLiteralEscaped variants.
      *
      * For request body templates (JSON), use: {{currentTyping.jsonEscaped}}
      * For suggestion templates (raw text), use: {{currentTyping.raw}}

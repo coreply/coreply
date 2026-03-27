@@ -19,18 +19,18 @@ fun String.jsonEscape(): String {
  * The map contains:
  * - "raw": the original unescaped string
  * - "jsonEscaped": JSON-escaped string (for embedding in JSON)
- * - "regexEscaped": regex-escaped string (for use in regex patterns)
- * - "regexJsonEscaped": first regex-escaped, then JSON-escaped
+ * - "regexLiteral": regex-escaped string (for use in regex patterns)
+ * - "regexLiteralEscaped": first regex-escaped, then JSON-escaped
  */
 fun String.toTemplateMap(): Map<String, String>? {
     if (isEmpty()) {
         return null
     }
-    val regexEscaped = Regex.escape(this)
+    val regexLiteral = Regex.escape(this)
     return mapOf(
         "raw" to this,
         "jsonEscaped" to this.jsonEscape(),
-        "regexEscaped" to regexEscaped,
-        "regexJsonEscaped" to regexEscaped.jsonEscape()
+        "regexLiteral" to regexLiteral,
+        "regexLiteralEscaped" to regexLiteral.jsonEscape()
     )
 }
