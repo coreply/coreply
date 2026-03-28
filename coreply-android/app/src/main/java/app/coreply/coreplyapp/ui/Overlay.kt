@@ -329,7 +329,7 @@ class Overlay(
                     mainParams.x = chatEntryRect.left
 
                 }
-
+                trailingParams.x = chatEntryRect.left
                 trailingParams.y = chatEntryRect.bottom
 
                 // Show/hide overlays based on content and preferences
