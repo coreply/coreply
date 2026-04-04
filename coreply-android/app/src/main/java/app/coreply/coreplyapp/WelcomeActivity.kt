@@ -174,13 +174,6 @@ fun WelcomeScreen(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "Item greyed out saying 'Restricted Setting'?",
                                 style = MaterialTheme.typography.bodyMedium,
