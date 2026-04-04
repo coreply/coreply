@@ -65,7 +65,8 @@ object CustomAPISuggestionRequester : SuggestionRequester {
                 .ifBlank { "{{assistantMessage}}" }
             val suggestionContextMap = contextMap.toMutableMap()
             suggestionContextMap["assistantMessage"] = completionText
-            suggestionContextMap["assistantMessageAutoTrimStart"] = if (completionText.startsWith(typingInfo.currentTyping)) completionText.substring(typingInfo.currentTyping.length) else completionText
+            suggestionContextMap["assistantMessageAutoTrimCurrentTyping"] = if (completionText.startsWith(typingInfo.currentTyping)) completionText.substring(typingInfo.currentTyping.length) else completionText
+            suggestionContextMap["assistantMessageAutoTrimCurrentTypingTrimmed"] = if (completionText.startsWith(typingInfo.currentTypingTrimmed)) completionText.substring(typingInfo.currentTypingTrimmed.length) else completionText
             val compiledSuggestionTemplate = Mustache.compiler().escapeHTML(false).compile(suggestionTemplate)
             val finalSuggestion = compiledSuggestionTemplate.execute(suggestionContextMap)
 

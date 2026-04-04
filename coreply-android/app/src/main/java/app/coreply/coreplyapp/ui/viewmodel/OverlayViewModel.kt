@@ -356,6 +356,7 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
         _uiState.value.currentInput?.recycle()
         _uiState.value.currentMessageListNode?.recycle()
         _uiState.value.currentChatContents.clear()
+        updateInputMethod(null)
         suggestionStorage?.clearSuggestion()
         chatContentsInitializedInSession = false
     }

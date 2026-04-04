@@ -27,7 +27,7 @@ class WelcomeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
-        val page = intent.getIntExtra("page", 0)
+        val page = intent.getIntExtra("page", 2)
         
         setContent {
             CoreplyTheme {
@@ -55,65 +55,41 @@ fun WelcomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp)
+                .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             when (page) {
-                1 -> PermissionContent(
-                    title = "Enable Overlay Permission",
-                    description = "Coreply needs permission to display suggestions over other apps. This allows the app to show AI-powered text suggestions while you\'re typing in messaging apps.",
-                    cardColors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    cardHorizontalAlignment = Alignment.CenterHorizontally,
-                    cardContent = {
-                        Text(
-                            text = "📱",
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                        Text(
-                            text = "This permission is safe and only used to show text suggestions",
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    },
-                    buttonContent = {
-                        Button(
-                            onClick = {
-                                if (!isAccessibilityEnabled(context)) {
-                                    // Navigate to accessibility permission
-                                    val intent = Intent(context, WelcomeActivity::class.java)
-                                    intent.putExtra("page", 2)
-                                    context.startActivity(intent)
-                                }
-                                context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION))
-                                onFinish()
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Open Settings")
-                        }
-                    }
-                )
                 2 -> PermissionContent(
                     title = "Accessibility Service Disclosure",
-                    description = "Coreply uses the Accessibility Service to read on-screen messages and locate text fields in messaging apps. This is necessary for providing inline context aware texting suggestions.",
+                    description = "Please read the following disclosure carefully.",
                     cardColors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     ),
                     cardContent = {
                         Text(
-                            text = "✅ Step by Step Guide",
+                            text = "What data is being accessed",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(3.dp))
                         Text(
-                            text = "1. Open Accessibility Settings\n2. Select Coreply in the list of apps.\n3. Toggle on the switch",
+                            text = "Coreply's accessibility service reads on-screen text content, detects active text input fields and reads the text being typed.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "How your data is shared",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = "In order to generate context-aware typing suggestions. The data described above will be sent to the API or service according to your setup.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -126,16 +102,14 @@ fun WelcomeScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("I Accept")
+                            Text("I Agree & Enable")
                         }
                         
-//                        TextButton(
-//                            onClick = {
-//                                // TODO: Implement video tutorial
-//                            }
-//                        ) {
-//                            Text("Watch Setup Tutorial")
-//                        }
+                        TextButton(
+                            onClick = onFinish
+                        ) {
+                            Text("Cancel")
+                        }
                     }
                 )
                 3 -> PermissionContent(
@@ -195,12 +169,12 @@ private fun ColumnScope.PermissionContent(
     Image(
         painter = painterResource(id = R.mipmap.ic_launcher_foreground),
         contentDescription = "Coreply Icon",
-        modifier = Modifier.size(100.dp)
+        modifier = Modifier.size(60.dp)
     )
     
     Text(
         text = title,
-        style = MaterialTheme.typography.headlineSmall,
+        style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center
     )
@@ -224,13 +198,10 @@ private fun ColumnScope.PermissionContent(
             content = cardContent
         )
     }
-    
     Spacer(modifier = Modifier.weight(1f))
-    
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
         content = buttonContent
     )
 }

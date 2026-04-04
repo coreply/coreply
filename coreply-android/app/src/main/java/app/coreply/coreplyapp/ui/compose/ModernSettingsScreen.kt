@@ -232,7 +232,7 @@ fun ModernSettingsScreen(
                 ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "[BETA] Select Apps",
+                        text = "Select Apps",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
@@ -371,7 +371,7 @@ fun ModernSettingsScreen(
                 label = { Text("Typing Regex Pattern") },
                 supportingText = { Text("Regex to limit suggestions after matching text") },
                 minLines = 1,
-                maxLines = 1,
+                maxLines = 3,
                 enabled = uiState.typingRegexEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
