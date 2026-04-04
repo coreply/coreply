@@ -34,7 +34,7 @@ fun detectSupportedApp(
 
             }
         }
-        if (selectedApps.contains(inputNodePackage) && inputNode.className.contains("android.widget.EditText")) {
+        if (selectedApps.contains(inputNodePackage) && inputNode.className != null && inputNode.className.contains("android.widget.EditText")) {
             return Pair(
                 SupportedAppProperty(
                     inputNodePackage.toString(),
