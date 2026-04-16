@@ -43,6 +43,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.max
 
 enum class RefreshType {
     NORMAL,
@@ -240,8 +242,8 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
                 for (rectF in rectArray) {
                     if (rectF != null) {
                         // Check if is RTL by comparing the distance to left and right edges
-                        val distanceToLeft = Math.abs(rectF.left - rect.left)
-                        val distanceToRight = Math.abs(rectF.right - rect.right)
+                        val distanceToLeft = abs(rectF.left - rect.left)
+                        val distanceToRight = abs(rectF.right - rect.right)
                         if (distanceToLeft > distanceToRight) {
                             rtl = true
                         }
@@ -268,6 +270,27 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
                 rect.right -= (rect.width() * 0.25).toInt()
                 status = AppSupportStatus.HINT_TEXT
             }
+
+            if (uiState.value.currentApp?.pkgName == "com.openai.chatgpt") {
+                if (uiState.value.currentInput?.text?.isNotEmpty() == true){
+                    // Special handling for ChatGPT app as it provides incorrect cursor position when text is not empty
+                    val child = uiState.value.currentInput?.getChild(0)
+                    val childRect = Rect()
+                    val inputRect = Rect()
+
+                    child?.getBoundsInScreen(childRect)
+                    uiState.value.currentInput?.getBoundsInScreen(inputRect)
+                    val offsetX = childRect.left - inputRect.left
+                    val offsetY = childRect.top - inputRect.top
+                    rect.left += offsetX
+                    rect.top += offsetY
+                    rect.bottom += offsetY
+                    rect.right = max(rect.right - offsetX * 3, rect.left+1)
+                } else{
+                    rect.right -= (rect.width() * 0.25).toInt()
+                }
+
+            }
             updateStatus(status)
             updateRect(rect)
             if (refreshText) {
@@ -286,7 +309,8 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
                 Bundle()
             ) ?: false)
                     && _uiState.value.currentInput?.extraRenderingInfo != null
-            if (!refreshResult) {
+            if (!refreshResult && _uiState.value.currentApp?.pkgName != "com.openai.chatgpt" && _uiState.value.currentApp?.pkgName != "ai.perplexity.app.android") {
+                // Seems like cannot refresh rendering info doesn't necessarily mean it needs a reset.
                 reset()
             } else {
                 updateTextSize(

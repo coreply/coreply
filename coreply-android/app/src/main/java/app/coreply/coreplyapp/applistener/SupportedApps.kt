@@ -233,11 +233,39 @@ object SupportedApps {
         ),
         SupportedAppProperty(
             pkgName = "com.beeper.android",
-            inputJudger = { root, focus, id, pkgName -> pkgName == "com.beeper.android" && beeperDetector(root) },
+            inputJudger = { root, focus, id, pkgName ->
+                pkgName == "com.beeper.android" && contentAboveInputDetector(
+                    root
+                )
+            },
             excludeWidgets = arrayOf<String>(),
             messageListProcessor = { node: AccessibilityNodeInfo ->
                 beeperMessageListProcessor(node)
             }
+        ),
+        SupportedAppProperty(
+            pkgName = "com.openai.chatgpt",
+            inputJudger = { root, focus, id, pkgName ->
+                pkgName == "com.openai.chatgpt" && focus.className != null && focus.className == "android.widget.EditText" && contentAboveInputDetector(
+                    root
+                )
+            },
+            excludeWidgets = arrayOf<String>(),
+            messageListProcessor = { node: AccessibilityNodeInfo ->
+                onScreenContentProcessor(node)
+            }
+        ),
+
+        SupportedAppProperty(
+            pkgName = "ai.perplexity.app.android",
+            inputJudger = { root, focus, id, pkgName ->
+                id == "input-search"
+            },
+            excludeWidgets = arrayOf<String>(),
+            messageListProcessor = { node: AccessibilityNodeInfo ->
+                perplexityMessageListProcessor(node)
+            }
+        ),
+
         )
-    )
 }
