@@ -154,7 +154,7 @@ fun onScreenContentProcessor(
     textInputNode?.getBoundsInScreen(inputRect)
 
     val chatWidgets = findNodesByCriteria(node, {
-        if (it.text?.isBlank() ?: true || it.isShowingHintText) false
+        if (it.text?.isBlank() ?: true || it.isShowingHintText || it.isFocused) false
         else{
             val tmpRect = Rect()
             it.getBoundsInScreen(tmpRect)
@@ -283,6 +283,30 @@ fun beeperMessageListProcessor(node: AccessibilityNodeInfo): MutableList<ChatMes
     val chatWidgets: MutableList<AccessibilityNodeInfo> = findNodesByCriteria(
         node,
         { it.viewIdResourceName == "messageBubbleTextContent" })
+    chatWidgets.sortWith(nodeComparator)
+
+    val rootRect = Rect()
+    node.getBoundsInScreen(rootRect)
+    for (chatNodeInfo in chatWidgets) {
+        val bounds = Rect()
+        chatNodeInfo.getBoundsInScreen(bounds)
+        val isMe = (bounds.left + bounds.right) / 2 > (rootRect.left + rootRect.right) / 2
+        val message_text = chatNodeInfo.text?.toString() ?: ""
+        chatMessages.add(ChatMessage(if (isMe) "Me" else "Others", message_text, ""))
+    }
+    //Log.v("CoWA", conversationList.toString())
+    return chatMessages
+}
+
+fun perplexityMessageListProcessor(node: AccessibilityNodeInfo): MutableList<ChatMessage> {
+    val rootNodes = findNodesByCriteria(node){ it.viewIdResourceName == "thread-screen" }
+    if (rootNodes.isEmpty()) {
+        return mutableListOf()
+    }
+    val chatMessages: MutableList<ChatMessage> = ArrayList<ChatMessage>()
+    val chatWidgets: MutableList<AccessibilityNodeInfo> = findNodesByCriteria(
+        rootNodes[0],
+    ) { it.className == "android.widget.TextView" && it.text != null && it.text.isNotBlank() && !(it.parent?.viewIdResourceName?.contains("related") ?: false) }
     chatWidgets.sortWith(nodeComparator)
 
     val rootRect = Rect()
