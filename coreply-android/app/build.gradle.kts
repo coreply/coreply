@@ -19,6 +19,10 @@ android {
         compose = true
     }
     buildTypes {
+        debug{
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

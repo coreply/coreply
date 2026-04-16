@@ -97,7 +97,7 @@ fun telegramDetector(
     return Pair(false, null)
 }
 
-fun beeperDetector(node: AccessibilityNodeInfo): Boolean {
+fun contentAboveInputDetector(node: AccessibilityNodeInfo): Boolean {
     return isContentNodeAboveInput(
         node.findAccessibilityNodeInfosByViewId("android:id/content").firstOrNull(), node.findFocus(
             AccessibilityNodeInfo.FOCUS_INPUT
@@ -106,10 +106,10 @@ fun beeperDetector(node: AccessibilityNodeInfo): Boolean {
 
 }
 
-fun iterNode(node: AccessibilityNodeInfo) {
+fun iterNode(node: AccessibilityNodeInfo, prefix: String = "") {
     Log.v(
         "CoWA",
-        "iterNode: node=${node.className}, text=${node.text}, contentDescription=${node.contentDescription}, viewId=${node.viewIdResourceName}, rect=${
+        "$prefix node=${node.className}, text=${node.text}, contentDescription=${node.contentDescription}, viewId=${node.viewIdResourceName}, rect=${
             Rect().also {
                 node.getBoundsInScreen(
                     it
@@ -120,7 +120,7 @@ fun iterNode(node: AccessibilityNodeInfo) {
     for (i in 0 until node.childCount) {
         val child = node.getChild(i)
         if (child != null) {
-            iterNode(child)
+            iterNode(child, "$prefix-")
         }
     }
 }

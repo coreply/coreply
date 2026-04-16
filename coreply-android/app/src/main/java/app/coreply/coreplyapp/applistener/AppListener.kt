@@ -215,7 +215,7 @@ open class AppListener : AccessibilityService() {
      * Internal implementation of getMessages that runs on background thread
      */
     private fun getMessagesInternal() {
-        overlayViewModel.refresh(RefreshType.TEXT_SIZE, false, pixelCalculator.spToPx(18f))
+        overlayViewModel.refresh(RefreshType.TEXT_SIZE, false, pixelCalculator.spToPx(16f))
         overlayViewModel.refreshMessageListNode()
     }
 

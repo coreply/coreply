@@ -97,8 +97,6 @@ open class CallAI(
             }
             suggestionStorage.updateSuggestion(typingInfo, suggestions.trimEnd())
         } catch (e: Exception) {
-            // Handle exceptions such as network errors
-            e.printStackTrace()
             if (preferencesManager.showErrorsState.value) {
                 val errorMessage = e.toString()
                 suggestionStorage.listener.onSuggestionError(typingInfo, errorMessage)
