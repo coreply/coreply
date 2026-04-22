@@ -136,8 +136,8 @@ fun InlineSuggestionOverlay(
                 overflow = TextOverflow.Ellipsis,
             )
             if (showBackground) {
-                CoreplyOverlayLogo()
                 Spacer(modifier = Modifier.width(OverlayLogoSpacing))
+                CoreplyOverlayLogo()
             }
         }
 
