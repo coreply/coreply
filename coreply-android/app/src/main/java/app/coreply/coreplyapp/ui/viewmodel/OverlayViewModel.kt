@@ -192,7 +192,11 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
     }
 
     fun refreshInputNode(refreshText: Boolean = false): Boolean {
-        val refreshResult = _uiState.value.currentInput?.refresh() ?: false
+        var refreshResult = _uiState.value.currentInput?.refresh() ?: false
+        if (_uiState.value.currentInput?.packageName?.contains("telegram")?:false && !(_uiState.value.currentInput?.className?.contains("EditText")?:true)) {
+            // Special handling for Telegram as its EditText sometimes turns into a FrameLayout
+            refreshResult = false
+        }
         if (!refreshResult) {
             reset()
         } else if (refreshText) {
