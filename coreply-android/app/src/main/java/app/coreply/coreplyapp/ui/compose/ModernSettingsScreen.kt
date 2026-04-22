@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -332,6 +334,10 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        SettingsInfoCard(
+            text = "Suggestion quality depends on the AI model and API configuration you set up. Relevant on-screen text needed for suggestions will be sent to that API. You are responsible for API billing and should review that provider's privacy policy and terms before using it."
+        )
+
         // Config Type Radio Buttons
         Row(modifier = Modifier.padding(bottom = 12.dp)) {
             Row(
@@ -372,7 +378,7 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
             value = uiState.customApiUrl,
             onValueChange = viewModel::updateCustomApiUrl,
             label = { Text("Base URL") },
-            supportingText = { Text("OpenAI compatible API endpoint") },
+            supportingText = { Text("OpenAI-compatible API endpoint") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp)
@@ -492,5 +498,24 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
                     .padding(bottom = 12.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsInfoCard(text: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }

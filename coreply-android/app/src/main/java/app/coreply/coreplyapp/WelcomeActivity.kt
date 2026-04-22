@@ -89,7 +89,7 @@ fun WelcomeScreen(
                         )
                         Spacer(modifier = Modifier.height(3.dp))
                         Text(
-                            text = "In order to generate context-aware typing suggestions. The data described above will be sent to the API or service according to your setup.",
+                            text = "The data described above will be sent to the API or service according to your setup, in order to generate context-aware typing suggestions.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
