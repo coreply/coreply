@@ -21,16 +21,18 @@ package app.coreply.coreplyapp.ui.compose
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.Image
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,12 +41,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.coreply.coreplyapp.R
+
+private val OverlayLogoSize = 12.dp
+private val OverlayLogoSpacing = 2.dp
+private const val OverlayLogoCropScale = 2f / 1f
+
+@Composable
+private fun CoreplyOverlayLogo() {
+    Image(
+        painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+        contentDescription = null,
+        modifier = Modifier
+            .size(OverlayLogoSize)
+            .graphicsLayer(
+                scaleX = OverlayLogoCropScale,
+                scaleY = OverlayLogoCropScale,
+                clip = true
+            ),
+        contentScale = ContentScale.Crop
+    )
+}
 
 /**
  * Main inline suggestion overlay that appears over the text input field
@@ -61,8 +85,20 @@ fun InlineSuggestionOverlay(
 ) {
     Box(
         modifier = modifier
-            .wrapContentWidth(if (showBackground) { Alignment.End } else { Alignment.Start })
-            .wrapContentHeight(if (showBackground) { Alignment.CenterVertically } else { Alignment.Bottom }) // Adjust height based on background visibility
+            .wrapContentWidth(
+                if (showBackground) {
+                    Alignment.End
+                } else {
+                    Alignment.Start
+                }
+            )
+            .wrapContentHeight(
+                if (showBackground) {
+                    Alignment.CenterVertically
+                } else {
+                    Alignment.Bottom
+                }
+            ) // Adjust height based on background visibility
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -81,20 +117,29 @@ fun InlineSuggestionOverlay(
                     Modifier.background(Color.Transparent)
                 }
             ),
-        contentAlignment = if (showBackground) {Alignment.Center} else {Alignment.BottomStart}
+        contentAlignment = if (showBackground) {
+            Alignment.Center
+        } else {
+            Alignment.BottomStart
+        }
     ) {
-        Text(
-            text = text,
-            fontSize = textSize.sp,
-            color = if (showBackground)
-                MaterialTheme.colorScheme.onSecondaryContainer
-            else
-                Color(0xEE999999), // A color that fits both light and dark backgrounds
-            style = Typography().bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = text,
+                fontSize = textSize.sp,
+                color = if (showBackground)
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                else
+                    Color(0xEE999999), // A color that fits both light and dark backgrounds
+                style = Typography().bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (showBackground) {
+                CoreplyOverlayLogo()
+                Spacer(modifier = Modifier.width(OverlayLogoSpacing))
+            }
+        }
 
     }
 }
@@ -109,7 +154,8 @@ fun TrailingSuggestionOverlay(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isError: Boolean = false
+    isError: Boolean = false,
+    showLogo: Boolean = true
 ) {
     Surface(
         modifier = modifier
@@ -134,18 +180,26 @@ fun TrailingSuggestionOverlay(
                 .padding(horizontal = 10.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(
-                text = text,
-                fontSize = 13.sp,
-                color = if (isError)
-                    MaterialTheme.colorScheme.onErrorContainer
-                else
-                    MaterialTheme.colorScheme.onSecondaryContainer,
-                style = Typography().bodyMedium,
-                textAlign = TextAlign.Start,
-                maxLines = 1,
-                modifier = Modifier.wrapContentWidth(Alignment.Start)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Text(
+                    text = text,
+                    fontSize = 13.sp,
+                    color = if (isError)
+                        MaterialTheme.colorScheme.onErrorContainer
+                    else
+                        MaterialTheme.colorScheme.onSecondaryContainer,
+                    style = Typography().bodyMedium,
+                    textAlign = TextAlign.Start,
+                    maxLines = 1,
+                    modifier = Modifier.wrapContentWidth(Alignment.Start)
+                )
+                if (showLogo) {
+                    Spacer(modifier = Modifier.width(OverlayLogoSpacing))
+                    CoreplyOverlayLogo()
+
+                }
+            }
         }
     }
 }

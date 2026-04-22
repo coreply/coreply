@@ -54,6 +54,8 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlin.math.min
 
+private const val OVERLAY_LOGO_EXTRA_DP = 15
+
 /**
  * Created on 1/16/17.
  */
@@ -72,6 +74,7 @@ class Overlay(
     private var DP8 = pixelCalculator.dpToPx(8)
     private var DP48 = pixelCalculator.dpToPx(48)
     private var DP20 = pixelCalculator.dpToPx(20)
+    private var overlayLogoExtraWidth = pixelCalculator.dpToPx(OVERLAY_LOGO_EXTRA_DP)
 
     private val dummyPaint: Paint = Paint().apply {
         isAntiAlias = true
@@ -128,11 +131,13 @@ class Overlay(
                 CoreplyTheme {
                     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                     if (getBubbleText().isNotBlank()) {
+                        val showInlineLogo = getInlineText().isNotBlank() && uiState.showBubbleBackground
                         TrailingSuggestionOverlay(
                             text = uiState.content.fullText.trimEnd(),
                             onClick = { onTrailingClick() },
                             onLongClick = { onTrailingLongClick() },
-                            isError = uiState.content.type == OverlayContentType.ERROR
+                            isError = uiState.content.type == OverlayContentType.ERROR,
+                            showLogo = !showInlineLogo
                         )
                     }
                 }
@@ -317,12 +322,14 @@ class Overlay(
 
                 val inlineText = getInlineText()
                 val bubbleText = getBubbleText()
+                val inlineShowsLogo = inlineText.isNotBlank() && showBubbleBackground
+                val trailingShowsLogo = bubbleText.isNotBlank() && !inlineShowsLogo
                 val inlineTextWidth = dummyPaint.measureText(inlineText).toInt()
                 val trailingTextWidth = dummyPaint.measureText(bubbleText).toInt()
 
                 if (showBubbleBackground) {
                     mainParams.width =
-                        min(inlineTextWidth + DP8 * 3, uiState.chatEntryWidth + DP8 * 2)
+                        min(inlineTextWidth + DP8 * 3 + if (inlineShowsLogo) overlayLogoExtraWidth else 0, uiState.chatEntryWidth + DP8 * 2)
                     mainParams.x = chatEntryRect.right - mainParams.width
                 } else {
                     mainParams.width = min(inlineTextWidth + DP8, uiState.chatEntryWidth)
@@ -342,7 +349,7 @@ class Overlay(
                 if (bubbleText.isBlank()) {
                     removeTrailingOverlay()
                 } else {
-                    trailingParams.width = trailingTextWidth + DP20 + DP8
+                    trailingParams.width = trailingTextWidth + DP20 + DP8 + if (trailingShowsLogo) overlayLogoExtraWidth else 0
                     showTrailingOverlay()
                 }
 
