@@ -377,7 +377,7 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
 
             value = uiState.customApiUrl,
             onValueChange = viewModel::updateCustomApiUrl,
-            label = { Text("Base URL") },
+            label = { Text("${if(uiState.configType == "simple") "Base" else "Full"} URL") },
             supportingText = { Text("OpenAI-compatible API endpoint") },
             modifier = Modifier
                 .fillMaxWidth()
