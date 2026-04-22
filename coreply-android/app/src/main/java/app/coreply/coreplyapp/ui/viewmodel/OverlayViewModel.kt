@@ -138,6 +138,12 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
     fun updateInputMethod(inputMethod: InputMethod?) {
         _uiState.update { state ->
             state.copy(
+                currentInputMethod = null
+            )
+        }
+        // TODO: Better way should be implemented
+        _uiState.update { state ->
+            state.copy(
                 currentInputMethod = inputMethod
             )
         }
