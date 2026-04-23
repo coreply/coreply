@@ -24,6 +24,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.lifecycle.ViewModel
 import app.coreply.coreplyapp.applistener.AppSupportStatus
@@ -199,7 +200,8 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
 
     fun refreshInputNode(refreshText: Boolean = false): Boolean {
         var refreshResult = _uiState.value.currentInput?.refresh() ?: false
-        if (_uiState.value.currentInput?.packageName?.contains("telegram")?:false && !(_uiState.value.currentInput?.className?.contains("EditText")?:true)) {
+        Log.v("OverlayViewModel", "refreshInputNode: refresh result = $refreshResult for app ${_uiState.value.currentApp?.pkgName}")
+        if ((_uiState.value.currentInput?.packageName?.contains("telegram")?:false || _uiState.value.currentInput?.packageName?.contains("perplexity")?:false) && !(_uiState.value.currentInput?.className?.contains("EditText")?:true)) {
             // Special handling for Telegram as its EditText sometimes turns into a FrameLayout
             refreshResult = false
         }
@@ -390,6 +392,8 @@ class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
         _uiState.value.currentInput?.recycle()
         _uiState.value.currentMessageListNode?.recycle()
         _uiState.value.currentChatContents.clear()
+        _uiState.value.currentInput = null
+        _uiState.value.currentMessageListNode = null
         updateInputMethod(null)
         suggestionStorage?.clearSuggestion()
         chatContentsInitializedInSession = false

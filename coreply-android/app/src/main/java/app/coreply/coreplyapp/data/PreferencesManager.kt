@@ -16,6 +16,9 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.preference.PreferenceManager
 import app.coreply.coreplyapp.applistener.SupportedApps
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings",
@@ -96,6 +99,8 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
 
     // Mutable state for each preference field
     val masterSwitchState: MutableState<Boolean> = mutableStateOf(DEFAULT_MASTER_SWITCH)
+    private val _disableSelfRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val disableSelfRequests: SharedFlow<Unit> = _disableSelfRequests.asSharedFlow()
     val apiTypeState: MutableState<String> = mutableStateOf(DEFAULT_API_TYPE)
     val customApiUrlState: MutableState<String> = mutableStateOf(DEFAULT_API_URL)
     val customApiKeyState: MutableState<String> = mutableStateOf(DEFAULT_API_KEY)
@@ -201,8 +206,12 @@ class PreferencesManager private constructor(private val dataStore: DataStore<Pr
      * Update master switch state and persist to datastore
      */
     suspend fun updateMasterSwitch(enabled: Boolean) {
+        val wasEnabled = masterSwitchState.value
         masterSwitchState.value = enabled
         updatePreferences(PreferenceUpdate(masterSwitch = enabled))
+        if (wasEnabled && !enabled) {
+            _disableSelfRequests.tryEmit(Unit)
+        }
     }
 
     /**

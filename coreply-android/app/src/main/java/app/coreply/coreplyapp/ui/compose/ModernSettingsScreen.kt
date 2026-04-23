@@ -115,19 +115,17 @@ fun ModernSettingsScreen(
                 Switch(
                     checked = uiState.masterSwitchEnabled,
                     onCheckedChange = { enabled ->
-                        val intent = Intent(context, WelcomeActivity::class.java)
                         if (enabled) {
+                            viewModel.setMasterSwitchEnabled(true)
+                            val intent = Intent(context, WelcomeActivity::class.java)
                             intent.putExtra(
                                 "page",
                                 GlobalPref.getFirstRunActivityPageNumber(context)
                             )
+                            context.startActivity(intent)
                         } else {
-                            intent.putExtra(
-                                "page",
-                                3
-                            ) // page=3 means disable accessibility page
+                            viewModel.setMasterSwitchEnabled(false)
                         }
-                        context.startActivity(intent)
                     }
                 )
             }

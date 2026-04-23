@@ -4,11 +4,14 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
+import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.utils.GlobalPref
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Created on 12/24/16.
@@ -22,16 +25,19 @@ open class SettingsFragment : PreferenceFragmentCompat() {
         refreshAuto()
         master!!.onPreferenceChangeListener = object : Preference.OnPreferenceChangeListener {
             override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
-                val i = Intent(activity, WelcomeActivity::class.java)
                 if (newValue as Boolean) {
+                    val i = Intent(activity, WelcomeActivity::class.java)
                     i.putExtra(
                         "page",
                         GlobalPref.getFirstRunActivityPageNumber(activity)
                     )
+                    startActivity(i)
                 } else {
-                    i.putExtra("page", 3) //page=3 means disable accessibility page
+                    val context = activity ?: return false
+                    CoroutineScope(Dispatchers.Main).launch {
+                        PreferencesManager.getInstance(context).updateMasterSwitch(false)
+                    }
                 }
-                startActivity(i)
                 return true
             }
         }

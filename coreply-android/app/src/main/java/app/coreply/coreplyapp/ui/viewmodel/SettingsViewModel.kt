@@ -74,6 +74,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         uiState = uiState.copy(masterSwitchEnabled = isEnabled && preferencesManager.masterSwitchState.value)
     }
 
+    fun setMasterSwitchEnabled(enabled: Boolean) {
+        uiState = uiState.copy(masterSwitchEnabled = enabled)
+        viewModelScope.launch {
+            preferencesManager.updateMasterSwitch(enabled)
+        }
+    }
+
     fun updateApiType(type: String) {
         uiState = uiState.copy(apiType = type)
         viewModelScope.launch { 
