@@ -108,7 +108,7 @@ fun WelcomeScreen(
                         TextButton(
                             onClick = onFinish
                         ) {
-                            Text("Cancel")
+                            Text("I don't consent / Go back")
                         }
                     }
                 )
