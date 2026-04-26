@@ -161,7 +161,7 @@ open class AppListener : AccessibilityService() {
         this.serviceInfo = info
         Toast.makeText(
             applicationContext,
-            getString(R.string.app_accessibility_started),
+            getString(R.string.accessibility_started),
             Toast.LENGTH_SHORT
         )
             .show()
