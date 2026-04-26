@@ -45,10 +45,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.coreply.coreplyapp.AppSelectorActivity
 import app.coreply.coreplyapp.R
-import app.coreply.coreplyapp.WelcomeActivity
+import app.coreply.coreplyapp.DisclosureActivity
 import app.coreply.coreplyapp.data.SuggestionPresentationType
 import app.coreply.coreplyapp.ui.viewmodel.SettingsViewModel
-import app.coreply.coreplyapp.utils.GlobalPref
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,11 +116,7 @@ fun ModernSettingsScreen(
                     onCheckedChange = { enabled ->
                         if (enabled) {
                             viewModel.setMasterSwitchEnabled(true)
-                            val intent = Intent(context, WelcomeActivity::class.java)
-                            intent.putExtra(
-                                "page",
-                                GlobalPref.getFirstRunActivityPageNumber(context)
-                            )
+                            val intent = Intent(context, DisclosureActivity::class.java)
                             context.startActivity(intent)
                         } else {
                             viewModel.setMasterSwitchEnabled(false)

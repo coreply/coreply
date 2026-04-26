@@ -46,8 +46,8 @@
         </service>
 
         <activity
-            android:name="app.coreply.coreplyapp.WelcomeActivity"
-            android:label="Welcome Activity"
+            android:name="app.coreply.coreplyapp.DisclosureActivity"
+            android:label="Disclosure Activity"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity

@@ -9,7 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.data.SuggestionPresentationType
-import app.coreply.coreplyapp.utils.GlobalPref
+import app.coreply.coreplyapp.utils.AccessibilityStatus
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
@@ -49,7 +49,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     
     private fun updateUiStateFromPreferences() {
         uiState = SettingsUiState(
-            masterSwitchEnabled = preferencesManager.masterSwitchState.value && GlobalPref.isAccessibilityEnabled(getApplication()),
+            masterSwitchEnabled = preferencesManager.masterSwitchState.value && AccessibilityStatus.isAccessibilityEnabled(getApplication()),
             apiType = preferencesManager.apiTypeState.value,
             customApiUrl = preferencesManager.customApiUrlState.value,
             customApiKey = preferencesManager.customApiKeyState.value,
@@ -70,7 +70,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     
     fun updateMasterSwitchState(context: Context) {
-        val isEnabled = GlobalPref.isAccessibilityEnabled(context)
+        val isEnabled = AccessibilityStatus.isAccessibilityEnabled(context)
         uiState = uiState.copy(masterSwitchEnabled = isEnabled && preferencesManager.masterSwitchState.value)
     }
 
