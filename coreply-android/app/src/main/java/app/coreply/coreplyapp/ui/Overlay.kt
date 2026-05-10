@@ -25,6 +25,7 @@ import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
@@ -241,11 +242,22 @@ class Overlay(
             )
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && currentState.currentInputMethod?.currentInputConnection != null) {
-            currentState.currentInputMethod?.currentInputConnection?.setSelection(
-                currentState.currentTyping.length,
-                currentState.currentTyping.length
-            )
-            currentState.currentInputMethod?.currentInputConnection?.commitText(addText, 1, null)
+            val cursorCapsMode = currentState.currentInputMethod?.currentInputConnection?.getCursorCapsMode(
+                InputType.TYPE_TEXT_FLAG_CAP_WORDS or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) ?: 0
+
+            // If getCursorCapsMode returns 0, fall back to accessibility action
+            if (cursorCapsMode == 0) {
+                currentState.currentInput?.performAction(
+                    AccessibilityNodeInfo.ACTION_SET_TEXT,
+                    arguments
+                )
+            } else {
+                currentState.currentInputMethod?.currentInputConnection?.setSelection(
+                    currentState.currentTyping.length,
+                    currentState.currentTyping.length
+                )
+                currentState.currentInputMethod?.currentInputConnection?.commitText(addText, 1, null)
+            }
         } else {
             currentState.currentInput?.performAction(
                 AccessibilityNodeInfo.ACTION_SET_TEXT,
@@ -278,11 +290,21 @@ class Overlay(
 
         // On newer APIs prefer committing text via the input connection (mirrors performTextAction)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && currentState.currentInputMethod?.currentInputConnection != null) {
-            currentState.currentInputMethod?.currentInputConnection?.setSelection(
-                currentState.currentTyping.length,
-                currentState.currentTyping.length
-            )
-            currentState.currentInputMethod?.currentInputConnection?.commitText(content.fullText.trimEnd(), 1, null)
+            val cursorCapsMode = currentState.currentInputMethod?.currentInputConnection?.getCursorCapsMode(
+                InputType.TYPE_TEXT_FLAG_CAP_WORDS or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) ?: 0
+            Log.v("CoWA", "cursor caps mode: $cursorCapsMode")
+
+            // If getCursorCapsMode returns 0, fall back to accessibility action
+            if (cursorCapsMode == 0) {
+                Log.v("CoWA", "getCursorCapsMode is 0, falling back to performAction")
+                currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
+            } else {
+                currentState.currentInputMethod?.currentInputConnection?.setSelection(
+                    currentState.currentTyping.length,
+                    currentState.currentTyping.length
+                )
+                currentState.currentInputMethod?.currentInputConnection?.commitText(content.fullText.trimEnd(), 1, null)
+            }
         } else {
             currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
         }
