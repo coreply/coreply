@@ -63,14 +63,14 @@ fun DisclosureScreen(
                 ),
                 cardContent = {
                     Text(
-                        text = "What data is being accessed",
+                        text = "What data is collected",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     Spacer(modifier = Modifier.height(3.dp))
                     Text(
-                        text = "Coreply's accessibility service reads on-screen text content, detects active text input fields and reads the text being typed.",
+                        text = "Coreply's accessibility service reads on-screen text content, detects active text input fields and reads the text being typed. This app may collect emails, SMS or MMS messages, other in-app messages (e.g. your chat history in messaging apps), and/or other user-generated content (e.g. things your wrote or stored in different apps).",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
@@ -83,7 +83,7 @@ fun DisclosureScreen(
                     )
                     Spacer(modifier = Modifier.height(3.dp))
                     Text(
-                        text = "The data described above will be sent to the API or service according to your setup, in order to generate context-aware typing suggestions.",
+                        text = "The data described above will be sent to the API or service according to your setup. The purpose of the data collection/sharing described above is to generate context-aware typing suggestions, which is this app's core feature.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
