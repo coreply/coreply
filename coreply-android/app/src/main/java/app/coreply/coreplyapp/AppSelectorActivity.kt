@@ -172,12 +172,17 @@ fun AppListContent(
         // Supported Apps Section
         if (supportedApps.isNotEmpty()) {
             item {
-                Text(
-                    text = "Coreply Supported Apps",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Coreply Supported Apps",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    InfoMessageCard(
+                        text = "Coreply is not affiliated with or endorsed by the apps listed here. Because third-party apps can change at any time, Coreply may stop working or behave differently even for apps shown as supported."
+                    )
+                }
             }
 
             items(supportedApps) { app ->
@@ -192,12 +197,17 @@ fun AppListContent(
         // Other Apps Section
         if (otherApps.isNotEmpty()) {
             item {
-                Text(
-                    text = "Other Apps",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Other Apps",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    InfoMessageCard(
+                        text = "Coreply may not work in these apps, or may behave unexpectedly, because every app is different. If enabled, on-screen content from these apps may be sent to the API service you configured to generate suggestions."
+                    )
+                }
             }
 
             items(otherApps) { app ->
@@ -227,6 +237,23 @@ fun AppListContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun InfoMessageCard(text: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 

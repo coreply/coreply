@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,10 +51,9 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.coreply.coreplyapp.AppSelectorActivity
 import app.coreply.coreplyapp.R
-import app.coreply.coreplyapp.WelcomeActivity
+import app.coreply.coreplyapp.DisclosureActivity
 import app.coreply.coreplyapp.data.SuggestionPresentationType
 import app.coreply.coreplyapp.ui.viewmodel.SettingsViewModel
-import app.coreply.coreplyapp.utils.GlobalPref
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,19 +120,13 @@ fun ModernSettingsScreen(
                 Switch(
                     checked = uiState.masterSwitchEnabled,
                     onCheckedChange = { enabled ->
-                        val intent = Intent(context, WelcomeActivity::class.java)
                         if (enabled) {
-                            intent.putExtra(
-                                "page",
-                                GlobalPref.getFirstRunActivityPageNumber(context)
-                            )
+                            viewModel.setMasterSwitchEnabled(true)
+                            val intent = Intent(context, DisclosureActivity::class.java)
+                            context.startActivity(intent)
                         } else {
-                            intent.putExtra(
-                                "page",
-                                3
-                            ) // page=3 means disable accessibility page
+                            viewModel.setMasterSwitchEnabled(false)
                         }
-                        context.startActivity(intent)
                     }
                 )
             }
@@ -360,8 +354,6 @@ fun ModernSettingsScreen(
                     checked = uiState.typingRegexEnabled,
                     onCheckedChange = { viewModel.updateTypingRegexEnabled(it) }
                 )
-
-
             }
 
             // Typing Regex Pattern Text Field
@@ -383,9 +375,6 @@ fun ModernSettingsScreen(
     }
 }
 
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
@@ -400,6 +389,10 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        SettingsInfoCard(
+            text = "Suggestion quality depends on the AI model and API configuration you set up. Relevant on-screen text needed for suggestions will be sent to that API. You are responsible for API billing and should review that provider's privacy policy and terms before using it."
         )
 
         // Config Type Radio Buttons
@@ -441,8 +434,8 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
 
             value = uiState.customApiUrl,
             onValueChange = viewModel::updateCustomApiUrl,
-            label = { Text("Base URL") },
-            supportingText = { Text("OpenAI compatible API endpoint") },
+            label = { Text("${if(uiState.configType == "simple") "Base" else "Full"} URL") },
+            supportingText = { Text(if (uiState.configType == "simple") "OpenAI-compatible API endpoint" else "Full URL of the request") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp)
@@ -562,6 +555,25 @@ fun CustomApiSettingsSection(viewModel: SettingsViewModel) {
                     .padding(bottom = 12.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsInfoCard(text: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 

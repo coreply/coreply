@@ -25,6 +25,7 @@ import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
@@ -54,6 +55,8 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlin.math.min
 
+private const val OVERLAY_LOGO_EXTRA_DP = 15
+
 /**
  * Created on 1/16/17.
  */
@@ -72,6 +75,7 @@ class Overlay(
     private var DP8 = pixelCalculator.dpToPx(8)
     private var DP48 = pixelCalculator.dpToPx(48)
     private var DP20 = pixelCalculator.dpToPx(20)
+    private var overlayLogoExtraWidth = pixelCalculator.dpToPx(OVERLAY_LOGO_EXTRA_DP)
 
     private val dummyPaint: Paint = Paint().apply {
         isAntiAlias = true
@@ -128,11 +132,13 @@ class Overlay(
                 CoreplyTheme {
                     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                     if (getBubbleText().isNotBlank()) {
+                        val showInlineLogo = getInlineText().isNotBlank() && uiState.showBubbleBackground
                         TrailingSuggestionOverlay(
                             text = uiState.content.fullText.trimEnd(),
                             onClick = { onTrailingClick() },
                             onLongClick = { onTrailingLongClick() },
-                            isError = uiState.content.type == OverlayContentType.ERROR
+                            isError = uiState.content.type == OverlayContentType.ERROR,
+                            showLogo = !showInlineLogo
                         )
                     }
                 }
@@ -236,11 +242,22 @@ class Overlay(
             )
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && currentState.currentInputMethod?.currentInputConnection != null) {
-            currentState.currentInputMethod?.currentInputConnection?.setSelection(
-                currentState.currentTyping.length,
-                currentState.currentTyping.length
-            )
-            currentState.currentInputMethod?.currentInputConnection?.commitText(addText, 1, null)
+            val cursorCapsMode = currentState.currentInputMethod?.currentInputConnection?.getCursorCapsMode(
+                InputType.TYPE_TEXT_FLAG_CAP_WORDS or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) ?: 0
+
+            // If getCursorCapsMode returns 0, fall back to accessibility action
+            if (cursorCapsMode == 0) {
+                currentState.currentInput?.performAction(
+                    AccessibilityNodeInfo.ACTION_SET_TEXT,
+                    arguments
+                )
+            } else {
+                currentState.currentInputMethod?.currentInputConnection?.setSelection(
+                    currentState.currentTyping.length,
+                    currentState.currentTyping.length
+                )
+                currentState.currentInputMethod?.currentInputConnection?.commitText(addText, 1, null)
+            }
         } else {
             currentState.currentInput?.performAction(
                 AccessibilityNodeInfo.ACTION_SET_TEXT,
@@ -273,11 +290,21 @@ class Overlay(
 
         // On newer APIs prefer committing text via the input connection (mirrors performTextAction)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && currentState.currentInputMethod?.currentInputConnection != null) {
-            currentState.currentInputMethod?.currentInputConnection?.setSelection(
-                currentState.currentTyping.length,
-                currentState.currentTyping.length
-            )
-            currentState.currentInputMethod?.currentInputConnection?.commitText(content.fullText.trimEnd(), 1, null)
+            val cursorCapsMode = currentState.currentInputMethod?.currentInputConnection?.getCursorCapsMode(
+                InputType.TYPE_TEXT_FLAG_CAP_WORDS or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) ?: 0
+            Log.v("CoWA", "cursor caps mode: $cursorCapsMode")
+
+            // If getCursorCapsMode returns 0, fall back to accessibility action
+            if (cursorCapsMode == 0) {
+                Log.v("CoWA", "getCursorCapsMode is 0, falling back to performAction")
+                currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
+            } else {
+                currentState.currentInputMethod?.currentInputConnection?.setSelection(
+                    currentState.currentTyping.length,
+                    currentState.currentTyping.length
+                )
+                currentState.currentInputMethod?.currentInputConnection?.commitText(content.fullText.trimEnd(), 1, null)
+            }
         } else {
             currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
         }
@@ -317,12 +344,14 @@ class Overlay(
 
                 val inlineText = getInlineText()
                 val bubbleText = getBubbleText()
+                val inlineShowsLogo = inlineText.isNotBlank() && showBubbleBackground
+                val trailingShowsLogo = bubbleText.isNotBlank() && !inlineShowsLogo
                 val inlineTextWidth = dummyPaint.measureText(inlineText).toInt()
                 val trailingTextWidth = dummyPaint.measureText(bubbleText).toInt()
 
                 if (showBubbleBackground) {
                     mainParams.width =
-                        min(inlineTextWidth + DP8 * 3, uiState.chatEntryWidth + DP8 * 2)
+                        min(inlineTextWidth + DP8 * 3 + if (inlineShowsLogo) overlayLogoExtraWidth else 0, uiState.chatEntryWidth + DP8 * 2)
                     mainParams.x = chatEntryRect.right - mainParams.width
                 } else {
                     mainParams.width = min(inlineTextWidth + DP8, uiState.chatEntryWidth)
@@ -342,7 +371,7 @@ class Overlay(
                 if (bubbleText.isBlank()) {
                     removeTrailingOverlay()
                 } else {
-                    trailingParams.width = trailingTextWidth + DP20 + DP8
+                    trailingParams.width = trailingTextWidth + DP20 + DP8 + if (trailingShowsLogo) overlayLogoExtraWidth else 0
                     showTrailingOverlay()
                 }
 
