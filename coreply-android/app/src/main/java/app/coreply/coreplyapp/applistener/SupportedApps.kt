@@ -89,20 +89,6 @@ object SupportedApps {
             }
         ),
         SupportedAppProperty(
-            "com.google.android.gm",
-            { _, _, id, _ -> id == "com.google.android.gm:id/inline_reply_compose_edit_text" },
-            arrayOf<String>(),
-            { node: AccessibilityNodeInfo ->
-                generalMessageListProcessor(
-                    node,
-                    arrayListOf(
-                        "com.google.android.gm:id/subject_and_folder_view",
-                        "com.google.android.gm:id/email_snippet"
-                    )
-                )
-            }
-        ),
-        SupportedAppProperty(
             "com.android.systemui",
             { root, _, id, pkg ->
                 root.findAccessibilityNodeInfosByViewId("com.android.systemui:id/expandableNotificationRow")

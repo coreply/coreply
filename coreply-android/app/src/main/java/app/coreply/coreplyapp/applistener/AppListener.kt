@@ -138,7 +138,7 @@ open class AppListener : AccessibilityService() {
                 val info = this.serviceInfo
                 info.notificationTimeout = 2000
                 info.eventTypes =
-                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_FOCUSED
+                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
                 this.serviceInfo = info
 
                 // Update state instead of direct overlay calls
@@ -161,7 +161,7 @@ open class AppListener : AccessibilityService() {
         this.serviceInfo = info
         Toast.makeText(
             applicationContext,
-            getString(R.string.app_accessibility_started),
+            getString(R.string.accessibility_started),
             Toast.LENGTH_SHORT
         )
             .show()
@@ -178,6 +178,17 @@ open class AppListener : AccessibilityService() {
         preferencesManager = PreferencesManager.getInstance(appContext)
         MainScope().launch {
             preferencesManager.loadPreferences()
+        }
+        observeMasterSwitch()
+    }
+
+    private fun observeMasterSwitch() {
+        serviceScope.launch {
+            preferencesManager.disableSelfRequests.collect {
+                overlay.removeOverlays()
+                overlayViewModel.disable()
+                disableSelf()
+            }
         }
     }
 

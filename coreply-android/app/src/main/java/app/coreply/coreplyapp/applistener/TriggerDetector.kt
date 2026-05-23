@@ -9,45 +9,52 @@ fun detectSupportedApp(
     rootNode: AccessibilityNodeInfo?,
     selectedApps: Set<String>
 ): Pair<SupportedAppProperty?, AccessibilityNodeInfo?> {
-    val inputNode = rootNode?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-//    iterNode(rootNode!!)
-    if (inputNode != null) {
-        val inputNodeId = inputNode.viewIdResourceName ?: ""
-        val inputNodePackage = inputNode.packageName ?: ""
-        val app = SupportedApps.supportedApps.firstOrNull { supportedAppProperty -> supportedAppProperty.pkgName == inputNodePackage }
-        app?.let {
-            if (selectedApps.contains(app.pkgName)
-            ) {
-                return if(app.inputJudger(
-                        rootNode,
-                        inputNode,
-                        inputNodeId,
-                        inputNodePackage.toString()
-                    )){
-                    Pair(
-                        app,
-                        inputNode
-                    )
-                } else{
-                    Pair(null, null)
+    try {
+        val inputNode = rootNode?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+//        iterNode(rootNode!!)
+        if (inputNode != null) {
+            val inputNodeId = inputNode.viewIdResourceName ?: ""
+            val inputNodePackage = inputNode.packageName ?: ""
+            val app = SupportedApps.supportedApps.firstOrNull { supportedAppProperty -> supportedAppProperty.pkgName == inputNodePackage }
+            app?.let {
+                if (selectedApps.contains(app.pkgName)
+                ) {
+                    return if(app.inputJudger(
+                            rootNode,
+                            inputNode,
+                            inputNodeId,
+                            inputNodePackage.toString()
+                        )){
+                        Pair(
+                            app,
+                            inputNode
+                        )
+                    } else{
+                        Pair(null, null)
+                    }
+
                 }
-
             }
-        }
-        if (selectedApps.contains(inputNodePackage) && inputNode.className != null && inputNode.className.contains("android.widget.EditText")) {
-            return Pair(
-                SupportedAppProperty(
-                    inputNodePackage.toString(),
-                    { _, _, id, _ -> true },
-                    arrayOf<String>(),
-                    {
-                        onScreenContentProcessor(it)
-                    }), inputNode
-            )
-        }
+            if (selectedApps.contains(inputNodePackage) && inputNode.className != null && inputNode.className.contains("android.widget.EditText")) {
+                return Pair(
+                    SupportedAppProperty(
+                        inputNodePackage.toString(),
+                        { _, _, id, _ -> true },
+                        arrayOf<String>(),
+                        {
+                            onScreenContentProcessor(it)
+                        }), inputNode
+                )
+            }
 
+        }
+        return Pair(null, null)
+    } catch (e: Exception) {
+//        Log.e("TriggerDetector", "Error finding input node: ${e.message}")
+        return Pair(null, null)
     }
-    return Pair(null, null)
+
+
 }
 
 
