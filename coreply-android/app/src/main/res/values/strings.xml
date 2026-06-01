@@ -1,5 +1,0 @@
-<resources>
-    <string name="accessibility_description">This service reads on-screen text content, detects active text input fields and reads the text being typed. Such data will be sent to the API or service according to your setup to generate context-aware typing suggestions. Because third-party apps can change at any time, Coreply may stop working or behave differently when using with third-party apps, even for apps shown as supported.</string>
-    <string name="accessibility_started">Coreply auto-detection started</string>
-    <string name="app_name">Coreply</string>
-</resources>
