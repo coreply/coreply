@@ -1,6 +1,6 @@
 {
   "name": "coreply-app",
-  "main": "expo-router/entry",
+  "main": "src/entry.tsx",
   "version": "1.0.0",
   "dependencies": {
     "@expo/ui": "~56.0.15",

@@ -22,11 +22,19 @@ package app.coreply.coreplyapp.applistener
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.os.Build
+import android.util.Base64
 import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
 import android.widget.Toast
+import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.WebViewClientCompat
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import app.coreply.coreplyapp.R
 import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.ui.Overlay
@@ -46,6 +54,15 @@ import kotlinx.coroutines.launch
 /**
  * Created on 10/13/16.
  */
+
+class LocalWebViewClient(private val assetLoader: WebViewAssetLoader): WebViewClientCompat(){
+    override fun shouldInterceptRequest(
+        view: WebView?,
+        request: WebResourceRequest
+    ): WebResourceResponse? {
+        return assetLoader.shouldInterceptRequest(request.url)
+    }
+}
 @OptIn(FlowPreview::class)
 open class AppListener : AccessibilityService() {
     private lateinit var overlay: Overlay
@@ -53,6 +70,7 @@ open class AppListener : AccessibilityService() {
     private val pixelCalculator: PixelCalculator = PixelCalculator(this)
     private lateinit var preferencesManager: PreferencesManager
 
+    private lateinit var webView: WebView
 
     // Coroutine scope for background operations
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -165,6 +183,32 @@ open class AppListener : AccessibilityService() {
         )
             .show()
         val appContext = applicationContext
+        Log.v("CoWA", "Initializing WebView for message communication")
+        val testListener = WebViewCompat.WebMessageListener{ _,msg,_,_, proxy ->
+            Log.v("CoWA", "Received message from WebView: ${msg.data}. At ${System.currentTimeMillis()}")
+        }
+        val webViewAssetLoader = WebViewAssetLoader.Builder().addPathHandler("/assets/",
+            WebViewAssetLoader.AssetsPathHandler(appContext)).build()
+        webView = WebView(appContext)
+//        val html = """
+//            <html>
+//            <head>
+//            <script>
+//            testObject.postMessage("Hello from WebView:)");
+//            </script>
+//            </head>
+//            </html>
+//        """.trimIndent()
+        webView.webViewClient = LocalWebViewClient(webViewAssetLoader)
+
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)){
+            WebViewCompat.addWebMessageListener(webView,"testObject", setOf("*"), testListener)
+        } else{
+            Log.w("CoWA", "WebMessageListener is not supported on this device.")
+        }
+//        val base64 = Base64.encodeToString(html.toByteArray(), Base64.NO_PADDING)
+        webView.settings.javaScriptEnabled = true
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
 
         overlay = Overlay(
             appContext,

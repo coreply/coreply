@@ -28,7 +28,8 @@ function getDevMenuHint() {
   );
 }
 
-export default function HomeScreen() {
+export default function HomeScreen(props, p2) {
+  console.log("hello2", props, p2);
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>

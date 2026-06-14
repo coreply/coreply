@@ -8,7 +8,6 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 import expo.modules.ReactActivityDelegateWrapper
-import expo.modules.interfaces.taskManager.TaskServiceProviderHelper
 
 class RnActivity : ReactActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,15 +28,22 @@ class RnActivity : ReactActivity(){
      * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
      * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
      */
+
     override fun createReactActivityDelegate(): ReactActivityDelegate {
         return ReactActivityDelegateWrapper(
             this,
-            BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+            true,
             object : DefaultReactActivityDelegate(
                 this,
                 mainComponentName,
                 fabricEnabled
-            ){})
+            ){
+                override fun getLaunchOptions(): Bundle {
+                    val bundle = super.launchOptions ?: Bundle()
+                    bundle.putString("messageFromNativeCode", "Hello from RnActivity!")
+                    return bundle
+                }
+            })
     }
 
     /**
