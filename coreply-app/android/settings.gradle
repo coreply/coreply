@@ -40,10 +40,9 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 expoAutolinking.useExpoModules()
 
 // rootProject.name = 'HelloWorld'
+rootProject.name = "coreply"
 
 expoAutolinking.useExpoVersionCatalog()
-
+include(":app")
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
 
-rootProject.name = "coreply"
-include(":app")

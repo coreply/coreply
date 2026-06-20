@@ -4,11 +4,12 @@
     "strict": true,
     "paths": {
       "@/*": [
-        "./src/*"
+        "./src/*",
+         "../coreply-shared-components/src/*"
       ],
       "@/assets/*": [
         "./assets/*"
-      ]
+      ],
     }
   },
   "include": [

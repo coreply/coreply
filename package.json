@@ -1,0 +1,10 @@
+{
+	"name": "coreply-workspace",
+	"private": true,
+	"packageManager": "pnpm@11.6.0",
+	"scripts": {
+		"build": "pnpm -r --filter ./libcoreply --filter ./coreply-shared-components --filter ./coreply-wrapper --filter ./coreply-app build",
+		"build:wrapper": "pnpm --filter coreply-wrapper build",
+		"typecheck": "pnpm -r --filter ./libcoreply --filter ./coreply-shared-components --filter ./coreply-wrapper --filter ./coreply-app typecheck"
+	}
+}

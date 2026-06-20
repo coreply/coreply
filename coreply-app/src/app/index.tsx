@@ -1,99 +1,280 @@
-import * as Device from "expo-device";
-import { Platform, StyleSheet } from "react-native";
+import { createAsyncStorage } from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, useColorScheme } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AnimatedIcon } from "@/components/animated-icon";
-import { HintRow } from "@/components/hint-row";
+import {
+  ProviderSelector,
+  ProviderSettingsForm,
+  GenerationSettingsForm,
+  FetchControlForm,
+  PresentationForm,
+} from "@/components/groups";
+import { ToggleButton } from "@/components/groups/toggle-button";
+import type { Option } from "@/components/ui/select";
+import { View } from "react-native";
+import { Text, TextClassContext } from "@/components/ui/text";
+
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { WebBadge } from "@/components/web-badge";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 
-function getDevMenuHint() {
-  if (Platform.OS === "web") {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+import {
+  Outfit_300Light,
+  Outfit_400Regular,
+  Outfit_500Medium,
+  Outfit_600SemiBold,
+  Outfit_700Bold,
+  useFonts,
+} from "@expo-google-fonts/outfit";
+
+import "../../global.css";
+import { Icon } from "@/components/ui/icon";
+
+const storage = createAsyncStorage("coreply.settings");
+
+type SettingsState = {
+  providerId: string;
+  providerSettings: Record<string, string | number | boolean>;
+  generationSettings: Record<string, string | number | boolean>;
+};
+
+function usePersistedSettings() {
+  const [settings, setSettings] = useState<SettingsState>({
+    providerId: "openaiCompatible",
+    providerSettings: {},
+    generationSettings: {
+      showErrors: true,
+      suggestionPresentationType: "both",
+      typingRegexEnabled: false,
+      typingRegexPattern: "^.*[\\s.!?,;:]$",
+      debounceMs: 350,
+    },
+  });
+
+  useEffect(() => {
+    Promise.all([
+      storage.getItem("providerId"),
+      storage.getItem(`${settings.providerId}.providerSettings`),
+      storage.getItem(`${settings.providerId}.generationSettings`),
+    ]).then(([providerId, providerSettings, generationSettings]) => {
+      setSettings({
+        providerId: providerId || "openaiCompatible",
+        providerSettings: providerSettings ? JSON.parse(providerSettings) : {},
+        generationSettings: generationSettings
+          ? JSON.parse(generationSettings)
+          : {},
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    storage.setItem("providerId", settings.providerId);
+    storage.setItem(
+      `${settings.providerId}.providerSettings`,
+      JSON.stringify(settings.providerSettings),
     );
-  }
-  const shortcut = Platform.OS === "android" ? "cmd+m (or ctrl+m)" : "cmd+d";
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+    storage.setItem(
+      `${settings.providerId}.generationSettings`,
+      JSON.stringify(settings.generationSettings),
+    );
+  }, [settings]);
+
+  return { settings, setSettings };
 }
 
-export default function HomeScreen(props, p2) {
-  console.log("hello2", props, p2);
+export default function SettingsScreen() {
+  const [fontsLoaded] = useFonts({
+    Outfit_300Light,
+    Outfit_400Regular,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
+    Outfit_700Bold,
+  });
+  console.log("# SettingsScreen rendered"); // Debug log to check when the component renders
+  const { settings, setSettings } = usePersistedSettings();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  // Convert settings to form data structure
+  const formData = {
+    providerId: settings.providerId,
+    providerSettings: settings.providerSettings,
+    generationSettings: settings.generationSettings,
+  };
+
+  // Handle form changes
+  const handleFormChange = (data: {
+    providerId: string;
+    providerSettings: Record<string, string | number | boolean>;
+    generationSettings: Record<string, string | number | boolean>;
+  }) => {
+    setSettings({
+      providerId: data.providerId,
+      providerSettings: data.providerSettings,
+      generationSettings: data.generationSettings,
+    });
+  };
+
+  // Handle provider change - load saved settings for the new provider
+  const handleProviderChange = async (option: Option) => {
+    const newProviderId = option?.value || formData.providerId;
+    const [providerSettings, generationSettings] = await Promise.all([
+      storage.getItem(`${newProviderId}.providerSettings`),
+      storage.getItem(`${newProviderId}.generationSettings`),
+    ]);
+
+    handleFormChange({
+      providerId: newProviderId,
+      providerSettings: providerSettings ? JSON.parse(providerSettings) : {},
+      generationSettings: generationSettings
+        ? JSON.parse(generationSettings)
+        : {},
+    });
+  };
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+        <TextClassContext.Provider value="font-display">
+          <ScrollView
+            stickyHeaderIndices={[0]}
+            stickyHeaderHiddenOnScroll={true}
+          >
+            <View>
+              <View className="bg-background font-display py-3 px-3 border-gray-300 border-b">
+                <Text
+                  className="text-2xl"
+                  style={{ fontFamily: "Outfit_700Bold" }}
+                >
+                  Coreply
+                </Text>
+              </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === "web" && <WebBadge />}
+              <View className="flex-row justify-between p-3 border-gray-300 border-b bg-background">
+                <View className="">
+                  <Text
+                    className="text-lg"
+                    style={{ fontFamily: "Outfit_600SemiBold" }}
+                  >
+                    Coreply is not running
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">
+                    Tap the toggle to start Coreply
+                  </Text>
+                </View>
+                <ToggleButton />
+              </View>
+            </View>
+            <View
+              style={styles.scrollContent}
+              className="border-x border-gray-300 mx-2"
+            >
+              <View>
+                <View className="px-3">
+                  <ProviderSelector
+                    selectedProviderKey={formData.providerId}
+                    onProviderChange={handleProviderChange}
+                  />
+                </View>
+                <View className="px-3">
+                  <ProviderSettingsForm
+                    providerId={formData.providerId}
+                    settings={formData.providerSettings}
+                    onChange={(providerSettings) =>
+                      handleFormChange({
+                        ...formData,
+                        providerSettings,
+                      })
+                    }
+                  />
+                </View>
+                <View className="p-3">
+                  <GenerationSettingsForm
+                    providerId={formData.providerId}
+                    settings={formData.generationSettings}
+                    onChange={(generationSettings) =>
+                      handleFormChange({
+                        ...formData,
+                        generationSettings,
+                      })
+                    }
+                  />
+                </View>
+              </View>
+              <View className="pt-3 border-t border-gray-300">
+                <Text
+                  className="mb-2 text-lg px-3"
+                  style={{ fontFamily: "Outfit_600SemiBold" }}
+                >
+                  Coreply Settings
+                </Text>
+                <View className="p-3">
+                  <FetchControlForm
+                    settings={formData.generationSettings}
+                    onChange={
+                      (fetchControlSettings) => {}
+                      // handleFormChange({
+                      //   ...formData,
+                      //   generationSettings: {
+                      //     ...formData.generationSettings,
+                      //     ...fetchControlSettings,
+                      //   },
+                      // })
+                    }
+                  />
+                </View>
+                <View className="p-3">
+                  <PresentationForm
+                    settings={formData.generationSettings}
+                    onChange={
+                      (presentationSettings) => {}
+                      // handleFormChange({
+                      //   ...formData,
+                      //   generationSettings: {
+                      //     ...formData.generationSettings,
+                      //     ...presentationSettings,
+                      //   },
+                      // })
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </TextClassContext.Provider>
       </SafeAreaView>
     </ThemedView>
   );
+  // return (
+  //   <ThemedView style={styles.container}>
+  //     <SafeAreaView style={styles.safeArea}>
+  //       <ScrollView>
+  //         <Text>Coreply Settings</Text>
+  //       </ScrollView>
+  //     </SafeAreaView>
+  //   </ThemedView>
+  // );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
     flexDirection: "row",
+    justifyContent: "center",
+    fontFamily: "Outfit_400Regular",
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: "center",
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
   },
-  heroSection: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: "center",
-  },
-  code: {
-    textTransform: "uppercase",
-  },
-  stepContainer: {
+  scrollContent: {
     gap: Spacing.three,
-    alignSelf: "stretch",
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+    paddingVertical: Spacing.three,
+  },
+  section: {
+    padding: Spacing.three,
+    borderRadius: Spacing.three,
+    gap: Spacing.two,
   },
 });

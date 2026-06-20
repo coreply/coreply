@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.coreply.coreplyapp.AppSelectorActivity
 import app.coreply.coreplyapp.R
 import app.coreply.coreplyapp.DisclosureActivity
+import app.coreply.coreplyapp.RnActivity
 import app.coreply.coreplyapp.data.SuggestionPresentationType
 import app.coreply.coreplyapp.ui.viewmodel.SettingsViewModel
 
@@ -206,13 +207,13 @@ fun ModernSettingsScreen(
 
             // Select Apps Button
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent = Intent(context, AppSelectorActivity::class.java)
-                        context.startActivity(intent)
-                    }
+			Row(
+				modifier = Modifier
+					.fillMaxWidth()
+					.clickable {
+						val intent = Intent(context, AppSelectorActivity::class.java)
+						context.startActivity(intent)
+					}
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
@@ -229,9 +230,34 @@ fun ModernSettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
+				}
 
-            }
+			}
+
+			Row(
+				modifier = Modifier
+					.fillMaxWidth()
+					.clickable {
+						val intent = Intent(context, RnActivity::class.java)
+						context.startActivity(intent)
+					}
+					.padding(vertical = 8.dp),
+				horizontalArrangement = Arrangement.SpaceBetween,
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Column(modifier = Modifier.weight(1f)) {
+					Text(
+						text = "Open React Settings",
+						style = MaterialTheme.typography.bodyLarge,
+						fontWeight = FontWeight.Medium,
+					)
+					Text(
+						text = "Launch the Phase 1 Expo settings screen",
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+					)
+				}
+			}
 
         }
         CustomApiSettingsSection(viewModel)

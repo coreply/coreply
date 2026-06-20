@@ -1,6 +1,6 @@
 *.iml
 .gradle
-/local.properties
+**/local.properties
 /.idea/workspace.xml
 /.idea/libraries
 .DS_Store
@@ -14,3 +14,4 @@
 /app/debug
 /gradle/wrapper/
 .cxx/
+**/.idea/

@@ -1,0 +1,7 @@
+packages:
+  - coreply-app
+  - coreply-wrapper
+  - libcoreply
+  - coreply-shared-components
+allowBuilds:
+  esbuild: true

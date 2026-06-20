@@ -22,7 +22,6 @@ package app.coreply.coreplyapp.applistener
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.os.Build
-import android.util.Base64
 import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
@@ -31,6 +30,8 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.widget.Toast
+import androidx.webkit.JavaScriptReplyProxy
+import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
 import androidx.webkit.WebViewCompat
@@ -51,234 +52,291 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
-/**
- * Created on 10/13/16.
- */
+import org.json.JSONArray
+import org.json.JSONObject
 
-class LocalWebViewClient(private val assetLoader: WebViewAssetLoader): WebViewClientCompat(){
-    override fun shouldInterceptRequest(
-        view: WebView?,
-        request: WebResourceRequest
-    ): WebResourceResponse? {
-        return assetLoader.shouldInterceptRequest(request.url)
-    }
+private class LocalWebViewClient(private val assetLoader: WebViewAssetLoader) : WebViewClientCompat() {
+	override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest): WebResourceResponse? {
+		return assetLoader.shouldInterceptRequest(request.url)
+	}
 }
+
 @OptIn(FlowPreview::class)
 open class AppListener : AccessibilityService() {
-    private lateinit var overlay: Overlay
-    private lateinit var overlayViewModel: OverlayViewModel
-    private val pixelCalculator: PixelCalculator = PixelCalculator(this)
-    private lateinit var preferencesManager: PreferencesManager
+	private lateinit var overlay: Overlay
+	private lateinit var overlayViewModel: OverlayViewModel
+	private val pixelCalculator: PixelCalculator = PixelCalculator(this)
+	private lateinit var preferencesManager: PreferencesManager
+	private lateinit var webView: WebView
+	private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+	private val measureWindowFlow = MutableSharedFlow<AccessibilityNodeInfo>(
+		replay = 0,
+		extraBufferCapacity = 1,
+		onBufferOverflow = BufferOverflow.DROP_OLDEST,
+	)
+	private val getMessagesFlow = MutableSharedFlow<AccessibilityNodeInfo>(
+		replay = 0,
+		extraBufferCapacity = 1,
+		onBufferOverflow = BufferOverflow.DROP_OLDEST,
+	)
+	private var wrapperReady = false
+	private var javaScriptReplyProxy: JavaScriptReplyProxy? = null
 
-    private lateinit var webView: WebView
+	override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+		if (event?.packageName?.startsWith("app.coreply") == true) {
+			return
+		}
+		if (event == null || event.packageName == null || event.className == null) {
+			return
+		}
+		val root = rootInActiveWindow ?: return
+		refreshOverlay(root)
+	}
 
-    // Coroutine scope for background operations
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+	override fun onInterrupt() {
+		overlay.removeOverlays()
+		sendReset()
+	}
 
-    // Flow channels for throttling heavy operations
-    private val measureWindowFlow = MutableSharedFlow<AccessibilityNodeInfo>(
-        replay = 0,
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
+	private fun refreshOverlay(root: AccessibilityNodeInfo): Boolean {
+		var isSupportedApp = false
+		val previousInputNodeStillHere = overlayViewModel.refresh(RefreshType.NORMAL, false)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			overlayViewModel.updateInputMethod(inputMethod)
+		}
 
-    private val getMessagesFlow = MutableSharedFlow<AccessibilityNodeInfo>(
-        replay = 0,
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
+		val (supportedAppProperty, inputWidget) = if (previousInputNodeStillHere) {
+			Pair(overlayViewModel.uiState.value.currentApp, overlayViewModel.uiState.value.currentInput)
+		} else {
+			detectSupportedApp(root, preferencesManager.selectedAppsState.value)
+		}
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        Log.v("CoWA", "event triggered")
-        if (event != null && event.getPackageName() != null) {
-            if (event.packageName.startsWith("app.coreply")) return
-            Log.v("CoWA", event.getPackageName().toString())
-        }
-        if (event != null && event.getClassName() != null) {
-            Log.v("CoWA", event.getClassName().toString())
-        }
-        if (event == null || event.getPackageName() == null || event.getClassName() == null) {
-            Log.v("CoWA", "Either event or package name or class name is null")
-            return
-        }
-        val root1 = rootInActiveWindow
-        if (root1 == null) {
-            Log.v("CoWA", "root is null")
-        } else {
-            refreshOverlay(event, root1)
-        }
-    }
+		if (supportedAppProperty != null && inputWidget != null) {
+			isSupportedApp = true
+			val info = serviceInfo
+			info.notificationTimeout = 0
+			info.eventTypes =
+				AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+					AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
+					AccessibilityEvent.TYPE_VIEW_CLICKED or
+					AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
+					AccessibilityEvent.TYPE_VIEW_FOCUSED or
+					AccessibilityEvent.TYPE_VIEW_SCROLLED
+			serviceInfo = info
 
+			overlayViewModel.enable(
+				supportedAppProperty,
+				inputWidget,
+				root,
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) inputMethod else null,
+			)
 
-    override fun onInterrupt() {
-        overlay.removeOverlays()
-    }
+			measureWindowFlow.tryEmit(inputWidget)
+			getMessagesFlow.tryEmit(root)
+			sendTypingUpdate()
+		}
 
+		if (!isSupportedApp && overlayViewModel.uiState.value.isRunning) {
+			val info = serviceInfo
+			info.notificationTimeout = 2000
+			info.eventTypes =
+				AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+					AccessibilityEvent.TYPE_VIEW_CLICKED or
+					AccessibilityEvent.TYPE_VIEW_FOCUSED or
+					AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+			serviceInfo = info
+			overlayViewModel.disable()
+			sendReset()
+		}
 
-    private fun refreshOverlay(event: AccessibilityEvent, root: AccessibilityNodeInfo): Boolean {
-        var isSupportedApp = false
-        val previousInputNodeStillHere: Boolean =
-            overlayViewModel.refresh(RefreshType.NORMAL, false)
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
-            overlayViewModel.updateInputMethod(inputMethod)
-        }
+		return isSupportedApp
+	}
 
-        val (supportedAppProperty, inputWidget) = if (previousInputNodeStillHere) Pair(
-            overlayViewModel.uiState.value.currentApp,
-            overlayViewModel.uiState.value.currentInput
-        ) else detectSupportedApp(root, preferencesManager.selectedAppsState.value)
-        if (supportedAppProperty != null && inputWidget != null) {
-            isSupportedApp = true
-            val info = this.serviceInfo
-            info.notificationTimeout = 0
-            info.eventTypes =
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
-            this.serviceInfo = info
-            // Update state instead of direct overlay calls
+	override fun onServiceConnected() {
+		super.onServiceConnected()
+		val info = serviceInfo
+		info.eventTypes =
+			AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+				AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
+				AccessibilityEvent.TYPE_VIEW_CLICKED or
+				AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
+				AccessibilityEvent.TYPE_VIEW_FOCUSED or
+				AccessibilityEvent.TYPE_VIEW_SCROLLED
+		info.flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INPUT_METHOD_EDITOR
+		} else {
+			AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+		}
+		serviceInfo = info
+		Toast.makeText(applicationContext, getString(R.string.accessibility_started), Toast.LENGTH_SHORT).show()
 
-            overlayViewModel.enable(
-                supportedAppProperty,
-                inputWidget,
-                root,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    inputMethod
-                } else null
-            )
+		val appContext = applicationContext
+		preferencesManager = PreferencesManager.getInstance(appContext)
+		val assetLoader = WebViewAssetLoader.Builder()
+			.addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(appContext))
+			.build()
+		webView = WebView(appContext)
+		webView.webViewClient = LocalWebViewClient(assetLoader)
+		webView.settings.javaScriptEnabled = true
+		if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+			WebViewCompat.addWebMessageListener(webView, "coreplyBridgeObject", setOf("*")) { _, msg, _, _, replyProxy ->
+				javaScriptReplyProxy = javaScriptReplyProxy ?: replyProxy
+				handleWrapperMessage(msg)
+			}
+		} else {
+			Log.w("CoWA", "WebMessageListener is not supported on this device.")
+		}
+		webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
 
+		overlay = Overlay(appContext, getSystemService(WINDOW_SERVICE) as WindowManager)
+		overlayViewModel = overlay.viewModel
 
-            measureWindowFlow.tryEmit(inputWidget)
-            getMessagesFlow.tryEmit(root)
+		initializeThrottledFlows()
+		MainScope().launch {
+			preferencesManager.loadPreferences()
+			sendSettings()
+		}
+		observeMasterSwitch()
+	}
 
-        }
-        if (!isSupportedApp) {
-            if (overlayViewModel.uiState.value.isRunning) {
-                val info = this.serviceInfo
-                info.notificationTimeout = 2000
-                info.eventTypes =
-                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
-                this.serviceInfo = info
+	private fun observeMasterSwitch() {
+		serviceScope.launch {
+			preferencesManager.disableSelfRequests.collect {
+				overlay.removeOverlays()
+				overlayViewModel.disable()
+				sendReset()
+				disableSelf()
+			}
+		}
+	}
 
-                // Update state instead of direct overlay calls
-                overlayViewModel.disable()
-            }
+	private fun initializeThrottledFlows() {
+		serviceScope.launch {
+			measureWindowFlow.collect {
+				try {
+					overlayViewModel.refresh(RefreshType.CHAR_LOCATION, true)
+					sendTypingUpdate()
+				} catch (e: Exception) {
+					Log.e("CoWA", "Error in measureWindow background operation", e)
+				}
+			}
+		}
+		serviceScope.launch {
+			getMessagesFlow.debounce(500).collect {
+				try {
+					getMessagesInternal()
+				} catch (e: Exception) {
+					Log.e("CoWA", "Error in getMessages background operation", e)
+				}
+			}
+		}
+	}
 
-        }
-        return isSupportedApp
-    }
+	private fun getMessagesInternal() {
+		overlayViewModel.refresh(RefreshType.TEXT_SIZE, false, pixelCalculator.spToPx(16f))
+		val messages = overlayViewModel.refreshMessageListNode()
+		sendMessages(messages)
+	}
 
-    override fun onServiceConnected() {
-        super.onServiceConnected()
-        val info = this.serviceInfo
-        info.eventTypes =
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_VIEW_SCROLLED
-        info.flags =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INPUT_METHOD_EDITOR
-            } else AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
-        this.serviceInfo = info
-        Toast.makeText(
-            applicationContext,
-            getString(R.string.accessibility_started),
-            Toast.LENGTH_SHORT
-        )
-            .show()
-        val appContext = applicationContext
-        Log.v("CoWA", "Initializing WebView for message communication")
-        val testListener = WebViewCompat.WebMessageListener{ _,msg,_,_, proxy ->
-            Log.v("CoWA", "Received message from WebView: ${msg.data}. At ${System.currentTimeMillis()}")
-        }
-        val webViewAssetLoader = WebViewAssetLoader.Builder().addPathHandler("/assets/",
-            WebViewAssetLoader.AssetsPathHandler(appContext)).build()
-        webView = WebView(appContext)
-//        val html = """
-//            <html>
-//            <head>
-//            <script>
-//            testObject.postMessage("Hello from WebView:)");
-//            </script>
-//            </head>
-//            </html>
-//        """.trimIndent()
-        webView.webViewClient = LocalWebViewClient(webViewAssetLoader)
+	private fun handleWrapperMessage(message: WebMessageCompat) {
+		val data = message.data ?: return
+		try {
+			val json = JSONObject(data)
+			when (json.optString("type")) {
+				"init" -> {
+					wrapperReady = true
+					sendSettings()
+					sendTypingUpdate()
+				}
+				"updateSuggestion" -> {
+					val payload = json.getJSONObject("payload")
+					overlayViewModel.updateSuggestion(payload.optString("suggestion"))
+				}
+				"error" -> {
+					val payload = json.getJSONObject("payload")
+					overlayViewModel.updateSuggestionError(payload.optString("message"))
+				}
+			}
+		} catch (e: Exception) {
+			Log.e("CoWA", "Failed to parse wrapper message", e)
+		}
+	}
 
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)){
-            WebViewCompat.addWebMessageListener(webView,"testObject", setOf("*"), testListener)
-        } else{
-            Log.w("CoWA", "WebMessageListener is not supported on this device.")
-        }
-//        val base64 = Base64.encodeToString(html.toByteArray(), Base64.NO_PADDING)
-        webView.settings.javaScriptEnabled = true
-        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+	private fun sendWrapperMessage(message: JSONObject) {
+		if (!::webView.isInitialized || !wrapperReady && message.optString("type") != "settings") {
+			return
+		}
+		javaScriptReplyProxy?.postMessage(message.toString())
+	}
 
-        overlay = Overlay(
-            appContext,
-            getSystemService(WINDOW_SERVICE) as WindowManager,
-        )
-        overlayViewModel = overlay.viewModel
+	private fun sendSettings() {
+		if (!::preferencesManager.isInitialized) {
+			return
+		}
+		val providerValues = JSONObject().apply {
+			put("providerId", preferencesManager.providerIdState.value)
+			put("baseURL", preferencesManager.customApiUrlState.value)
+			put("requestUrl", preferencesManager.customApiUrlState.value)
+			put("apiKey", preferencesManager.customApiKeyState.value)
+			put("model", preferencesManager.customModelNameState.value)
+			put("systemPrompt", preferencesManager.customSystemPromptState.value)
+			put("temperature", preferencesManager.temperatureState.value.toDouble())
+			put("topP", preferencesManager.topPState.value.toDouble())
+			put("bodyTemplate", preferencesManager.advancedConfigBodyState.value)
+			put("suggestionTemplate", preferencesManager.suggestionContentTemplateState.value)
+		}
+		val payload = JSONObject().apply {
+			put("providerMode", preferencesManager.providerModeState.value)
+			put("providerValues", providerValues)
+			put("showErrors", preferencesManager.showErrorsState.value)
+			put("typingRegexEnabled", preferencesManager.typingRegexEnabledState.value)
+			put("typingRegexPattern", preferencesManager.typingRegexPatternState.value)
+			put("debounceMs", preferencesManager.customDebounceState.value)
+		}
+		sendWrapperMessage(JSONObject().apply {
+			put("type", "settings")
+			put("payload", payload)
+		})
+	}
 
-        // Initialize throttled flows for heavy operations
-        initializeThrottledFlows()
-        preferencesManager = PreferencesManager.getInstance(appContext)
-        MainScope().launch {
-            preferencesManager.loadPreferences()
-        }
-        observeMasterSwitch()
-    }
+	private fun sendMessages(messages: List<app.coreply.coreplyapp.utils.ChatMessage>) {
+		val pkgName = overlayViewModel.uiState.value.currentApp?.pkgName ?: return
+		val serializedMessages = JSONArray().apply {
+			messages.forEach { message ->
+				put(JSONObject().apply {
+					put("sender", message.sender)
+					put("message", message.message)
+				})
+			}
+		}
+		sendWrapperMessage(JSONObject().apply {
+			put("type", "ingestMessages")
+			put("payload", JSONObject().apply {
+				put("messages", serializedMessages)
+			})
+		})
+	}
 
-    private fun observeMasterSwitch() {
-        serviceScope.launch {
-            preferencesManager.disableSelfRequests.collect {
-                overlay.removeOverlays()
-                overlayViewModel.disable()
-                disableSelf()
-            }
-        }
-    }
+	private fun sendTypingUpdate() {
+		val uiState = overlayViewModel.uiState.value
+		sendWrapperMessage(JSONObject().apply {
+			put("type", "updateTyping")
+			put("payload", JSONObject().apply {
+				put("currentTyping", uiState.currentTyping)
+			})
+		})
+	}
 
-    /**
-     * Initialize throttled flows for heavy operations with proper debouncing
-     * Ensures the latest event is always processed while throttling intermediate events
-     */
-    private fun initializeThrottledFlows() {
-        serviceScope.launch {
-            measureWindowFlow
-                .collect { node ->
-                    try {
-                        overlayViewModel.refresh(RefreshType.CHAR_LOCATION, true)
+	private fun sendReset() {
+		sendWrapperMessage(JSONObject().apply {
+			put("type", "reset")
+		})
+	}
 
-                    } catch (e: Exception) {
-                        Log.e("CoWA", "Error in measureWindow background operation", e)
-                    }
-                }
-        }
-        serviceScope.launch {
-            getMessagesFlow
-                .debounce(500)
-                .collect { rootNode ->
-                    try {
-                        getMessagesInternal()
-                    } catch (e: Exception) {
-                        Log.e("CoWA", "Error in getMessages background operation", e)
-                    }
-                }
-        }
-    }
-
-
-    /**
-     * Internal implementation of getMessages that runs on background thread
-     */
-    private fun getMessagesInternal() {
-        overlayViewModel.refresh(RefreshType.TEXT_SIZE, false, pixelCalculator.spToPx(16f))
-        overlayViewModel.refreshMessageListNode()
-    }
-
-
-    override fun onDestroy() {
-        super.onDestroy()
-        overlayViewModel.disable()
-        // Cancel all background operations
-        serviceScope.cancel()
-    }
-
+	override fun onDestroy() {
+		super.onDestroy()
+		overlayViewModel.disable()
+		sendReset()
+		serviceScope.cancel()
+	}
 }

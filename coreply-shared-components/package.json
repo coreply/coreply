@@ -1,0 +1,43 @@
+{
+	"name": "coreply-shared-components",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"typecheck": "tsc -p tsconfig.json"
+	},
+	"dependencies": {
+		"@jsonforms/core": "^3.7.0",
+		"@jsonforms/react": "^3.7.0",
+		"@rn-primitives/accordion": "^1.4.0",
+		"@rn-primitives/checkbox": "^1.4.0",
+		"@rn-primitives/select": "^1.4.0",
+		"@rn-primitives/slot": "^1.4.0",
+		"@types/react": "^19.2.17",
+		"@types/react-dom": "^19.2.3",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"libcoreply": "workspace:*",
+		"lucide-react-native": "^1.18.0",
+		"react": "19.2.3",
+		"react-dom": "19.2.3",
+		"react-native": "0.85.3",
+		"react-native-reanimated": "4.3.1",
+		"react-native-safe-area-context": "~5.7.0",
+		"react-native-screens": "4.25.2",
+		"react-native-web": "~0.21.2",
+		"tailwind-merge": "^3.6.0",
+		"uniwind": "^1.9.0",
+		"zod": "^4.0.1"
+	},
+	"devDependencies": {
+		"@types/react-native-web": "^0.19.2",
+		"babel-preset-expo": "^56.0.15",
+		"prettier-plugin-tailwindcss": "^0.5.14",
+		"tailwindcss": "^4.3.0",
+		"typescript": "~6.0.3"
+	}
+}

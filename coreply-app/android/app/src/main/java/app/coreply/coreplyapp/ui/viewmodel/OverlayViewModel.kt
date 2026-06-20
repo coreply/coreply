@@ -29,425 +29,310 @@ import android.view.accessibility.AccessibilityNodeInfo
 import androidx.lifecycle.ViewModel
 import app.coreply.coreplyapp.applistener.AppSupportStatus
 import app.coreply.coreplyapp.applistener.SupportedAppProperty
-import app.coreply.coreplyapp.suggestions.SuggestionStorage
-import app.coreply.coreplyapp.suggestions.TypingInfo
 import app.coreply.coreplyapp.ui.OverlayContent
 import app.coreply.coreplyapp.ui.OverlayContentType
-import app.coreply.coreplyapp.utils.ChatContents
 import app.coreply.coreplyapp.utils.ChatMessage
-import app.coreply.coreplyapp.utils.SuggestionUpdateListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
 
 enum class RefreshType {
-    NORMAL,
-    CHAR_LOCATION,
-    TEXT_SIZE
+	NORMAL,
+	CHAR_LOCATION,
+	TEXT_SIZE,
 }
 
 data class OverlayUiState(
-    val inlineTextSize: Float = 48f,
-    val showBubbleBackground: Boolean = false,
-    val isRunning: Boolean = false,
-    val content: OverlayContent = OverlayContent.Empty,
-    val rect: Rect? = null,
-    val chatEntryWidth: Int = 0,
-    var currentInput: AccessibilityNodeInfo? = null,
-    var currentMessageListNode: AccessibilityNodeInfo? = null,
-    var currentApp: SupportedAppProperty? = null,
-    var currentChatContents: ChatContents = ChatContents(),
-    var currentStatus: AppSupportStatus = AppSupportStatus.UNKNOWN,
-    var currentTyping: String = "-",
-    var messageListProcessor: (AccessibilityNodeInfo) -> MutableList<ChatMessage> = { mutableListOf() },
-    var currentInputMethod: InputMethod? = null
+	val inlineTextSize: Float = 48f,
+	val showBubbleBackground: Boolean = false,
+	val isRunning: Boolean = false,
+	val content: OverlayContent = OverlayContent.Empty,
+	val rect: Rect? = null,
+	val chatEntryWidth: Int = 0,
+	var currentInput: AccessibilityNodeInfo? = null,
+	var currentMessageListNode: AccessibilityNodeInfo? = null,
+	var currentApp: SupportedAppProperty? = null,
+	var currentStatus: AppSupportStatus = AppSupportStatus.UNKNOWN,
+	var currentTyping: String = "",
+	var messageListProcessor: (AccessibilityNodeInfo) -> MutableList<ChatMessage> = { mutableListOf() },
+	var currentInputMethod: InputMethod? = null,
 )
 
-class OverlayViewModel() : ViewModel(), SuggestionUpdateListener {
+class OverlayViewModel : ViewModel() {
+	private var _uiState = MutableStateFlow(OverlayUiState())
+	val uiState: StateFlow<OverlayUiState> = _uiState.asStateFlow()
 
-    private var _uiState = MutableStateFlow(OverlayUiState())
-    val uiState: StateFlow<OverlayUiState> = _uiState.asStateFlow()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private var userInputFlow: MutableSharedFlow<TypingInfo>? = null
-    private var suggestionStorage: SuggestionStorage? = null
+	fun updateTextSize(textSize: Float) {
+		_uiState.update { state -> state.copy(inlineTextSize = textSize) }
+	}
 
-    private var chatContentsInitializedInSession: Boolean = false
+	fun updateBackgroundVisibility(showBackground: Boolean) {
+		_uiState.update { state -> state.copy(showBubbleBackground = showBackground) }
+	}
 
-    fun updateTextSize(textSize: Float) {
-        _uiState.update { state -> state.copy(inlineTextSize = textSize) }
-    }
+	fun updateContent(content: OverlayContent) {
+		if (content.type == OverlayContentType.ERROR) {
+			_uiState.update { state ->
+				state.copy(
+					content = content,
+					showBubbleBackground = false,
+				)
+			}
+			return
+		}
 
-    fun updateBackgroundVisibility(showBackground: Boolean) {
-        _uiState.update { state -> state.copy(showBubbleBackground = showBackground) }
-    }
+		_uiState.update { state ->
+			state.copy(
+				content = content,
+				showBubbleBackground = _uiState.value.currentStatus == AppSupportStatus.HINT_TEXT,
+			)
+		}
+	}
 
-    fun updateContent(
-        content: OverlayContent,
-    ) {
-        // For errors, always show as trailing bubble
-        if (content.type == OverlayContentType.ERROR) {
-            _uiState.update { state ->
-                state.copy(
-                    content = content,
-                    showBubbleBackground = false
-                )
-            }
-            return
-        }
-        _uiState.update { state ->
-            state.copy(
-                content = content,
-                showBubbleBackground = _uiState.value.currentStatus == AppSupportStatus.HINT_TEXT
-            )
-        }
-    }
+	fun clearSuggestion() {
+		updateContent(OverlayContent.Empty)
+	}
 
-    fun updateRect(rect: Rect) {
-        _uiState.update { state ->
-            state.copy(
-                rect = rect,
-                chatEntryWidth = rect.right - rect.left
-            )
-        }
-    }
+	fun updateSuggestion(suggestion: String) {
+		if (_uiState.value.isRunning) {
+			updateContent(OverlayContent.Suggestion.create(suggestion))
+		}
+	}
 
-    fun enable(
-        currentApp: SupportedAppProperty,
-        currentInput: AccessibilityNodeInfo,
-        currentMessageListNode: AccessibilityNodeInfo,
-        currentInputMethod: InputMethod?
-    ) {
-        _uiState.update { state ->
-            state.copy(
-                isRunning = true,
-                currentApp = currentApp,
-                currentInput = currentInput,
-                currentMessageListNode = currentMessageListNode,
-                messageListProcessor = currentApp.messageListProcessor,
-                currentInputMethod = currentInputMethod
-            )
-        }
-    }
+	fun updateSuggestionError(errorMessage: String) {
+		if (_uiState.value.isRunning) {
+			updateContent(OverlayContent.Error(errorMessage))
+		}
+	}
 
-    fun updateInputMethod(inputMethod: InputMethod?) {
-        _uiState.update { state ->
-            state.copy(
-                currentInputMethod = null
-            )
-        }
-        // TODO: Better way should be implemented
-        _uiState.update { state ->
-            state.copy(
-                currentInputMethod = inputMethod
-            )
-        }
-    }
+	fun updateRect(rect: Rect) {
+		_uiState.update { state ->
+			state.copy(
+				rect = rect,
+				chatEntryWidth = rect.right - rect.left,
+			)
+		}
+	}
 
-    fun supplyExtras(
-        userInputFlow: MutableSharedFlow<TypingInfo>,
-        suggestionStorage: SuggestionStorage
-    ) {
-        this.userInputFlow = userInputFlow
-        this.suggestionStorage = suggestionStorage
-    }
+	fun enable(
+		currentApp: SupportedAppProperty,
+		currentInput: AccessibilityNodeInfo,
+		currentMessageListNode: AccessibilityNodeInfo,
+		currentInputMethod: InputMethod?,
+	) {
+		_uiState.update { state ->
+			state.copy(
+				isRunning = true,
+				currentApp = currentApp,
+				currentInput = currentInput,
+				currentMessageListNode = currentMessageListNode,
+				messageListProcessor = currentApp.messageListProcessor,
+				currentInputMethod = currentInputMethod,
+			)
+		}
+	}
 
-    fun disable() {
-        suggestionStorage?.clearSuggestion()
-        _uiState.update { state ->
-            state.copy(
-                currentTyping = "-",
-                isRunning = false,
-                content = OverlayContent.Empty,
-            )
-        }
-    }
+	fun updateInputMethod(inputMethod: InputMethod?) {
+		_uiState.update { state -> state.copy(currentInputMethod = null) }
+		_uiState.update { state -> state.copy(currentInputMethod = inputMethod) }
+	}
 
+	fun disable() {
+		_uiState.update { state ->
+			state.copy(
+				currentTyping = "",
+				isRunning = false,
+				content = OverlayContent.Empty,
+			)
+		}
+	}
 
-    fun refresh(
-        refreshType: RefreshType,
-        refreshText: Boolean,
-        defaultTextSizeInPx: Float = 0.0f
-    ): Boolean {
-        synchronized(lock = this) {
-            try {
-                return when (refreshType) {
-                    RefreshType.NORMAL -> refreshInputNode(refreshText)
-                    RefreshType.CHAR_LOCATION -> refreshInputNodeWithCharLocation(
-                        refreshText
-                    )
+	fun refresh(refreshType: RefreshType, refreshText: Boolean, defaultTextSizeInPx: Float = 0.0f): Boolean {
+		synchronized(this) {
+			return try {
+				when (refreshType) {
+					RefreshType.NORMAL -> refreshInputNode(refreshText)
+					RefreshType.CHAR_LOCATION -> refreshInputNodeWithCharLocation(refreshText)
+					RefreshType.TEXT_SIZE -> {
+						refreshInputNodeWithTextSize(defaultTextSizeInPx)
+						true
+					}
+				}
+			} catch (e: IllegalStateException) {
+				e.printStackTrace()
+				false
+			}
+		}
+	}
 
-                    RefreshType.TEXT_SIZE -> {
-                        refreshInputNodeWithTextSize(defaultTextSizeInPx)
-                        true
-                    }
-                }
-            } catch (e: IllegalStateException) {
-                e.printStackTrace()
-//                reset()
-                return false
-            }
+	private fun refreshInputNode(refreshText: Boolean = false): Boolean {
+		var refreshResult = _uiState.value.currentInput?.refresh() ?: false
+		Log.v("OverlayViewModel", "refreshInputNode: refresh result = $refreshResult for app ${_uiState.value.currentApp?.pkgName}")
+		if ((_uiState.value.currentInput?.packageName?.contains("telegram") == true || _uiState.value.currentInput?.packageName?.contains("perplexity") == true) && !(_uiState.value.currentInput?.className?.contains("EditText") == true)) {
+			refreshResult = false
+		}
+		if (!refreshResult) {
+			reset()
+		} else if (refreshText) {
+			refreshText()
+		}
+		return refreshResult
+	}
 
-        }
+	private fun refreshInputNodeWithCharLocation(refreshText: Boolean = true): Boolean {
+		val rect = Rect()
+		val arguments = Bundle().apply {
+			putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0)
+			putInt(
+				AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
+				_uiState.value.currentInput?.text?.length ?: 0,
+			)
+		}
 
-    }
+		val refreshResult = _uiState.value.currentInput?.refreshWithExtraData(
+			AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
+			arguments,
+		) ?: false
 
-    fun refreshInputNode(refreshText: Boolean = false): Boolean {
-        var refreshResult = _uiState.value.currentInput?.refresh() ?: false
-        Log.v("OverlayViewModel", "refreshInputNode: refresh result = $refreshResult for app ${_uiState.value.currentApp?.pkgName}")
-        if ((_uiState.value.currentInput?.packageName?.contains("telegram")?:false || _uiState.value.currentInput?.packageName?.contains("perplexity")?:false) && !(_uiState.value.currentInput?.className?.contains("EditText")?:true)) {
-            // Special handling for Telegram as its EditText sometimes turns into a FrameLayout
-            refreshResult = false
-        }
-        if (!refreshResult) {
-            reset()
-        } else if (refreshText) {
-            refreshText()
-        }
-        return refreshResult
-    }
+		if (!refreshResult) {
+			reset()
+			return false
+		}
 
-    fun refreshInputNodeWithCharLocation(refreshText: Boolean = true): Boolean {
-        val rect = Rect()
-        var status: AppSupportStatus
-        // Use EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY to get the cursor position
-        val arguments = Bundle()
-        arguments.putInt(
-            AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX,
-            0
-        )
-        arguments.putInt(
-            AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
-            _uiState.value.currentInput?.text?.length ?: 0
-        )
+		val rectArray: Array<RectF?>? = if (Build.VERSION.SDK_INT >= 33) {
+			uiState.value.currentInput?.extras?.getParcelableArray(
+				AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
+				RectF::class.java,
+			)
+		} else {
+			@Suppress("DEPRECATION")
+			uiState.value.currentInput?.extras?.getParcelableArray(
+				AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
+			)?.mapNotNull { it as? RectF }?.toTypedArray()
+		}
 
-        val refreshResult = _uiState.value.currentInput?.refreshWithExtraData(
-            AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-            arguments
-        ) ?: false
-        if (!refreshResult) {
-            reset()
-        } else {
-            val rectArray: Array<RectF?>? = if (Build.VERSION.SDK_INT >= 33) {
-                uiState.value.currentInput?.extras?.getParcelableArray(
-                    AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-                    RectF::class.java
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                uiState.value.currentInput?.extras?.getParcelableArray(
-                    AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-                )?.mapNotNull { it as? RectF }?.toTypedArray()
-            }
+		uiState.value.currentInput?.getBoundsInScreen(rect)
+		val status: AppSupportStatus
+		if (rectArray != null && rectArray.any { it != null }) {
+			status = AppSupportStatus.TYPING
+			var rtl = false
+			for (rectF in rectArray) {
+				if (rectF != null) {
+					val distanceToLeft = abs(rectF.left - rect.left)
+					val distanceToRight = abs(rectF.right - rect.right)
+					if (distanceToLeft > distanceToRight) {
+						rtl = true
+					}
+					break
+				}
+			}
+			for (index in rectArray.indices.reversed()) {
+				val rectF = rectArray[index]
+				if (rectF != null) {
+					if (rtl) {
+						rect.right = rectF.left.toInt()
+					} else {
+						rect.left = rectF.right.toInt()
+					}
+					rect.top = rectF.top.toInt()
+					rect.bottom = rectF.bottom.toInt()
+					break
+				}
+			}
+		} else {
+			rect.left += (rect.width() * 0.25).toInt()
+			rect.right -= (rect.width() * 0.25).toInt()
+			status = AppSupportStatus.HINT_TEXT
+		}
 
-            uiState.value.currentInput?.getBoundsInScreen(rect)
-            // For loop in reverse order to get the last cursor position
-            if (rectArray != null && rectArray.any { it != null }) {
-                status = AppSupportStatus.TYPING
-                var rtl = false
-                for (rectF in rectArray) {
-                    if (rectF != null) {
-                        // Check if is RTL by comparing the distance to left and right edges
-                        val distanceToLeft = abs(rectF.left - rect.left)
-                        val distanceToRight = abs(rectF.right - rect.right)
-                        if (distanceToLeft > distanceToRight) {
-                            rtl = true
-                        }
-                        break
-                    }
-                }
-                for (i in rectArray.indices.reversed()) {
-                    val rectF = rectArray[i]
-                    if (rectF != null) {
-                        if (rtl) {
-                            // RTL, align to left edge
-                            rect.right = rectF.left.toInt()
-                        } else {
-                            // LTR, align to right edge
-                            rect.left = rectF.right.toInt()
-                        }
-                        rect.top = rectF.top.toInt()
-                        rect.bottom = rectF.bottom.toInt()
-                        break
-                    }
-                }
-            } else {
-                rect.left += (rect.width() * 0.25).toInt()
-                rect.right -= (rect.width() * 0.25).toInt()
-                status = AppSupportStatus.HINT_TEXT
-            }
+		if (uiState.value.currentApp?.pkgName == "com.openai.chatgpt") {
+			if (uiState.value.currentInput?.text?.isNotEmpty() == true) {
+				val child = uiState.value.currentInput?.getChild(0)
+				val childRect = Rect()
+				val inputRect = Rect()
 
-            if (uiState.value.currentApp?.pkgName == "com.openai.chatgpt") {
-                if (uiState.value.currentInput?.text?.isNotEmpty() == true){
-                    // Special handling for ChatGPT app as it provides incorrect cursor position when text is not empty
-                    val child = uiState.value.currentInput?.getChild(0)
-                    val childRect = Rect()
-                    val inputRect = Rect()
+				child?.getBoundsInScreen(childRect)
+				uiState.value.currentInput?.getBoundsInScreen(inputRect)
+				val offsetX = childRect.left - inputRect.left
+				val offsetY = childRect.top - inputRect.top
+				rect.left += offsetX
+				rect.top += offsetY
+				rect.bottom += offsetY
+				rect.right = max(rect.right - offsetX * 3, rect.left + 1)
+			} else {
+				rect.right -= (rect.width() * 0.25).toInt()
+			}
+		}
 
-                    child?.getBoundsInScreen(childRect)
-                    uiState.value.currentInput?.getBoundsInScreen(inputRect)
-                    val offsetX = childRect.left - inputRect.left
-                    val offsetY = childRect.top - inputRect.top
-                    rect.left += offsetX
-                    rect.top += offsetY
-                    rect.bottom += offsetY
-                    rect.right = max(rect.right - offsetX * 3, rect.left+1)
-                } else{
-                    rect.right -= (rect.width() * 0.25).toInt()
-                }
+		updateStatus(status)
+		updateRect(rect)
+		if (refreshText) {
+			refreshText()
+		}
+		return true
+	}
 
-            }
-            updateStatus(status)
-            updateRect(rect)
-            if (refreshText) {
-                refreshText()
-            }
-        }
-        return refreshResult
-    }
+	private fun refreshInputNodeWithTextSize(defaultTextSizeInPx: Float) {
+		if (Build.VERSION.SDK_INT >= 30) {
+			val refreshResult = (_uiState.value.currentInput?.refreshWithExtraData(
+				AccessibilityNodeInfo.EXTRA_DATA_RENDERING_INFO_KEY,
+				Bundle(),
+			) ?: false) && _uiState.value.currentInput?.extraRenderingInfo != null
 
-    fun refreshInputNodeWithTextSize(
-        defaultTextSizeInPx: Float
-    ) {
-        if (Build.VERSION.SDK_INT >= 30) {
-            val refreshResult = (_uiState.value.currentInput?.refreshWithExtraData(
-                AccessibilityNodeInfo.EXTRA_DATA_RENDERING_INFO_KEY,
-                Bundle()
-            ) ?: false)
-                    && _uiState.value.currentInput?.extraRenderingInfo != null
-            if (!refreshResult && _uiState.value.currentApp?.pkgName != "com.openai.chatgpt" && _uiState.value.currentApp?.pkgName != "ai.perplexity.app.android") {
-                // Seems like cannot refresh rendering info doesn't necessarily mean it needs a reset.
-                reset()
-            } else {
-                updateTextSize(
-                    _uiState.value.currentInput?.extraRenderingInfo?.textSizeInPx
-                        ?: defaultTextSizeInPx
-                )
-            }
-        } else {
-            updateTextSize(defaultTextSizeInPx)
-        }
+			if (!refreshResult && _uiState.value.currentApp?.pkgName != "com.openai.chatgpt" && _uiState.value.currentApp?.pkgName != "ai.perplexity.app.android") {
+				reset()
+			} else {
+				updateTextSize(_uiState.value.currentInput?.extraRenderingInfo?.textSizeInPx ?: defaultTextSizeInPx)
+			}
+		} else {
+			updateTextSize(defaultTextSizeInPx)
+		}
+	}
 
-    }
+	fun refreshMessageListNode(): MutableList<ChatMessage> {
+		synchronized(this) {
+			return try {
+				val refreshResult = _uiState.value.currentMessageListNode?.refresh() ?: false
+				if (!refreshResult) {
+					reset()
+					mutableListOf()
+				} else {
+					_uiState.value.currentMessageListNode?.let {
+						_uiState.value.messageListProcessor(it)
+					} ?: mutableListOf()
+				}
+			} catch (_: IllegalStateException) {
+				mutableListOf()
+			}
+		}
+	}
 
-    // Returns true if clear current suggestions is needed
-    fun refreshMessageListNode() {
-        synchronized(lock = this) {
-            try {
-                val refreshResult = _uiState.value.currentMessageListNode?.refresh() ?: false
-                if (!refreshResult) {
-                    reset()
-                }
-                _uiState.value.currentMessageListNode?.let {
-                    val chatMessages = _uiState.value.messageListProcessor(it)
-                    val clearSuggestions: Boolean =
-                        _uiState.value.currentChatContents.combineChatContents(chatMessages)
+	fun updateStatus(newStatus: AppSupportStatus, refreshText: Boolean = true) {
+		_uiState.update { state -> state.copy(currentStatus = newStatus) }
+		if (refreshText) {
+			refreshText()
+		}
+	}
 
-                    // On first initialization of chat contents in this session, trigger suggestion update
-                    if (!chatContentsInitializedInSession) {
-                        chatContentsInitializedInSession = true
-                        onEditTextUpdate(_uiState.value.currentTyping)
-                    }
+	fun refreshText() {
+		var actualMessage = _uiState.value.currentInput?.text?.toString()?.replace("Compose Message", "") ?: ""
+		if (_uiState.value.currentStatus == AppSupportStatus.HINT_TEXT || _uiState.value.currentInput?.isShowingHintText != false) {
+			actualMessage = ""
+		}
+		if (actualMessage != _uiState.value.currentTyping) {
+			_uiState.update { state -> state.copy(currentTyping = actualMessage) }
+		}
+	}
 
-                    if (clearSuggestions) {
-                        suggestionStorage?.clearSuggestion()
-                        if (uiState.value.currentTyping == "") {
-                            onEditTextUpdate("")
-                        }
-                    }
-                }
-            } catch (e: IllegalStateException) {
-            }
-
-        }
-    }
-
-    fun updateStatus(newStatus: AppSupportStatus, refreshText: Boolean = true) {
-        _uiState.update { state -> state.copy(currentStatus = newStatus) }
-        if (refreshText) {
-            refreshText()
-        }
-    }
-
-    fun refreshText() {
-        var actualMessage =
-            _uiState.value.currentInput?.text?.toString()?.replace("Compose Message", "") ?: ""
-        if (_uiState.value.currentStatus == AppSupportStatus.HINT_TEXT || _uiState.value.currentInput?.isShowingHintText ?: true) {
-            actualMessage = ""
-        }
-        if (actualMessage != _uiState.value.currentTyping) {
-            _uiState.update { state -> state.copy(currentTyping = actualMessage) }
-            onEditTextUpdate(actualMessage)
-
-        }
-    }
-
-    fun reset() {
-        _uiState.value.currentInput?.recycle()
-        _uiState.value.currentMessageListNode?.recycle()
-        _uiState.value.currentChatContents.clear()
-        _uiState.value.currentInput = null
-        _uiState.value.currentMessageListNode = null
-        updateInputMethod(null)
-        suggestionStorage?.clearSuggestion()
-        chatContentsInitializedInSession = false
-    }
-
-
-    fun toTypingInfo(): TypingInfo {
-        return TypingInfo(
-            pastMessages = _uiState.value.currentChatContents,
-            currentTyping = _uiState.value.currentTyping,
-            pkgName = _uiState.value.currentApp?.pkgName ?: ""
-        )
-    }
-
-    override fun onSuggestionUpdated(
-    ) {
-        suggestionStorage?.let {
-            if (_uiState.value.isRunning) {
-                val suggestionText =
-                    it.getSuggestion(_uiState.value.currentTyping)
-                if (suggestionText != null) {
-                    updateContent(OverlayContent.Suggestion.create(suggestionText))
-                }
-            } else {
-                it.clearSuggestion()
-            }
-        }
-
-    }
-
-    override fun onSuggestionError(
-        typingInfo: TypingInfo,
-        errorMessage: String
-    ) {
-        if (_uiState.value.isRunning) {
-            updateContent(OverlayContent.Error(errorMessage))
-        }
-    }
-
-    fun onEditTextUpdate(newText: String) {
-        // Only process suggestions and emit after chat contents have been initialized in this session
-        if (!chatContentsInitializedInSession) {
-            return
-        }
-
-        suggestionStorage?.let {
-            if (it.getSuggestion(newText) != null) {
-                val suggestionText = it.getSuggestion(newText)!!
-                updateContent(OverlayContent.Suggestion.create(suggestionText))
-            } else {
-                updateContent(OverlayContent.Empty)
-                coroutineScope.launch { userInputFlow?.emit(toTypingInfo()) }
-            }
-        }
-
-    }
+	fun reset() {
+		_uiState.value.currentInput?.recycle()
+		_uiState.value.currentMessageListNode?.recycle()
+		_uiState.value.currentInput = null
+		_uiState.value.currentMessageListNode = null
+		updateInputMethod(null)
+		clearSuggestion()
+	}
 }

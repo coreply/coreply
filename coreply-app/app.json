@@ -21,7 +21,8 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
@@ -34,7 +35,8 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      ["expo-font",{"fonts":["node_modules/@expo-google-fonts/outfit/400Regular/Outfit_400Regular.ttf"]}]
     ],
     "experiments": {
       "typedRoutes": true,

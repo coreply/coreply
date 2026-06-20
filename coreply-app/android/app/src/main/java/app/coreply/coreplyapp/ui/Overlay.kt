@@ -42,8 +42,6 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import app.coreply.coreplyapp.applistener.AppSupportStatus
 import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.data.SuggestionPresentationType
-import app.coreply.coreplyapp.suggestions.CallAI
-import app.coreply.coreplyapp.suggestions.SuggestionStorage
 import app.coreply.coreplyapp.theme.CoreplyTheme
 import app.coreply.coreplyapp.ui.compose.InlineSuggestionOverlay
 import app.coreply.coreplyapp.ui.compose.LifeCycleThings
@@ -99,10 +97,6 @@ class Overlay(
                 updateFromState(uiState)
             }
         }
-        val suggestionStorage = SuggestionStorage(_viewModel)
-        val ai = CallAI(suggestionStorage, preferencesManager)
-        _viewModel.supplyExtras(ai.userInputFlow, suggestionStorage)
-
 
         // Create ComposeViews with click handlers pointing to Overlay methods
         inlineComposeView = ComposeView(this).apply {
