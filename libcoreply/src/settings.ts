@@ -21,7 +21,7 @@ export const DEFAULT_ADVANCED_BODY = `{
     "stream": false
 }`;
 
-export const DEFAULT_SETTINGS: CoreplySettings = {
+export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   showErrors: true,
   typingRegexEnabled: false,
   typingRegexPattern: "^.*[\\s.!?,;:]$",
@@ -29,34 +29,44 @@ export const DEFAULT_SETTINGS: CoreplySettings = {
   suggestionPresentationType: "both",
 };
 
-export function createDefaultSettings(): CoreplySettings {
-  return JSON.parse(JSON.stringify(DEFAULT_SETTINGS)) as CoreplySettings;
+export function createDefaultGlobalSettings(): GlobalSettings {
+  return JSON.parse(JSON.stringify(DEFAULT_GLOBAL_SETTINGS)) as GlobalSettings;
 }
 
-export const settingsSchema = z.object({
+export const DEFAULT_FETCH_CONTROL_SETTINGS: FetchControlSettings = {
+  typingRegexEnabled: false,
+  typingRegexPattern: "^.*[\\s.!?,;:]$",
+  debounceMs: 350,
+};
+
+export const DEFAULT_PRESENTATION_SETTINGS: PresentationSettings = {
+  showErrors: true,
+  suggestionPresentationType: "both",
+};
+
+export const globalSettingsSchema = z.object({
   showErrors: z
     .boolean()
     .default(true)
     .describe("Whether to show errors in the UI"),
   typingRegexEnabled: z.boolean().default(false),
+  // readOnly when typingRegexEnabled is false
   typingRegexPattern: z.string().default("^.*[\\s.!?,;:]$"),
-  debounceMs: z.number().int().min(0).default(350),
-  suggestionPresentationType: z
-    .union([z.literal("inline"), z.literal("overlay"), z.literal("both")])
-    .default("both"),
+  debounceMs: z.number().int().min(0).max(5000).default(350),
+  suggestionPresentationType: z.enum(["inline", "overlay", "both"]).default("both"),
 });
 
-export const fetchControlSchema = settingsSchema.pick({
+export const fetchControlSettingsSchema = globalSettingsSchema.pick({
   typingRegexEnabled: true,
   typingRegexPattern: true,
   debounceMs: true,
 });
 
-export const presentationSchema = settingsSchema.pick({
+export const presentationSettingsSchema = globalSettingsSchema.pick({
   showErrors: true,
   suggestionPresentationType: true,
 });
 
-export type CoreplySettings = z.infer<typeof settingsSchema>;
-export type FetchControlSettings = z.infer<typeof fetchControlSchema>;
-export type PresentationSettings = z.infer<typeof presentationSchema>;
+export type GlobalSettings = z.infer<typeof globalSettingsSchema>;
+export type FetchControlSettings = z.infer<typeof fetchControlSettingsSchema>;
+export type PresentationSettings = z.infer<typeof presentationSettingsSchema>;

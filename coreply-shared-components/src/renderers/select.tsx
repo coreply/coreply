@@ -1,4 +1,4 @@
-import { rankWith, uiTypeIs, schemaTypeIs, and } from "@jsonforms/core";
+import { rankWith, schemaMatches, uiTypeIs, and } from "@jsonforms/core";
 import { withJsonFormsControlProps, type ControlProps } from "@jsonforms/react";
 import { View } from "react-native";
 import { Text, TextClassContext } from "../components/ui/text";
@@ -10,6 +10,24 @@ import {
   SelectItem,
 } from "../components/ui/select";
 
+function getStringOptions(schema: Record<string, any>) {
+  if (Array.isArray(schema.enum)) {
+    return schema.enum.filter((option): option is string => typeof option === "string");
+  }
+
+  if (!Array.isArray(schema.anyOf)) {
+    return [];
+  }
+
+  return schema.anyOf.flatMap((entry: Record<string, any>) => {
+    if (!Array.isArray(entry.enum)) {
+      return [];
+    }
+
+    return entry.enum.filter((option): option is string => typeof option === "string");
+  });
+}
+
 const SelectControl = ({
   handleChange,
   path,
@@ -18,7 +36,11 @@ const SelectControl = ({
   label,
   required,
 }: ControlProps & { label?: string; required?: boolean }) => {
-  const options = schema.enum || [];
+  const options = getStringOptions(schema as Record<string, any>);
+  const selectedOption =
+    typeof data === "string"
+      ? options.find((option) => option === data)
+      : undefined;
 
   return (
     <View className="mb-4">
@@ -30,7 +52,11 @@ const SelectControl = ({
           </Text>
         )}
         <Select
-          value={data || ""}
+          value={
+            selectedOption
+              ? { value: selectedOption, label: selectedOption }
+              : undefined
+          }
           onValueChange={(value) => handleChange(path, value)}
         >
           <SelectTrigger>
@@ -50,11 +76,10 @@ const SelectControl = ({
 };
 
 export const selectTester = rankWith(
-  11,
+  20,
   and(
     uiTypeIs("Control"),
-    schemaTypeIs("string"),
-    (uischema, schema) => schema.enum !== undefined,
+    schemaMatches((schema) => getStringOptions(schema as Record<string, any>).length > 0),
   ),
 );
 

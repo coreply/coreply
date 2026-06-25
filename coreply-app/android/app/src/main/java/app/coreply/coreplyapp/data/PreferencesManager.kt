@@ -1,17 +1,36 @@
 package app.coreply.coreplyapp.data
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.core.DataStore
+import androidx.datastore.dataStore
+import androidx.datastore.preferences.SharedPreferencesMigration
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.preference.PreferenceManager
 import app.coreply.coreplyapp.applistener.SupportedApps
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.firstOrNull
 import org.asyncstorage.shared_storage.Entry
 import org.asyncstorage.shared_storage.SharedStorage
 import org.asyncstorage.storage.StorageRegistry
 import org.json.JSONArray
+import org.json.JSONObject
 
+
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+	name = "settings",
+	produceMigrations = { context ->
+		listOf(SharedPreferencesMigration({ PreferenceManager.getDefaultSharedPreferences(context) }))
+	})
 
 class PreferencesManager private constructor(context: Context) {
 	companion object {
@@ -20,7 +39,7 @@ class PreferencesManager private constructor(context: Context) {
 
 		fun getInstance(context: Context): PreferencesManager {
 			return INSTANCE ?: synchronized(this) {
-				val instance = PreferencesManager(context.applicationContext)
+				val instance = PreferencesManager(context)
 				INSTANCE = instance
 				instance
 			}
@@ -28,8 +47,6 @@ class PreferencesManager private constructor(context: Context) {
 
 		const val MASTER_SWITCH = "master_switch"
 		const val API_TYPE = "api_type"
-		const val PROVIDER_MODE = "provider_mode"
-		const val PROVIDER_ID = "provider_id"
 		const val CUSTOM_API_URL = "customApiUrl"
 		const val CUSTOM_API_KEY = "customApiKey"
 		const val CUSTOM_MODEL_NAME = "customModelName"
@@ -48,8 +65,6 @@ class PreferencesManager private constructor(context: Context) {
 
 		private const val DEFAULT_MASTER_SWITCH = true
 		private const val DEFAULT_API_TYPE = "custom"
-		private const val DEFAULT_PROVIDER_MODE = "simple"
-		private const val DEFAULT_PROVIDER_ID = "openai-compatible"
 		private const val DEFAULT_API_URL = "https://api.openai.com/v1/"
 		private const val DEFAULT_API_KEY = ""
 		private const val DEFAULT_MODEL_NAME = "gpt-4.1-mini"
@@ -85,15 +100,13 @@ class PreferencesManager private constructor(context: Context) {
 		private const val DEFAULT_CUSTOM_DEBOUNCE_MS = 350
 		private const val DEFAULT_SUGGESTION_CONTENT_TEMPLATE = "{{assistantMessage}}"
 	}
-
-	private val storage: SharedStorage = StorageRegistry.getStorage(context, "coreply-preferences")
+	private val dataStore: DataStore<Preferences> = context.dataStore
+	private val storage: SharedStorage = StorageRegistry.getStorage(context, "coreply.settings")
 
 	val masterSwitchState: MutableState<Boolean> = mutableStateOf(DEFAULT_MASTER_SWITCH)
 	private val _disableSelfRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 	val disableSelfRequests: SharedFlow<Unit> = _disableSelfRequests.asSharedFlow()
 	val apiTypeState: MutableState<String> = mutableStateOf(DEFAULT_API_TYPE)
-	val providerModeState: MutableState<String> = mutableStateOf(DEFAULT_PROVIDER_MODE)
-	val providerIdState: MutableState<String> = mutableStateOf(DEFAULT_PROVIDER_ID)
 	val customApiUrlState: MutableState<String> = mutableStateOf(DEFAULT_API_URL)
 	val customApiKeyState: MutableState<String> = mutableStateOf(DEFAULT_API_KEY)
 	val customModelNameState: MutableState<String> = mutableStateOf(DEFAULT_MODEL_NAME)
@@ -113,8 +126,6 @@ class PreferencesManager private constructor(context: Context) {
 	data class PreferenceUpdate(
 		val masterSwitch: Boolean? = null,
 		val apiType: String? = null,
-		val providerMode: String? = null,
-		val providerId: String? = null,
 		val customApiUrl: String? = null,
 		val customApiKey: String? = null,
 		val customModelName: String? = null,
@@ -174,8 +185,6 @@ class PreferencesManager private constructor(context: Context) {
 		val entries = mutableListOf<Entry>()
 		updates.masterSwitch?.let { entries += Entry(MASTER_SWITCH, it.toString()) }
 		updates.apiType?.let { entries += Entry(API_TYPE, it) }
-		updates.providerMode?.let { entries += Entry(PROVIDER_MODE, it) }
-		updates.providerId?.let { entries += Entry(PROVIDER_ID, it) }
 		updates.customApiUrl?.let { entries += Entry(CUSTOM_API_URL, it) }
 		updates.customApiKey?.let { entries += Entry(CUSTOM_API_KEY, it) }
 		updates.customModelName?.let { entries += Entry(CUSTOM_MODEL_NAME, it) }
@@ -197,11 +206,12 @@ class PreferencesManager private constructor(context: Context) {
 	}
 
 	suspend fun loadPreferences() {
+		// Run migration from old DataStore to new AsyncStorage
+		migrateOldPreferencesIfNeeded()
+
 		val values = getValues(
 			MASTER_SWITCH,
 			API_TYPE,
-			PROVIDER_MODE,
-			PROVIDER_ID,
 			CUSTOM_API_URL,
 			CUSTOM_API_KEY,
 			CUSTOM_MODEL_NAME,
@@ -221,8 +231,6 @@ class PreferencesManager private constructor(context: Context) {
 
 		masterSwitchState.value = parseBoolean(values[MASTER_SWITCH], DEFAULT_MASTER_SWITCH)
 		apiTypeState.value = values[API_TYPE] ?: DEFAULT_API_TYPE
-		providerModeState.value = values[PROVIDER_MODE] ?: deriveProviderMode(values)
-		providerIdState.value = values[PROVIDER_ID] ?: DEFAULT_PROVIDER_ID
 		customApiUrlState.value = values[CUSTOM_API_URL] ?: DEFAULT_API_URL
 		customApiKeyState.value = values[CUSTOM_API_KEY] ?: DEFAULT_API_KEY
 		customModelNameState.value = values[CUSTOM_MODEL_NAME] ?: DEFAULT_MODEL_NAME
@@ -240,14 +248,85 @@ class PreferencesManager private constructor(context: Context) {
 		suggestionContentTemplateState.value = values[SUGGESTION_CONTENT_TEMPLATE] ?: DEFAULT_SUGGESTION_CONTENT_TEMPLATE
 	}
 
-	private fun deriveProviderMode(values: Map<String, String?>): String {
-		val configType = values[CONFIG_TYPE] ?: DEFAULT_CONFIG_TYPE
-		val baseUrl = values[CUSTOM_API_URL] ?: DEFAULT_API_URL
-		return when {
+    private suspend fun migrateOldPreferencesIfNeeded() {
+		Log.v("Coreply", "migrating")
+		// Skip if already migrated
+		val migrationDone = storage.getValues(listOf("migration_va_done")).any { it.value == "true" }
+		Log.v("Coreply", storage.getValues(listOf("migration_va_done")).toString())
+		if (migrationDone) return
+		Log.v("Coreply", "migrating2")
+		// Access old DataStore
+		val oldPrefs = dataStore.data.firstOrNull() ?: return
+		Log.v("Coreply", "migrating3")
+		// Define old keys
+		val oldConfigTypeKey = stringPreferencesKey("config_type")
+		val oldCustomApiUrlKey = stringPreferencesKey("customApiUrl")
+		val oldCustomApiKeyKey = stringPreferencesKey("customApiKey")
+		val oldCustomModelNameKey = stringPreferencesKey("customModelName")
+		val oldCustomSystemPromptKey = stringPreferencesKey("customSystemPrompt")
+		val oldTemperatureKey = floatPreferencesKey("temperature_float")
+		val oldTopPKey = floatPreferencesKey("topp_float")
+
+		// Skip if CONFIG_TYPE is missing (required for provider mapping)
+		val configType = oldPrefs[oldConfigTypeKey] ?: return
+		val customApiUrl = oldPrefs[oldCustomApiUrlKey] ?: ""
+
+		val providerId = when {
 			configType == "advanced" -> "advanced"
-			baseUrl.endsWith("/fim") || baseUrl.endsWith("/fim/") -> "fim"
-			else -> DEFAULT_PROVIDER_MODE
+			customApiUrl.endsWith("/fim") || customApiUrl.endsWith("/fim/") -> "fim"
+			else -> "openaiCompatible"
 		}
+
+		// Build new settings (only include values that exist)
+		val providerSettings = buildMap {
+			oldPrefs[oldCustomApiUrlKey]?.let { put("baseUrl", it) }
+			oldPrefs[oldCustomApiKeyKey]?.let { put("apiKey", it) }
+
+		}
+
+		Log.v("Coreply", JSONObject(providerSettings).toString())
+
+		val generationSettings = buildMap {
+			oldPrefs[oldCustomModelNameKey]?.let { put("model", it) }
+			oldPrefs[oldCustomSystemPromptKey]?.let { put("system", it) }
+			oldPrefs[oldTemperatureKey]?.let { put("temperature", it) }
+			oldPrefs[oldTopPKey]?.let { put("topP", it) }
+		}
+
+		// Define old keys for global settings
+		val oldShowErrorsKey = booleanPreferencesKey("show_errors")
+		val oldSuggestionPresentationTypeKey = stringPreferencesKey("suggestion_presentation_type")
+		val oldTypingRegexEnabledKey = booleanPreferencesKey("typing_regex_enabled")
+		val oldTypingRegexPatternKey = stringPreferencesKey("typing_regex_pattern")
+		val oldDebounceMsKey = intPreferencesKey("custom_debounce_ms")
+
+		// Map presentation type from native enum to TypeScript string literals
+		fun mapPresentationTypeToString(value: String?): String {
+			return when (value?.toIntOrNull()) {
+				0 -> "overlay"
+				1 -> "inline"
+				2 -> "both"
+				else -> "both"
+			}
+		}
+
+		// Build global settings object
+		val globalSettings = JSONObject().apply {
+			put("showErrors", oldPrefs[oldShowErrorsKey] ?: true)
+			put("typingRegexEnabled", oldPrefs[oldTypingRegexEnabledKey] ?: false)
+			put("typingRegexPattern", oldPrefs[oldTypingRegexPatternKey] ?: "^.*[\\s.!?,;:]$")
+			put("debounceMs", oldPrefs[oldDebounceMsKey] ?: 350)
+			put("suggestionPresentationType", mapPresentationTypeToString(oldPrefs[oldSuggestionPresentationTypeKey]))
+		}
+
+		// Save to new storage
+		storage.setValues(listOf(
+			Entry("providerId", providerId),
+			Entry("$providerId.providerSettings", JSONObject(providerSettings).toString()),
+			Entry("$providerId.generationSettings", JSONObject(generationSettings).toString()),
+			Entry("globalSettings", globalSettings.toString()),
+			Entry("migration_v1_done", "true")
+		))
 	}
 
 	suspend fun updateMasterSwitch(enabled: Boolean) {
@@ -262,16 +341,6 @@ class PreferencesManager private constructor(context: Context) {
 	suspend fun updateApiType(type: String) {
 		apiTypeState.value = type
 		updatePreferences(PreferenceUpdate(apiType = type))
-	}
-
-	suspend fun updateProviderMode(mode: String) {
-		providerModeState.value = mode
-		updatePreferences(PreferenceUpdate(providerMode = mode))
-	}
-
-	suspend fun updateProviderId(providerId: String) {
-		providerIdState.value = providerId
-		updatePreferences(PreferenceUpdate(providerId = providerId))
 	}
 
 	suspend fun updateCustomApiUrl(url: String) {

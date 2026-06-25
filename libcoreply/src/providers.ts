@@ -7,15 +7,15 @@ import { z } from "zod";
 import { DEFAULT_ADVANCED_BODY } from "./settings";
 
 const BaseSettingsSchema = z.object({
-  maxOutputTokens: z.number().min(1).optional(),
+  maxOutputTokens: z.number().min(1).max(4096).optional(),
   temperature: z.number().min(0).max(1).optional().default(1.0),
   topP: z.number().min(0).max(1).optional(),
-  topK: z.number().min(1).int().optional(),
+  topK: z.number().int().min(1).max(100).optional(),
   presencePenalty: z.number().min(-1).max(1).optional().default(0),
   frequencyPenalty: z.number().min(-1).max(1).optional().default(0),
   seed: z.number().int().optional(),
-  maxRetries: z.number().min(0).int().default(0),
-  timeout: z.number().min(0).optional(),
+  maxRetries: z.number().int().min(0).max(10).default(0),
+  timeout: z.number().min(0).max(60000).optional(),
 });
 
 const OrdinaryGenerateTextSchema = z.object({
@@ -27,13 +27,13 @@ export const providerDefinitions = {
   openai: {
     name: "OpenAI",
     factoryFunc: createOpenAI,
-    factorySchema: z.object({
+    providerSettingsSchema: z.object({
       baseUrl: z.string().optional(),
       apiKey: z.string().optional(),
       organization: z.string().optional(),
       project: z.string().optional(),
     }),
-    settingsSchema: z.object({
+    generationSettingsSchema: z.object({
       ...OrdinaryGenerateTextSchema.shape,
       ...BaseSettingsSchema.shape,
     }),
@@ -41,11 +41,11 @@ export const providerDefinitions = {
   openaiCompatible: {
     name: "OpenAI Compatible",
     factoryFunc: createOpenAICompatible,
-    factorySchema: z.object({
+    providerSettingsSchema: z.object({
       baseUrl: z.string().optional().default(""),
       apiKey: z.string(),
     }),
-    settingsSchema: z.object({
+    generationSettingsSchema: z.object({
       ...OrdinaryGenerateTextSchema.shape,
       ...BaseSettingsSchema.shape,
     }),
@@ -53,13 +53,13 @@ export const providerDefinitions = {
   azure: {
     name: "Azure",
     factoryFunc: createAzure,
-    factorySchema: z.object({
+    providerSettingsSchema: z.object({
       resourceName: z.string().optional(),
-      baseURL: z.string().optional(),
+      baseUrl: z.string().optional(),
       apiKey: z.string().optional(),
       apiVersion: z.string().optional(),
     }),
-    settingsSchema: z.object({
+    generationSettingsSchema: z.object({
       ...OrdinaryGenerateTextSchema.shape,
       ...BaseSettingsSchema.shape,
     }),
@@ -67,10 +67,10 @@ export const providerDefinitions = {
   googleVertex: {
     name: "Google Vertex (Express Mode)",
     factoryFunc: createVertex,
-    factorySchema: z.object({
+    providerSettingsSchema: z.object({
       apiKey: z.string().describe("Only API key mode is supported"),
     }),
-    settingsSchema: z.object({
+    generationSettingsSchema: z.object({
       ...OrdinaryGenerateTextSchema.shape,
       ...BaseSettingsSchema.shape,
     }),
@@ -78,22 +78,22 @@ export const providerDefinitions = {
   fim: {
     name: "Mistral FIM",
     factoryFunc: null,
-    factorySchema: z.object({
-      baseURL: z.string(),
+    providerSettingsSchema: z.object({
+      baseUrl: z.string(),
       apiKey: z.string(),
     }),
-    settingsSchema: z.object({
-      ...BaseSettingsSchema.shape,
+    generationSettingsSchema: z.object({
+      model: z.string(),
     }),
   },
   advanced: {
     name: "Advanced Mode",
     factoryFunc: null,
-    factorySchema: z.object({
+    providerSettingsSchema: z.object({
       requestUrl: z.string(),
       authorizationBearer: z.string(),
     }),
-    settingsSchema: z.object({
+    generationSettingsSchema: z.object({
       bodyTemplate: z.string().optional().default(DEFAULT_ADVANCED_BODY),
       suggestionTemplate: z.string().optional().default("{{assistantMessage}}"),
     }),

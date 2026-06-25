@@ -24,7 +24,7 @@ export function ProviderSettingsForm({
 
   return (
     <SchemaForm
-      schema={provider.factorySchema}
+      schema={provider.providerSettingsSchema}
       data={settings}
       onChange={onChange}
       title="Provider Settings"

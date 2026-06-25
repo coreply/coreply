@@ -1,7 +1,7 @@
 import Mustache from "mustache";
 import {
-  type CoreplySettings,
-  DEFAULT_SETTINGS,
+  type GlobalSettings,
+  DEFAULT_GLOBAL_SETTINGS,
   DEFAULT_SYSTEM_PROMPT,
   DEFAULT_ADVANCED_BODY,
 } from "./settings";
@@ -18,7 +18,7 @@ import type { LibCoreplyListener } from "./listener";
 Mustache.escape = (value: string) => value;
 
 export class Coreply {
-  private settings: CoreplySettings = DEFAULT_SETTINGS;
+  private settings: GlobalSettings = DEFAULT_GLOBAL_SETTINGS;
   private readonly chatContents = new ChatContents();
   private readonly suggestionStorage = new SuggestionStorage();
   private currentTyping = "";
@@ -29,11 +29,11 @@ export class Coreply {
     this.listener.onInit();
   }
 
-  getSettings(): CoreplySettings {
+  getSettings(): GlobalSettings {
     return this.settings;
   }
 
-  updateSettings(newSettings: Partial<CoreplySettings>) {
+  updateSettings(newSettings: Partial<GlobalSettings>) {
     this.settings = {
       ...this.settings,
       ...newSettings,

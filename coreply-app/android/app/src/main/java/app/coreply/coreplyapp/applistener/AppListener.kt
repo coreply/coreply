@@ -274,7 +274,6 @@ open class AppListener : AccessibilityService() {
 			return
 		}
 		val providerValues = JSONObject().apply {
-			put("providerId", preferencesManager.providerIdState.value)
 			put("baseURL", preferencesManager.customApiUrlState.value)
 			put("requestUrl", preferencesManager.customApiUrlState.value)
 			put("apiKey", preferencesManager.customApiKeyState.value)
@@ -286,7 +285,6 @@ open class AppListener : AccessibilityService() {
 			put("suggestionTemplate", preferencesManager.suggestionContentTemplateState.value)
 		}
 		val payload = JSONObject().apply {
-			put("providerMode", preferencesManager.providerModeState.value)
 			put("providerValues", providerValues)
 			put("showErrors", preferencesManager.showErrorsState.value)
 			put("typingRegexEnabled", preferencesManager.typingRegexEnabledState.value)

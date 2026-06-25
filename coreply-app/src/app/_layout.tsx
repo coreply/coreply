@@ -12,6 +12,7 @@ export default function TabLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <AnimatedSplashOverlay />
       {/* <AppTabs /> */}
+
       <Stack>
         <Stack.Header hidden={true}></Stack.Header>
       </Stack>

@@ -1,10 +1,11 @@
 import React from "react";
 import { SchemaForm } from "../ui/form";
-import { fetchControlSchema } from "libcoreply";
+import { fetchControlSettingsSchema } from "libcoreply";
+import type { FetchControlSettings } from "libcoreply";
 
 interface FetchControlFormProps {
-  settings: Record<string, any>;
-  onChange: (settings: Record<string, any>) => void;
+  settings: FetchControlSettings;
+  onChange: (settings: FetchControlSettings) => void;
   className?: string;
 }
 
@@ -15,7 +16,7 @@ export function FetchControlForm({
 }: FetchControlFormProps) {
   return (
     <SchemaForm
-      schema={fetchControlSchema}
+      schema={fetchControlSettingsSchema}
       data={settings}
       onChange={onChange}
       title="Fetch Control"

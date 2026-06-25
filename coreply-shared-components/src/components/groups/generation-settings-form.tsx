@@ -24,7 +24,7 @@ export function GenerationSettingsForm({
 
   return (
     <SchemaForm
-      schema={provider.settingsSchema}
+      schema={provider.generationSettingsSchema}
       data={settings}
       onChange={onChange}
       title="Generation Settings"

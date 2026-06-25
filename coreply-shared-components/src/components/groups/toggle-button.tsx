@@ -8,7 +8,7 @@ export function ToggleButton() {
   return (
     <Button
       variant="outline"
-      className="w-15 h-15 shadow-none border-gray-300 border"
+      className="w-15 h-15 shadow-none border-border border bg-brand-950"
       style={{ transform: [{ rotate: "180deg" }] }}
     >
       <Icon as={Power} size={25}></Icon>

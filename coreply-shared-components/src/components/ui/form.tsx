@@ -29,7 +29,7 @@ export function SchemaForm<T extends Record<string, any>>({
 
   return (
     <View
-      className={className || "p-3 border-gray-300 border bg-white rounded-lg"}
+      className={className || "p-3 border-border border bg-white rounded-lg"}
     >
       {title && (
         <Text

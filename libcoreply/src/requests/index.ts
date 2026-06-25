@@ -1,10 +1,10 @@
 import Mustache from 'mustache';
-import { advancedSettingsSchema, fimSettingsSchema, simpleSettingsSchema, type CoreplySettings, DEFAULT_SYSTEM_PROMPT } from '../settings';
+import { advancedSettingsSchema, fimSettingsSchema, simpleSettingsSchema, type GlobalSettings, DEFAULT_SYSTEM_PROMPT } from '../settings';
 import type { TypingInfo } from '../context';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { generateText } from 'ai';
 
-export async function requestSuggestions(typingInfo: TypingInfo, settings: CoreplySettings): Promise<string> {
+export async function requestSuggestions(typingInfo: TypingInfo, settings: GlobalSettings): Promise<string> {
 	if (settings.providerMode === 'advanced') {
 		const parsed = advancedSettingsSchema.parse(settings.providerValues);
 		const bodyTemplate = Mustache.render(parsed.bodyTemplate, typingInfo.contextMap);

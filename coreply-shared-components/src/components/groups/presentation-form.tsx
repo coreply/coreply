@@ -1,10 +1,11 @@
 import React from "react";
 import { SchemaForm } from "../ui/form";
-import { presentationSchema } from "libcoreply";
+import { presentationSettingsSchema } from "libcoreply";
+import type { PresentationSettings } from "libcoreply";
 
 interface PresentationFormProps {
-  settings: Record<string, any>;
-  onChange: (settings: Record<string, any>) => void;
+  settings: PresentationSettings;
+  onChange: (settings: PresentationSettings) => void;
   className?: string;
 }
 
@@ -15,7 +16,7 @@ export function PresentationForm({
 }: PresentationFormProps) {
   return (
     <SchemaForm
-      schema={presentationSchema}
+      schema={presentationSettingsSchema}
       data={settings}
       onChange={onChange}
       title="Presentation"
