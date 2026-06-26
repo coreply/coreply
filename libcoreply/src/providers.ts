@@ -6,6 +6,15 @@ import { createVertex } from "@ai-sdk/google-vertex/edge";
 import { z } from "zod";
 import { DEFAULT_ADVANCED_BODY } from "./settings";
 
+const passwordFieldMeta = {
+  format: "password",
+  "x-coreply-control": "password",
+} as const;
+
+const multilineFieldMeta = {
+  "x-coreply-control": "textarea",
+} as const;
+
 const BaseSettingsSchema = z.object({
   maxOutputTokens: z.number().min(1).max(4096).optional(),
   temperature: z.number().min(0).max(1).optional().default(1.0),
@@ -19,7 +28,7 @@ const BaseSettingsSchema = z.object({
 });
 
 const OrdinaryGenerateTextSchema = z.object({
-  system: z.string().optional(),
+  system: z.string().optional().meta(multilineFieldMeta),
   model: z.string().optional(),
 });
 
@@ -29,7 +38,7 @@ export const providerDefinitions = {
     factoryFunc: createOpenAI,
     providerSettingsSchema: z.object({
       baseUrl: z.string().optional(),
-      apiKey: z.string().optional(),
+      apiKey: z.string().optional().meta(passwordFieldMeta),
       organization: z.string().optional(),
       project: z.string().optional(),
     }),
@@ -43,7 +52,7 @@ export const providerDefinitions = {
     factoryFunc: createOpenAICompatible,
     providerSettingsSchema: z.object({
       baseUrl: z.string().optional().default(""),
-      apiKey: z.string(),
+      apiKey: z.string().meta(passwordFieldMeta),
     }),
     generationSettingsSchema: z.object({
       ...OrdinaryGenerateTextSchema.shape,
@@ -56,7 +65,7 @@ export const providerDefinitions = {
     providerSettingsSchema: z.object({
       resourceName: z.string().optional(),
       baseUrl: z.string().optional(),
-      apiKey: z.string().optional(),
+      apiKey: z.string().optional().meta(passwordFieldMeta),
       apiVersion: z.string().optional(),
     }),
     generationSettingsSchema: z.object({
@@ -68,7 +77,10 @@ export const providerDefinitions = {
     name: "Google Vertex (Express Mode)",
     factoryFunc: createVertex,
     providerSettingsSchema: z.object({
-      apiKey: z.string().describe("Only API key mode is supported"),
+      apiKey: z
+        .string()
+        .describe("Only API key mode is supported")
+        .meta(passwordFieldMeta),
     }),
     generationSettingsSchema: z.object({
       ...OrdinaryGenerateTextSchema.shape,
@@ -80,10 +92,11 @@ export const providerDefinitions = {
     factoryFunc: null,
     providerSettingsSchema: z.object({
       baseUrl: z.string(),
-      apiKey: z.string(),
+      apiKey: z.string().meta(passwordFieldMeta),
     }),
     generationSettingsSchema: z.object({
       model: z.string(),
+      "some/random/setting": z.string().optional(),
     }),
   },
   advanced: {
@@ -91,10 +104,14 @@ export const providerDefinitions = {
     factoryFunc: null,
     providerSettingsSchema: z.object({
       requestUrl: z.string(),
-      authorizationBearer: z.string(),
+      authorizationBearer: z.string().meta(passwordFieldMeta),
     }),
     generationSettingsSchema: z.object({
-      bodyTemplate: z.string().optional().default(DEFAULT_ADVANCED_BODY),
+      bodyTemplate: z
+        .string()
+        .optional()
+        .default(DEFAULT_ADVANCED_BODY)
+        .meta(multilineFieldMeta),
       suggestionTemplate: z.string().optional().default("{{assistantMessage}}"),
     }),
   },

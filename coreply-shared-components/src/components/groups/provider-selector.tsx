@@ -38,7 +38,7 @@ export function ProviderSelector({
             ].name,
         }}
       >
-        <SelectTrigger className="shadow-none bg-white border-gray-300 border">
+        <SelectTrigger className="shadow-none bg-white border-border border">
           <SelectValue placeholder="Select a provider" />
         </SelectTrigger>
         <SelectContent>

@@ -1,6 +1,11 @@
 import { createAsyncStorage } from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, useColorScheme } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -11,21 +16,20 @@ import {
   PresentationForm,
 } from "@/components/groups";
 import {
-  DEFAULT_GLOBAL_SETTINGS,
   DEFAULT_FETCH_CONTROL_SETTINGS,
   DEFAULT_PRESENTATION_SETTINGS,
   globalSettingsSchema,
   fetchControlSettingsSchema,
   presentationSettingsSchema,
+  providerDefinitions,
 } from "libcoreply";
 import { ToggleButton } from "@/components/groups/toggle-button";
 import type { Option } from "@/components/ui/select";
 import { View } from "react-native";
 import { Text, TextClassContext } from "@/components/ui/text";
 
-import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { MaxContentWidth, Spacing } from "@/constants/theme";
 
 import {
   Outfit_300Light,
@@ -37,14 +41,47 @@ import {
 } from "@expo-google-fonts/outfit";
 
 import "../../global.css";
-import { Icon } from "@/components/ui/icon";
-import { Portal } from "@rn-primitives/portal";
 
 const storage = createAsyncStorage("coreply.settings");
 
 import type { FetchControlSettings, PresentationSettings } from "libcoreply";
+import type { ZodSchema } from "zod";
+
+function parseStoredJson(value: string | null) {
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
+function parseStoredObject<T extends Record<string, any>>(
+  schema: ZodSchema<T>,
+  value: unknown,
+  fallback: T,
+) {
+  const candidate = value && typeof value === "object" ? value : {};
+  const parsed = schema.safeParse(candidate);
+  return parsed.success ? parsed.data : fallback;
+}
+
+type ProviderDefinition =
+  (typeof providerDefinitions)[keyof typeof providerDefinitions];
+
+function getValidProviderId(providerId: string | null | undefined) {
+  if (providerId && providerId in providerDefinitions) {
+    return providerId as keyof typeof providerDefinitions;
+  }
+
+  return "openaiCompatible" as const;
+}
 
 function usePersistedSettings() {
+  const [isLoaded, setIsLoaded] = useState(false);
   const [providerId, setProviderId] = useState<string>("openaiCompatible");
   const [providerSettings, setProviderSettings] = useState<Record<string, any>>(
     {},
@@ -59,7 +96,7 @@ function usePersistedSettings() {
 
   useEffect(() => {
     storage.getItem("providerId").then((storedProviderId) => {
-      const actualProviderId = storedProviderId || "openaiCompatible";
+      const actualProviderId = getValidProviderId(storedProviderId);
       Promise.all([
         storage.getItem(`${actualProviderId}.providerSettings`),
         storage.getItem(`${actualProviderId}.generationSettings`),
@@ -70,26 +107,46 @@ function usePersistedSettings() {
           storedGenerationSettings,
           storedGlobalSettings,
         ]) => {
-          console.log("Loaded settings from storage:", {
-            providerId: actualProviderId,
-            providerSettings: storedProviderSettings,
-            generationSettings: storedGenerationSettings,
-            globalSettings: storedGlobalSettings,
-          });
+          const parsedProviderSettings = parseStoredJson(
+            storedProviderSettings,
+          );
+          const parsedGenerationSettings = parseStoredJson(
+            storedGenerationSettings,
+          );
+          const parsedGlobalSettings = parseStoredJson(storedGlobalSettings);
+
+          const providerDefinition = providerDefinitions[
+            actualProviderId as keyof typeof providerDefinitions
+          ] as ProviderDefinition | undefined;
 
           setProviderId(actualProviderId);
           setProviderSettings(
-            storedProviderSettings ? JSON.parse(storedProviderSettings) : {},
+            providerDefinition
+              ? parseStoredObject(
+                  providerDefinition.providerSettingsSchema,
+                  parsedProviderSettings,
+                  {},
+                )
+              : {},
           );
           setGenerationSettings(
-            storedGenerationSettings
-              ? JSON.parse(storedGenerationSettings)
+            providerDefinition
+              ? parseStoredObject(
+                  providerDefinition.generationSettingsSchema,
+                  parsedGenerationSettings,
+                  {},
+                )
               : {},
           );
 
-          if (storedGlobalSettings) {
-            const parsedGlobal = JSON.parse(storedGlobalSettings);
-            const validatedGlobal = globalSettingsSchema.parse(parsedGlobal);
+          if (parsedGlobalSettings) {
+            const validatedGlobalResult =
+              globalSettingsSchema.safeParse(parsedGlobalSettings);
+            if (!validatedGlobalResult.success) {
+              return;
+            }
+
+            const validatedGlobal = validatedGlobalResult.data;
             setFetchControlSettings(
               fetchControlSettingsSchema.parse(validatedGlobal),
             );
@@ -97,36 +154,72 @@ function usePersistedSettings() {
               presentationSettingsSchema.parse(validatedGlobal),
             );
           }
+
+          setIsLoaded(true);
         },
       );
     });
   }, []);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
     storage.setItem("providerId", providerId);
-  }, [providerId]);
+  }, [isLoaded, providerId]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    const parsed =
+      providerDefinitions[
+        providerId as keyof typeof providerDefinitions
+      ]?.providerSettingsSchema.safeParse(providerSettings);
+
+    if (!parsed?.success) {
+      return;
+    }
+
     storage.setItem(
       `${providerId}.providerSettings`,
-      JSON.stringify(providerSettings),
+      JSON.stringify(parsed.data),
     );
-  }, [providerId, providerSettings]);
+  }, [isLoaded, providerId, providerSettings]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    const parsed =
+      providerDefinitions[
+        providerId as keyof typeof providerDefinitions
+      ]?.generationSettingsSchema.safeParse(generationSettings);
+
+    if (!parsed?.success) {
+      return;
+    }
+
     storage.setItem(
       `${providerId}.generationSettings`,
-      JSON.stringify(generationSettings),
+      JSON.stringify(parsed.data),
     );
-  }, [providerId, generationSettings]);
+  }, [isLoaded, providerId, generationSettings]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
     const merged = { ...fetchControlSettings, ...presentationSettings };
     storage.setItem(
       "globalSettings",
       JSON.stringify(globalSettingsSchema.parse(merged)),
     );
-  }, [fetchControlSettings, presentationSettings]);
+  }, [fetchControlSettings, isLoaded, presentationSettings]);
 
   return {
     providerId,
@@ -150,7 +243,6 @@ export default function SettingsScreen() {
     Outfit_600SemiBold,
     Outfit_700Bold,
   });
-  console.log("# SettingsScreen rendered"); // Debug log to check when the component renders
   const {
     providerId,
     setProviderId,
@@ -163,8 +255,6 @@ export default function SettingsScreen() {
     presentationSettings,
     setPresentationSettings,
   } = usePersistedSettings();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
 
   // Handle provider change - load saved settings for the new provider
   const handleProviderChange = async (option: Option) => {
@@ -174,101 +264,123 @@ export default function SettingsScreen() {
         storage.getItem(`${newProviderId}.providerSettings`),
         storage.getItem(`${newProviderId}.generationSettings`),
       ]);
+    const providerDefinition = providerDefinitions[
+      newProviderId as keyof typeof providerDefinitions
+    ] as ProviderDefinition | undefined;
+
     setProviderId(newProviderId);
     setProviderSettings(
-      storedProviderSettings ? JSON.parse(storedProviderSettings) : {},
+      providerDefinition
+        ? parseStoredObject(
+            providerDefinition.providerSettingsSchema,
+            parseStoredJson(storedProviderSettings),
+            {},
+          )
+        : {},
     );
     setGenerationSettings(
-      storedGenerationSettings ? JSON.parse(storedGenerationSettings) : {},
+      providerDefinition
+        ? parseStoredObject(
+            providerDefinition.generationSettingsSchema,
+            parseStoredJson(storedGenerationSettings),
+            {},
+          )
+        : {},
     );
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <TextClassContext.Provider value="font-display">
-          {fontsLoaded && (
-            <ScrollView
-              stickyHeaderIndices={[0]}
-              stickyHeaderHiddenOnScroll={true}
-            >
-              <View>
-                <View className="bg-background font-display py-3 px-3 border-border border-b">
-                  <Text
-                    className="text-2xl"
-                    style={{ fontFamily: "Outfit_700Bold" }}
-                  >
-                    Coreply
-                  </Text>
-                </View>
-
-                <View className="flex-row justify-between p-3 border-border border-b bg-background">
-                  <View className="">
-                    <Text
-                      className="text-lg"
-                      style={{ fontFamily: "Outfit_600SemiBold" }}
-                    >
-                      Coreply is not running
-                    </Text>
-                    <Text className="text-xs text-muted-foreground">
-                      Tap the toggle to start Coreply
-                    </Text>
-                  </View>
-                  <ToggleButton />
-                </View>
-              </View>
-              <View
-                style={styles.scrollContent}
-                className="border-x border-border mx-2"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}
+    >
+      <ThemedView style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <TextClassContext.Provider value="font-display">
+            {fontsLoaded && (
+              <ScrollView
+                stickyHeaderIndices={[0]}
+                stickyHeaderHiddenOnScroll={true}
               >
                 <View>
-                  <View className="px-3">
-                    <ProviderSelector
-                      selectedProviderKey={providerId}
-                      onProviderChange={handleProviderChange}
-                    />
+                  <View className="bg-background font-display py-3 px-3 border-border border-b">
+                    <Text
+                      className="text-2xl"
+                      style={{ fontFamily: "Outfit_700Bold" }}
+                    >
+                      Coreply
+                    </Text>
                   </View>
-                  <View className="px-3">
-                    <ProviderSettingsForm
-                      providerId={providerId}
-                      settings={providerSettings}
-                      onChange={setProviderSettings}
-                    />
-                  </View>
-                  <View className="p-3">
-                    <GenerationSettingsForm
-                      providerId={providerId}
-                      settings={generationSettings}
-                      onChange={setGenerationSettings}
-                    />
-                  </View>
-                </View>
-                <View className="pt-3 border-t border-border">
-                  <Text
-                    className="mb-2 text-lg px-3"
-                    style={{ fontFamily: "Outfit_600SemiBold" }}
-                  >
-                    Coreply Settings
-                  </Text>
-                  <View className="p-3">
-                    <FetchControlForm
-                      settings={fetchControlSettings}
-                      onChange={setFetchControlSettings}
-                    />
-                  </View>
-                  <View className="p-3">
-                    <PresentationForm
-                      settings={presentationSettings}
-                      onChange={setPresentationSettings}
-                    />
+
+                  <View className="flex-row justify-between p-3 border-border border-b bg-background">
+                    <View className="">
+                      <Text
+                        className="text-lg"
+                        style={{ fontFamily: "Outfit_600SemiBold" }}
+                      >
+                        Coreply is not running
+                      </Text>
+                      <Text className="text-xs text-muted-foreground">
+                        Tap the toggle to start Coreply
+                      </Text>
+                    </View>
+                    <ToggleButton />
                   </View>
                 </View>
-              </View>
-            </ScrollView>
-          )}
-        </TextClassContext.Provider>
-      </SafeAreaView>
-    </ThemedView>
+
+                <View
+                  style={styles.scrollContent}
+                  className="border-x border-border mx-2"
+                >
+                  <View>
+                    <View className="px-3">
+                      <ProviderSelector
+                        selectedProviderKey={providerId}
+                        onProviderChange={handleProviderChange}
+                      />
+                    </View>
+                    <View className="px-3">
+                      <ProviderSettingsForm
+                        providerId={providerId}
+                        settings={providerSettings}
+                        onChange={setProviderSettings}
+                      />
+                    </View>
+                    <View className="p-3">
+                      <GenerationSettingsForm
+                        providerId={providerId}
+                        settings={generationSettings}
+                        onChange={setGenerationSettings}
+                      />
+                    </View>
+                  </View>
+                  <View className="pt-3 border-t border-border">
+                    <Text
+                      className="mb-2 text-lg px-3"
+                      style={{ fontFamily: "Outfit_600SemiBold" }}
+                    >
+                      Coreply Settings
+                    </Text>
+                    <View className="p-3">
+                      <FetchControlForm
+                        settings={fetchControlSettings}
+                        onChange={setFetchControlSettings}
+                      />
+                    </View>
+                    <View className="p-3">
+                      <PresentationForm
+                        settings={presentationSettings}
+                        onChange={setPresentationSettings}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </ScrollView>
+            )}
+          </TextClassContext.Provider>
+        </SafeAreaView>
+      </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 

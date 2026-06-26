@@ -32,7 +32,7 @@ function SelectValue({
     <SelectPrimitive.Value
       ref={ref}
       className={cn(
-        "text-foreground line-clamp-1 flex flex-row items-center gap-2 text-sm font-display",
+        "text-foreground line-clamp-1 flex flex-row items-center gap-2 text-sm font-sans",
         !value && "text-muted-foreground",
         className,
       )}
@@ -170,7 +170,7 @@ function SelectItem({
   return (
     <SelectPrimitive.Item
       className={cn(
-        "active:bg-accent group relative flex w-full flex-row items-center gap-2 rounded-sm py-2 pl-2 pr-8 sm:py-1.5 font-display",
+        "active:bg-accent group relative flex w-full flex-row items-center gap-2 rounded-sm py-2 pl-2 pr-8 sm:py-1.5 font-sans",
         Platform.select({
           web: "focus:bg-accent focus:text-accent-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2 cursor-default outline-none data-[disabled]:pointer-events-none [&_svg]:pointer-events-none",
         }),
@@ -184,7 +184,7 @@ function SelectItem({
           <Icon as={Check} className="text-muted-foreground size-4 shrink-0" />
         </SelectPrimitive.ItemIndicator>
       </View>
-      <SelectPrimitive.ItemText className="text-foreground group-active:text-accent-foreground select-none text-sm font-display" />
+      <SelectPrimitive.ItemText className="text-foreground group-active:text-accent-foreground select-none text-sm font-sans" />
     </SelectPrimitive.Item>
   );
 }

@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -9,7 +9,11 @@ export default function AdvancedScreen() {
 	return (
 		<ThemedView style={styles.container}>
 			<SafeAreaView style={styles.safeArea}>
-				<ScrollView contentContainerStyle={styles.scrollContent}>
+				<KeyboardAvoidingView
+					behavior={Platform.OS === "ios" ? "padding" : undefined}
+					style={{ flex: 1 }}
+				>
+					<ScrollView contentContainerStyle={styles.scrollContent}>
 					<ThemedText type="title" style={styles.title}>
 						Phase 1 Notes
 					</ThemedText>
@@ -24,6 +28,7 @@ export default function AdvancedScreen() {
 						<ThemedText type="small">You said Gradle/build debugging stays with you, so this screen intentionally summarizes the migration state instead of hiding rough edges.</ThemedText>
 					</ThemedView>
 				</ScrollView>
+				</KeyboardAvoidingView>
 			</SafeAreaView>
 		</ThemedView>
 	);

@@ -35,7 +35,6 @@
             android:name="app.coreply.coreplyapp.RnActivity"
             android:exported="false"
             android:label="React Settings"
-            android:windowSoftInputMode="adjustResize"
             android:theme="@style/AppThemeNoActionBar" />
 
         <service

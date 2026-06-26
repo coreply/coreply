@@ -115,6 +115,7 @@ export class Coreply {
 }
 
 export * from "./settings";
+export * from "./form-metadata";
 export * from "./context";
 export * from "./requests";
 export * from "./providers";

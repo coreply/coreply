@@ -1,13 +1,33 @@
 import { cn } from "@/lib/utils";
-import * as SliderPrimitive from "@rn-primitives/slider";
+import NativeSlider from "@react-native-community/slider";
 import * as React from "react";
-import { Platform } from "react-native";
+import { View } from "react-native";
+import { withUniwind } from "uniwind";
 
-type SliderProps = React.ComponentProps<typeof SliderPrimitive.Root> & {
+const StyledNativeSlider = withUniwind(NativeSlider, {
+  maximumTrackTintColor: {
+    fromClassName: "trackClassName",
+    styleProperty: "backgroundColor",
+  },
+  minimumTrackTintColor: {
+    fromClassName: "rangeClassName",
+    styleProperty: "borderColor",
+  },
+  thumbTintColor: {
+    fromClassName: "thumbClassName",
+    styleProperty: "color",
+  },
+});
+
+type SliderProps = Omit<React.ComponentProps<typeof NativeSlider>, "value" | "onValueChange"> & {
   className?: string;
   trackClassName?: string;
   rangeClassName?: string;
   thumbClassName?: string;
+  min?: number;
+  max?: number;
+  value?: number;
+  onValueChange?: (values: number[]) => void;
 };
 
 function Slider({
@@ -18,36 +38,24 @@ function Slider({
   min = 0,
   max = 100,
   value,
+  onValueChange,
   ...props
 }: SliderProps) {
   const safeValue = typeof value === "number" ? value : min;
 
   return (
-    <SliderPrimitive.Root
-      min={min}
-      max={max}
-      value={safeValue}
-      className={cn("flex w-full justify-center py-2", className)}
-      {...props}
-    >
-      <SliderPrimitive.Track
-        className={cn(
-          "bg-muted relative flex h-2 w-full items-center rounded-full [&_span]:top-1/2",
-          trackClassName,
-        )}
-      >
-        <SliderPrimitive.Range className={cn("bg-primary h-full rounded-full", rangeClassName)} />
-        <SliderPrimitive.Thumb
-          className={cn(
-            "border-primary bg-background flex size-5 -translate-y-1/2 items-center justify-center rounded-full border-2 shadow-sm shadow-black/10",
-            Platform.select({
-              web: "ring-offset-background focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:ring-offset-2 outline-none",
-            }),
-            thumbClassName,
-          )}
-        />
-      </SliderPrimitive.Track>
-    </SliderPrimitive.Root>
+    <View className={cn("w-full justify-center py-2", className)}>
+      <StyledNativeSlider
+        minimumValue={min}
+        maximumValue={max}
+        value={safeValue}
+        trackClassName={trackClassName}
+        rangeClassName={rangeClassName}
+        thumbClassName={thumbClassName}
+        onValueChange={onValueChange ? (nextValue) => onValueChange([nextValue]) : undefined}
+        {...props}
+      />
+    </View>
   );
 }
 

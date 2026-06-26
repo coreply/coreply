@@ -12,7 +12,9 @@ import {
 
 function getStringOptions(schema: Record<string, any>) {
   if (Array.isArray(schema.enum)) {
-    return schema.enum.filter((option): option is string => typeof option === "string");
+    return schema.enum.filter(
+      (option): option is string => typeof option === "string",
+    );
   }
 
   if (!Array.isArray(schema.anyOf)) {
@@ -24,8 +26,14 @@ function getStringOptions(schema: Record<string, any>) {
       return [];
     }
 
-    return entry.enum.filter((option): option is string => typeof option === "string");
+    return entry.enum.filter(
+      (option): option is string => typeof option === "string",
+    );
   });
+}
+
+function hasTextContent(value: string | undefined): value is string {
+  return typeof value === "string" && value.length > 0;
 }
 
 const SelectControl = ({
@@ -35,34 +43,49 @@ const SelectControl = ({
   schema,
   label,
   required,
+  errors,
+  enabled,
 }: ControlProps & { label?: string; required?: boolean }) => {
   const options = getStringOptions(schema as Record<string, any>);
   const selectedOption =
     typeof data === "string"
       ? options.find((option) => option === data)
       : undefined;
+  const hasErrors = Boolean(errors);
+  const isEnabled = enabled !== false;
 
   return (
-    <View className="mb-4">
+    <View className="mb-4 gap-1.5">
       <TextClassContext.Provider value="font-display">
-        {label && (
-          <Text className="mb-1 text-sm font-bold">
+        {hasTextContent(label) ? (
+          <Text className="text-sm font-bold">
             {label}
             {required && " *"}
           </Text>
-        )}
+        ) : null}
         <Select
+          disabled={!isEnabled}
           value={
             selectedOption
               ? { value: selectedOption, label: selectedOption }
               : undefined
           }
-          onValueChange={(value) => handleChange(path, value)}
+          onValueChange={(value) => {
+            if (!isEnabled) {
+              return;
+            }
+
+            handleChange(path, value?.value);
+          }}
         >
-          <SelectTrigger>
+          <SelectTrigger
+            aria-invalid={hasErrors}
+            disabled={!isEnabled}
+            className={hasErrors ? "border-destructive" : undefined}
+          >
             <SelectValue placeholder={label || "Select an option"} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent side="top">
             {options.map((option) => (
               <SelectItem key={option} label={option} value={option as any}>
                 {option}
@@ -70,6 +93,14 @@ const SelectControl = ({
             ))}
           </SelectContent>
         </Select>
+        {hasTextContent(schema.description) ? (
+          <Text className="text-xs text-muted-foreground">
+            {schema.description}
+          </Text>
+        ) : null}
+        {hasTextContent(errors) ? (
+          <Text className="text-xs text-destructive">{errors}</Text>
+        ) : null}
       </TextClassContext.Provider>
     </View>
   );
@@ -79,7 +110,9 @@ export const selectTester = rankWith(
   20,
   and(
     uiTypeIs("Control"),
-    schemaMatches((schema) => getStringOptions(schema as Record<string, any>).length > 0),
+    schemaMatches(
+      (schema) => getStringOptions(schema as Record<string, any>).length > 0,
+    ),
   ),
 );
 
