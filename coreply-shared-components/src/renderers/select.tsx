@@ -56,7 +56,7 @@ const SelectControl = ({
 
   return (
     <View className="mb-4 gap-1.5">
-      <TextClassContext.Provider value="font-display">
+      <TextClassContext.Provider value="font-sans">
         {hasTextContent(label) ? (
           <Text className="text-sm font-bold">
             {label}

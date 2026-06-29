@@ -38,10 +38,13 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import app.coreply.coreplyapp.R
 import app.coreply.coreplyapp.data.PreferencesManager
+import app.coreply.coreplyapp.suggestions.SuggestionStorage
 import app.coreply.coreplyapp.ui.Overlay
+import app.coreply.coreplyapp.ui.OverlayContentType
 import app.coreply.coreplyapp.ui.viewmodel.OverlayViewModel
 import app.coreply.coreplyapp.ui.viewmodel.RefreshType
 import app.coreply.coreplyapp.utils.PixelCalculator
+import app.coreply.coreplymodule.CoreplyDisableRequests
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -68,6 +71,7 @@ open class AppListener : AccessibilityService() {
 	private val pixelCalculator: PixelCalculator = PixelCalculator(this)
 	private lateinit var preferencesManager: PreferencesManager
 	private lateinit var webView: WebView
+	private val suggestionStorage = SuggestionStorage()
 	private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 	private val measureWindowFlow = MutableSharedFlow<AccessibilityNodeInfo>(
 		replay = 0,
@@ -186,7 +190,7 @@ open class AppListener : AccessibilityService() {
 		} else {
 			Log.w("CoWA", "WebMessageListener is not supported on this device.")
 		}
-		webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+		webView.loadUrl("https://appassets.androidplatform.net/assets/wrapper/index.html")
 
 		overlay = Overlay(appContext, getSystemService(WINDOW_SERVICE) as WindowManager)
 		overlayViewModel = overlay.viewModel
@@ -196,17 +200,49 @@ open class AppListener : AccessibilityService() {
 			preferencesManager.loadPreferences()
 			sendSettings()
 		}
-		observeMasterSwitch()
+		observeDisableRequests()
 	}
 
-	private fun observeMasterSwitch() {
+	private fun observeDisableRequests() {
 		serviceScope.launch {
 			preferencesManager.disableSelfRequests.collect {
-				overlay.removeOverlays()
-				overlayViewModel.disable()
-				sendReset()
-				disableSelf()
+				disableListener()
 			}
+		}
+		serviceScope.launch {
+			CoreplyDisableRequests.flow.collect {
+				val wasEnabled = preferencesManager.masterSwitchState.value
+				preferencesManager.updateMasterSwitch(false)
+				if (!wasEnabled) {
+					disableListener()
+				}
+			}
+		}
+	}
+
+	private fun disableListener() {
+		overlay.removeOverlays()
+		overlayViewModel.disable()
+		sendReset()
+		disableSelf()
+	}
+
+	private fun refreshSuggestionFromStorage() {
+		if (!::overlayViewModel.isInitialized) {
+			return
+		}
+		val suggestion = suggestionStorage.getSuggestion(overlayViewModel.uiState.value.currentTyping)
+		if (suggestion != null) {
+			overlayViewModel.updateSuggestion(suggestion)
+		} else if (overlayViewModel.uiState.value.content.type != OverlayContentType.ERROR) {
+			overlayViewModel.clearSuggestion()
+		}
+	}
+
+	private fun clearSuggestionStorage() {
+		suggestionStorage.clear()
+		if (::overlayViewModel.isInitialized) {
+			overlayViewModel.clearSuggestion()
 		}
 	}
 
@@ -245,12 +281,18 @@ open class AppListener : AccessibilityService() {
 			when (json.optString("type")) {
 				"init" -> {
 					wrapperReady = true
-					sendSettings()
-					sendTypingUpdate()
+					serviceScope.launch {
+						sendSettings()
+						sendTypingUpdate()
+					}
 				}
 				"updateSuggestion" -> {
 					val payload = json.getJSONObject("payload")
-					overlayViewModel.updateSuggestion(payload.optString("suggestion"))
+					suggestionStorage.addSuggestion(payload.optString("fullSuggestion"))
+					refreshSuggestionFromStorage()
+				}
+				"clearSuggestion" -> {
+					clearSuggestionStorage()
 				}
 				"error" -> {
 					val payload = json.getJSONObject("payload")
@@ -269,28 +311,11 @@ open class AppListener : AccessibilityService() {
 		javaScriptReplyProxy?.postMessage(message.toString())
 	}
 
-	private fun sendSettings() {
+	private suspend fun sendSettings() {
 		if (!::preferencesManager.isInitialized) {
 			return
 		}
-		val providerValues = JSONObject().apply {
-			put("baseURL", preferencesManager.customApiUrlState.value)
-			put("requestUrl", preferencesManager.customApiUrlState.value)
-			put("apiKey", preferencesManager.customApiKeyState.value)
-			put("model", preferencesManager.customModelNameState.value)
-			put("systemPrompt", preferencesManager.customSystemPromptState.value)
-			put("temperature", preferencesManager.temperatureState.value.toDouble())
-			put("topP", preferencesManager.topPState.value.toDouble())
-			put("bodyTemplate", preferencesManager.advancedConfigBodyState.value)
-			put("suggestionTemplate", preferencesManager.suggestionContentTemplateState.value)
-		}
-		val payload = JSONObject().apply {
-			put("providerValues", providerValues)
-			put("showErrors", preferencesManager.showErrorsState.value)
-			put("typingRegexEnabled", preferencesManager.typingRegexEnabledState.value)
-			put("typingRegexPattern", preferencesManager.typingRegexPatternState.value)
-			put("debounceMs", preferencesManager.customDebounceState.value)
-		}
+		val payload = preferencesManager.getStoredCoreplySettings() ?: return
 		sendWrapperMessage(JSONObject().apply {
 			put("type", "settings")
 			put("payload", payload)
@@ -317,6 +342,7 @@ open class AppListener : AccessibilityService() {
 
 	private fun sendTypingUpdate() {
 		val uiState = overlayViewModel.uiState.value
+		refreshSuggestionFromStorage()
 		sendWrapperMessage(JSONObject().apply {
 			put("type", "updateTyping")
 			put("payload", JSONObject().apply {
@@ -326,6 +352,7 @@ open class AppListener : AccessibilityService() {
 	}
 
 	private fun sendReset() {
+		clearSuggestionStorage()
 		sendWrapperMessage(JSONObject().apply {
 			put("type", "reset")
 		})

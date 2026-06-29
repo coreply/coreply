@@ -1,6 +1,8 @@
 import { createAsyncStorage } from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
 import {
+  AppState,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -42,10 +44,12 @@ import {
 
 import "../../global.css";
 
-const storage = createAsyncStorage("coreply.settings");
-
 import type { FetchControlSettings, PresentationSettings } from "libcoreply";
 import type { ZodSchema } from "zod";
+
+import CoreplyModule from "@/modules/coreply-module/src/CoreplyModule";
+
+const storage = createAsyncStorage("coreply.settings");
 
 function parseStoredJson(value: string | null) {
   if (!value) {
@@ -243,6 +247,10 @@ export default function SettingsScreen() {
     Outfit_600SemiBold,
     Outfit_700Bold,
   });
+  const router = useRouter();
+  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState(() =>
+    CoreplyModule.isAccessibilityEnabled(),
+  );
   const {
     providerId,
     setProviderId,
@@ -255,6 +263,28 @@ export default function SettingsScreen() {
     presentationSettings,
     setPresentationSettings,
   } = usePersistedSettings();
+
+  const refreshAccessibilityState = useCallback(() => {
+    setIsAccessibilityEnabled(CoreplyModule.isAccessibilityEnabled());
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshAccessibilityState();
+    }, [refreshAccessibilityState]),
+  );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "active") {
+        refreshAccessibilityState();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [refreshAccessibilityState]);
 
   // Handle provider change - load saved settings for the new provider
   const handleProviderChange = async (option: Option) => {
@@ -289,6 +319,16 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleTogglePress = useCallback(() => {
+    if (isAccessibilityEnabled) {
+      CoreplyModule.requestDisableAccessibility();
+      setIsAccessibilityEnabled(false);
+      return;
+    }
+
+    router.push("/accessibility-disclosure");
+  }, [isAccessibilityEnabled, router]);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -318,13 +358,18 @@ export default function SettingsScreen() {
                         className="text-lg"
                         style={{ fontFamily: "Outfit_600SemiBold" }}
                       >
-                        Coreply is not running
+                        Coreply is {isAccessibilityEnabled ? "on" : "off"}
                       </Text>
-                      <Text className="text-xs text-muted-foreground">
-                        Tap the toggle to start Coreply
+                      <Text className="text-xs text-muted-foreground font-sans">
+                        {isAccessibilityEnabled
+                          ? "Accessibility access is enabled"
+                          : "Tap the toggle to start Coreply"}
                       </Text>
                     </View>
-                    <ToggleButton />
+                    <ToggleButton
+                      isOn={isAccessibilityEnabled}
+                      onPress={handleTogglePress}
+                    />
                   </View>
                 </View>
 

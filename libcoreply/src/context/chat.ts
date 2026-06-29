@@ -117,7 +117,7 @@ export class ChatContents {
             return false;
         }
         this.messages = [...other];
-        return false;
+        return other.length > 0;
     }
 
     getMessageMapList(): TurnTemplateMap[] {

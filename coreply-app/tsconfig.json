@@ -10,6 +10,9 @@
       "@/assets/*": [
         "./assets/*"
       ],
+      "@/modules/*": [
+        "./modules/*"
+      ],
     }
   },
   "include": [

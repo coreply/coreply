@@ -99,7 +99,7 @@ open class CallAI(
         } catch (e: Exception) {
             if (preferencesManager.showErrorsState.value) {
                 val errorMessage = e.toString()
-                suggestionStorage.listener.onSuggestionError(typingInfo, errorMessage)
+                suggestionStorage.listener?.onSuggestionError(typingInfo, errorMessage)
             }
 
         }

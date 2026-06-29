@@ -27,12 +27,17 @@ if (coreplyBridgeObject) {
         type: "init",
       });
     },
-    onSuggestionUpdated(suggestion) {
+    onSuggestionUpdated(fullSuggestion) {
       postToNative({
         type: "updateSuggestion",
         payload: {
-          suggestion: suggestion,
+          fullSuggestion,
         },
+      });
+    },
+    onSuggestionCleared() {
+      postToNative({
+        type: "clearSuggestion",
       });
     },
     onError(error) {

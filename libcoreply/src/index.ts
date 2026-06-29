@@ -1,9 +1,9 @@
+import debounce, { type DebouncedFunction } from "debounce";
 import Mustache from "mustache";
 import {
-  type GlobalSettings,
-  DEFAULT_GLOBAL_SETTINGS,
-  DEFAULT_SYSTEM_PROMPT,
-  DEFAULT_ADVANCED_BODY,
+  DEFAULT_FETCH_CONTROL_SETTINGS,
+  DEFAULT_PRESENTATION_SETTINGS,
+  globalSettingsSchema,
 } from "./settings";
 import {
   ChatContents,
@@ -11,40 +11,68 @@ import {
   SuggestionStorage,
   TypingInfo,
 } from "./context";
-import { z } from "zod";
 import { requestSuggestions } from "./requests";
 import type { LibCoreplyListener } from "./listener";
+import { z } from "zod";
 
 Mustache.escape = (value: string) => value;
 
+export const coreplySettingsSchema = z.object({
+  globalSettings: globalSettingsSchema,
+  providerId: z.string(),
+  providerSettings: z.record(z.string(), z.unknown()),
+  generationSettings: z.record(z.string(), z.unknown()),
+});
+
+export type CoreplySettings = z.infer<typeof coreplySettingsSchema>;
+
 export class Coreply {
-  private settings: GlobalSettings = DEFAULT_GLOBAL_SETTINGS;
+  private settings: CoreplySettings = {
+    globalSettings: {
+      ...DEFAULT_FETCH_CONTROL_SETTINGS,
+      ...DEFAULT_PRESENTATION_SETTINGS,
+    },
+    providerId: "openaiCompatible",
+    providerSettings: {},
+    generationSettings: {},
+  };
   private readonly chatContents = new ChatContents();
   private readonly suggestionStorage = new SuggestionStorage();
   private currentTyping = "";
   private readonly listener: LibCoreplyListener;
+  private scheduleSuggestion: DebouncedFunction<() => void>;
 
   constructor(listener: LibCoreplyListener) {
     this.listener = listener;
+    this.scheduleSuggestion = this.createScheduleSuggestion();
     this.listener.onInit();
   }
 
-  getSettings(): GlobalSettings {
+  getSettings(): CoreplySettings {
     return this.settings;
   }
 
-  updateSettings(newSettings: Partial<GlobalSettings>) {
+  updateSettings(newSettings: Partial<CoreplySettings>) {
+    const previousDebounceMs = this.settings.globalSettings.debounceMs;
+    const hadPendingSuggestion = this.scheduleSuggestion.isPending;
     this.settings = {
       ...this.settings,
       ...newSettings,
     };
+    if (this.settings.globalSettings.debounceMs !== previousDebounceMs) {
+      this.scheduleSuggestion.clear();
+      this.scheduleSuggestion = this.createScheduleSuggestion();
+      if (hadPendingSuggestion) {
+        this.emitCachedSuggestionOrSchedule();
+      }
+    }
   }
 
   ingestMessages(messages: ChatMessage[]) {
     const clearSuggestions = this.chatContents.combine(messages);
     if (clearSuggestions) {
       this.suggestionStorage.clear();
-      this.listener.onSuggestionUpdated("");
+      this.listener.onSuggestionCleared();
     }
   }
 
@@ -54,21 +82,26 @@ export class Coreply {
   }
 
   reset() {
+    this.scheduleSuggestion.clear();
     this.chatContents.clear();
     this.suggestionStorage.clear();
+    this.listener.onSuggestionCleared();
   }
 
   private emitCachedSuggestionOrSchedule() {
     const cached = this.suggestionStorage.getSuggestion(this.currentTyping);
     if (cached !== null) {
-      this.listener.onSuggestionUpdated(cached);
+      this.scheduleSuggestion.clear();
+      this.listener.onSuggestionUpdated(`${this.currentTyping}${cached}`);
       return;
     }
     this.scheduleSuggestion();
   }
 
-  private scheduleSuggestion() {
-    this.fetchSuggestion();
+  private createScheduleSuggestion() {
+    return debounce(() => {
+      void this.fetchSuggestion();
+    }, this.settings.globalSettings.debounceMs);
   }
 
   private buildTypingInfo(): TypingInfo {
@@ -83,9 +116,10 @@ export class Coreply {
     ) {
       return;
     }
-    if (this.settings.typingRegexEnabled && this.settings.typingRegexPattern) {
+
+    if (this.settings.globalSettings.typingRegexEnabled && this.settings.globalSettings.typingRegexPattern) {
       try {
-        const regex = new RegExp(this.settings.typingRegexPattern);
+        const regex = new RegExp(this.settings.globalSettings.typingRegexPattern);
         if (!regex.test(typingInfo.currentTyping)) {
           return;
         }
@@ -93,8 +127,14 @@ export class Coreply {
         // Ignore invalid regex and continue with suggestion generation.
       }
     }
+
     try {
-      const suggestion = await requestSuggestions(typingInfo, this.settings);
+      const suggestion = await requestSuggestions(
+        typingInfo,
+        this.settings.providerId,
+        this.settings.providerSettings,
+        this.settings.generationSettings,
+      );
       const normalized = suggestion.replace(/\n/g, " ");
       const finalSuggestion = normalized.startsWith(" ")
         ? ` ${normalized.trim()}`
@@ -104,7 +144,7 @@ export class Coreply {
         finalSuggestion,
       );
       if (cached !== null) {
-        this.listener.onSuggestionUpdated(cached);
+        this.listener.onSuggestionUpdated(`${typingInfo.currentTyping}${cached}`);
       }
     } catch (error) {
       this.listener.onError(
@@ -119,3 +159,4 @@ export * from "./form-metadata";
 export * from "./context";
 export * from "./requests";
 export * from "./providers";
+export * from "./listener";

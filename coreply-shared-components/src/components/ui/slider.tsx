@@ -19,7 +19,10 @@ const StyledNativeSlider = withUniwind(NativeSlider, {
   },
 });
 
-type SliderProps = Omit<React.ComponentProps<typeof NativeSlider>, "value" | "onValueChange"> & {
+type SliderProps = Omit<
+  React.ComponentProps<typeof NativeSlider>,
+  "value" | "onValueChange"
+> & {
   className?: string;
   trackClassName?: string;
   rangeClassName?: string;
@@ -27,7 +30,7 @@ type SliderProps = Omit<React.ComponentProps<typeof NativeSlider>, "value" | "on
   min?: number;
   max?: number;
   value?: number;
-  onValueChange?: (values: number[]) => void;
+  onValueChange?: (value: number) => void;
 };
 
 function Slider({
@@ -52,7 +55,9 @@ function Slider({
         trackClassName={trackClassName}
         rangeClassName={rangeClassName}
         thumbClassName={thumbClassName}
-        onValueChange={onValueChange ? (nextValue) => onValueChange([nextValue]) : undefined}
+        onValueChange={
+          onValueChange ? (nextValue) => onValueChange(nextValue) : undefined
+        }
         {...props}
       />
     </View>

@@ -55,8 +55,10 @@ export const globalSettingsSchema = z.object({
     .string()
     .default("^.*[\\s.!?,;:]$")
     .meta(disableWhenFieldFalse("typingRegexEnabled")),
-  debounceMs: z.number().int().min(0).max(5000).default(350),
-  suggestionPresentationType: z.enum(["inline", "overlay", "both"]).default("both"),
+  debounceMs: z.number().int().min(0).max(1000).default(350),
+  suggestionPresentationType: z
+    .enum(["inline", "overlay", "both"])
+    .default("both"),
 });
 
 export const fetchControlSettingsSchema = globalSettingsSchema.pick({

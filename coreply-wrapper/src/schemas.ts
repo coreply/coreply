@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { chatMessageSchema } from "libcoreply";
-import { globalSettingsSchema } from "libcoreply";
+import { chatMessageSchema, coreplySettingsSchema } from "libcoreply";
 
 export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("settings"), payload: globalSettingsSchema }),
+  z.object({ type: z.literal("settings"), payload: coreplySettingsSchema }),
   z.object({
     type: z.literal("ingestMessages"),
     payload: z.object({
@@ -29,8 +28,11 @@ export const wrapperOutboundMessageSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("updateSuggestion"),
     payload: z.object({
-      suggestion: z.string(),
+      fullSuggestion: z.string(),
     }),
+  }),
+  z.object({
+    type: z.literal("clearSuggestion"),
   }),
   z.object({
     type: z.literal("error"),

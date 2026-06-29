@@ -11,7 +11,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --spacing-hairline: hairlineWidth();
-  --font-display: Outfit_400Regular;
+  --font-sans: Outfit_400Regular;
 
   /* Brand color palette */
   --color-brand-50: oklch(0.23 0.015 172.321);
@@ -39,12 +39,12 @@
     --color-secondary: var(--color-brand-100);
     --color-secondary-foreground: var(--color-brand-900);
     --color-muted: var(--color-brand-100);
-    --color-muted-foreground: var(--color-brand-300);
+    --color-muted-foreground: var(--color-brand-200);
     --color-accent: var(--color-brand-900);
     --color-accent-foreground: var(--color-brand-900);
     --color-destructive: oklch(0.577 0.245 27.325);
     --color-border: var(--color-brand-900);
-    --color-input: var(--color-brand-900);
+    --color-input: var(--color-brand-200);
     --color-ring: var(--color-brand-500);
     --color-chart-1: oklch(0.646 0.222 41.116);
     --color-chart-2: oklch(0.6 0.118 184.704);

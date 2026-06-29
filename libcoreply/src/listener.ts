@@ -1,5 +1,6 @@
 export interface LibCoreplyListener {
   onInit: () => void;
-  onSuggestionUpdated: (suggestion: string) => void;
+  onSuggestionUpdated: (fullSuggestion: string) => void;
+  onSuggestionCleared: () => void;
   onError: (error: Error) => void;
 }

@@ -13,9 +13,7 @@ export default function TabLayout() {
       <AnimatedSplashOverlay />
       {/* <AppTabs /> */}
 
-      <Stack>
-        <Stack.Header hidden={true}></Stack.Header>
-      </Stack>
+      <Stack screenOptions={{ headerShown: false }} />
       <PortalHost />
     </ThemeProvider>
   );

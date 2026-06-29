@@ -4,8 +4,9 @@ import {
   schemaMatches,
   uiTypeIs,
   type JsonSchema,
+  type ControlProps,
 } from "@jsonforms/core";
-import { withJsonFormsControlProps, type ControlProps } from "@jsonforms/react";
+import { withJsonFormsControlProps } from "@jsonforms/react";
 import { View } from "react-native";
 import { Slider } from "../components/ui/slider";
 import { Text } from "../components/ui/text";
@@ -16,34 +17,27 @@ type NumericJsonSchema = JsonSchema & {
   multipleOf?: number;
 };
 
-const SAFE_INTEGER_MIN = Number.MIN_SAFE_INTEGER;
-const SAFE_INTEGER_MAX = Number.MAX_SAFE_INTEGER;
-
-function hasTextContent(value: string | undefined): value is string {
-  return typeof value === "string" && value.length > 0;
-}
-
-function hasExplicitSliderBounds(schema: NumericJsonSchema) {
+function hasExplicitSliderBounds(schema: any) {
+  console.log("schema", schema);
   if (schema.type !== "number" && schema.type !== "integer") {
     return false;
   }
-
-  const minimum = schema.minimum;
-  const maximum = schema.maximum;
-
-  if (typeof minimum !== "number" || typeof maximum !== "number") {
+  if (schema.minimum == undefined || schema.maximum == undefined) {
     return false;
   }
-
-  if (maximum <= minimum) {
-    return false;
-  }
-
   if (
-    schema.type === "integer" &&
-    minimum === SAFE_INTEGER_MIN &&
-    maximum === SAFE_INTEGER_MAX
+    typeof schema.minimum !== "number" ||
+    typeof schema.maximum !== "number"
   ) {
+    return false;
+  }
+  if (
+    schema.minimum === Number.MIN_SAFE_INTEGER ||
+    schema.maximum === Number.MAX_SAFE_INTEGER
+  ) {
+    return false;
+  }
+  if (schema.maximum <= schema.minimum) {
     return false;
   }
 
@@ -91,18 +85,14 @@ const SliderControl = ({
   required,
   errors,
   enabled,
-}: ControlProps & { label?: string; required?: boolean }) => {
+}: ControlProps & { label?: string; required?: boolean; data: number }) => {
   const numericSchema = schema as NumericJsonSchema;
-  const isEnabled = enabled !== false;
   const isInteger = numericSchema.type === "integer";
   const minimum = numericSchema.minimum as number;
   const maximum = numericSchema.maximum as number;
-  const step = getStep(minimum, maximum, numericSchema.multipleOf);
-  const fallbackValue = minimum;
-  const numericValue = typeof data === "number" ? data : fallbackValue;
-  const clampedValue = Math.min(maximum, Math.max(minimum, numericValue));
-  const displayValue = isInteger ? Math.round(clampedValue) : clampedValue;
-  const hasErrors = Boolean(errors);
+  const step = numericSchema.multipleOf
+    ? numericSchema.multipleOf
+    : (maximum - minimum) / 20;
 
   return (
     <View className="mb-4 gap-1.5">
@@ -112,40 +102,34 @@ const SliderControl = ({
             {label}:
           </Text>
           <Text className="text-muted-foreground text-sm font-sans">
-            {displayValue}
+            {data}
           </Text>
         </View>
       )}
       <Slider
-        value={clampedValue}
+        value={data}
         min={minimum}
         max={maximum}
-        step={step}
-        aria-invalid={hasErrors}
-        disabled={!isEnabled}
-        trackClassName={hasErrors ? "bg-destructive/20" : "bg-brand-800"}
-        rangeClassName={hasErrors ? "border-destructive" : "border-primary"}
-        thumbClassName={hasErrors ? "text-destructive" : "text-input"}
-        onValueChange={(values) => {
-          if (!isEnabled) {
+        step={isInteger ? Number(step.toFixed(0)) : step}
+        aria-invalid={errors ? true : undefined}
+        disabled={!enabled}
+        trackClassName={errors ? "bg-destructive/20" : "bg-brand-800"}
+        rangeClassName={errors ? "border-destructive" : "border-primary"}
+        thumbClassName={errors ? "text-destructive" : "text-input"}
+        onValueChange={(value) => {
+          if (!enabled) {
             return;
           }
-
-          const nextValue = values[0];
-          if (typeof nextValue !== "number") {
-            return;
-          }
-
-          handleChange(path, roundToStep(nextValue, minimum, step, isInteger));
+          handleChange(path, value);
         }}
       />
 
-      {hasTextContent(numericSchema.description) ? (
+      {numericSchema.description ? (
         <Text className="text-xs text-muted-foreground font-sans">
           {numericSchema.description}
         </Text>
       ) : null}
-      {hasTextContent(errors) ? (
+      {errors ? (
         <Text className="text-xs text-destructive font-sans">{errors}</Text>
       ) : null}
     </View>

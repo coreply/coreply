@@ -1,5 +1,5 @@
-import { rankWith, schemaMatches, uiTypeIs, and } from "@jsonforms/core";
-import { withJsonFormsControlProps, type ControlProps } from "@jsonforms/react";
+import { rankWith, uiTypeIs, type ControlProps } from "@jsonforms/core";
+import { withJsonFormsControlProps } from "@jsonforms/react";
 import { Platform, View } from "react-native";
 import { Text } from "../components/ui/text";
 import { Input } from "../components/ui/input";
@@ -8,36 +8,12 @@ import { Icon } from "../components/ui/icon";
 import { Eye, EyeOff } from "lucide-react-native";
 import { type ReactNode, useState } from "react";
 
-type InputJsonSchema = Record<string, any> & {
-  type?: string;
-  description?: string;
-  format?: string;
-  ["x-coreply-control"]?: string;
-};
-
-function hasSelectableOptions(schema: Record<string, any>) {
-  if (Array.isArray(schema.enum) && schema.enum.length > 0) {
-    return true;
-  }
-
-  return (
-    Array.isArray(schema.anyOf) &&
-    schema.anyOf.some(
-      (entry: Record<string, any>) =>
-        Array.isArray(entry.enum) && entry.enum.length > 0,
-    )
-  );
-}
-
-function getStringControlType(schema: InputJsonSchema) {
-  if (schema["x-coreply-control"] === "textarea") {
+function getStringControlType(schema: any) {
+  if (schema.control === "textarea") {
     return "textarea";
   }
 
-  if (
-    schema["x-coreply-control"] === "password" ||
-    schema.format === "password"
-  ) {
+  if (schema.control === "password") {
     return "password";
   }
 
@@ -71,7 +47,7 @@ function FieldShell({
       ) : null}
       {children}
       {hasTextContent(errors) ? (
-        <Text className="text-xs text-destructive">{errors}</Text>
+        <Text className="text-xs text-destructive font-sans">{errors}</Text>
       ) : hasTextContent(description) ? (
         <Text className="text-xs text-muted-foreground">{description}</Text>
       ) : null}
@@ -88,15 +64,13 @@ const InputControl = ({
   required,
   errors,
   enabled,
-}: ControlProps & { label?: string; required?: boolean }) => {
+}: ControlProps) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const inputSchema = schema as InputJsonSchema;
   const isEnabled = enabled !== false;
-  const isNumeric =
-    inputSchema.type === "number" || inputSchema.type === "integer";
+  const isNumeric = schema.type === "number" || schema.type === "integer";
   const isInteger = schema.type === "integer";
   const inputType = isNumeric ? "numeric" : "default";
-  const controlType = getStringControlType(inputSchema);
+  const controlType = getStringControlType(schema);
   const isMultiline = controlType === "textarea";
   const isPassword = controlType === "password";
   const value = data === undefined || data === null ? "" : String(data);
@@ -127,7 +101,7 @@ const InputControl = ({
       }}
       className={[
         "shadow-none",
-        isMultiline ? "h-64 py-3" : undefined,
+        isMultiline ? "h-64 min-h-64 py-3" : undefined,
         hasErrors ? "border-destructive" : undefined,
       ]
         .filter(Boolean)
@@ -148,7 +122,7 @@ const InputControl = ({
     <FieldShell
       label={label}
       required={required}
-      description={inputSchema.description}
+      description={schema.description}
       errors={errors}
     >
       {isPassword ? (
@@ -181,15 +155,8 @@ const InputControl = ({
   );
 };
 
-export const inputTester = rankWith(
-  10,
-  and(
-    uiTypeIs("Control"),
-    schemaMatches(
-      (schema) => !hasSelectableOptions(schema as Record<string, any>),
-    ),
-  ),
-);
+// Input is the ultimate fallback for any control that is not handled by a more specific renderer. Thus having lower rank but broader tester.
+export const inputTester = rankWith(3, uiTypeIs("Control"));
 
 export const InputRenderer = withJsonFormsControlProps(InputControl);
 

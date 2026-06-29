@@ -181,6 +181,41 @@ class PreferencesManager private constructor(context: Context) {
 		return JSONArray(values.toList()).toString()
 	}
 
+	private fun parseJsonObject(value: String?): JSONObject? {
+		if (value.isNullOrBlank()) {
+			return null
+		}
+
+		return runCatching {
+			JSONObject(value)
+		}.getOrNull()
+	}
+
+	suspend fun getStoredCoreplySettings(): JSONObject? {
+		val providerId = getValues("providerId")["providerId"]?.takeUnless {
+			it.isBlank()
+		} ?: return null
+		val values = getValues(
+			"$providerId.providerSettings",
+			"$providerId.generationSettings",
+			"globalSettings",
+		)
+		val globalSettings = parseJsonObject(values["globalSettings"]) ?: return null
+
+		return JSONObject().apply {
+			put("providerId", providerId)
+			put(
+				"providerSettings",
+				parseJsonObject(values["$providerId.providerSettings"]) ?: JSONObject(),
+			)
+			put(
+				"generationSettings",
+				parseJsonObject(values["$providerId.generationSettings"]) ?: JSONObject(),
+			)
+			put("globalSettings", globalSettings)
+		}
+	}
+
 	suspend fun updatePreferences(updates: PreferenceUpdate) {
 		val entries = mutableListOf<Entry>()
 		updates.masterSwitch?.let { entries += Entry(MASTER_SWITCH, it.toString()) }
@@ -279,7 +314,7 @@ class PreferencesManager private constructor(context: Context) {
 
 		// Build new settings (only include values that exist)
 		val providerSettings = buildMap {
-			oldPrefs[oldCustomApiUrlKey]?.let { put("baseUrl", it) }
+			oldPrefs[oldCustomApiUrlKey]?.let { put("baseURL", it) }
 			oldPrefs[oldCustomApiKeyKey]?.let { put("apiKey", it) }
 
 		}
