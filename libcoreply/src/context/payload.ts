@@ -43,7 +43,26 @@ function tokenizeText(input: string): string[] {
     if (!input) {
         return [];
     }
-    return input.match(/\s+|[^\s]+/g) ?? [];
+
+    const segmenter = new Intl.Segmenter('en', {
+        granularity: 'word',
+    });
+
+    let tokens = Array.from(
+        segmenter.segment(input),
+        (segment) => segment.segment,
+    ).filter((s) => s.trim().length > 0);
+
+    // Merge trailing punctuation with previous token (matching native behavior)
+    if (tokens.length >= 2) {
+        const lastToken = tokens[tokens.length - 1];
+        if (lastToken.length === 1 && PUNCTUATIONS.has(lastToken)) {
+            tokens = tokens.slice(0, -2);
+            tokens.push(tokens[tokens.length - 1] + lastToken);
+        }
+    }
+
+    return tokens;
 }
 
 export class TypingInfo {

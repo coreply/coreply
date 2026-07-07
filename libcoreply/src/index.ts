@@ -3,7 +3,7 @@ import Mustache from "mustache";
 import {
   DEFAULT_FETCH_CONTROL_SETTINGS,
   DEFAULT_PRESENTATION_SETTINGS,
-  globalSettingsSchema,
+  type CoreplySettings,
 } from "./settings";
 import {
   ChatContents,
@@ -13,18 +13,8 @@ import {
 } from "./context";
 import { requestSuggestions } from "./requests";
 import type { LibCoreplyListener } from "./listener";
-import { z } from "zod";
 
 Mustache.escape = (value: string) => value;
-
-export const coreplySettingsSchema = z.object({
-  globalSettings: globalSettingsSchema,
-  providerId: z.string(),
-  providerSettings: z.record(z.string(), z.unknown()),
-  generationSettings: z.record(z.string(), z.unknown()),
-});
-
-export type CoreplySettings = z.infer<typeof coreplySettingsSchema>;
 
 export class Coreply {
   private settings: CoreplySettings = {
@@ -35,17 +25,26 @@ export class Coreply {
     providerId: "openaiCompatible",
     providerSettings: {},
     generationSettings: {},
+    selectedApps: [],
   };
   private readonly chatContents = new ChatContents();
   private readonly suggestionStorage = new SuggestionStorage();
   private currentTyping = "";
   private readonly listener: LibCoreplyListener;
-  private scheduleSuggestion: DebouncedFunction<() => void>;
+  private fetchSuggestionDebounced: DebouncedFunction<
+    (typingInfo: TypingInfo) => void
+  >;
 
   constructor(listener: LibCoreplyListener) {
     this.listener = listener;
-    this.scheduleSuggestion = this.createScheduleSuggestion();
+    this.fetchSuggestionDebounced = this.createFetchSuggestionDebounced(350);
     this.listener.onInit();
+  }
+
+  private createFetchSuggestionDebounced(debounceMs: number) {
+    return debounce((typingInfo: TypingInfo) => {
+      void this.fetchSuggestion(typingInfo);
+    }, debounceMs);
   }
 
   getSettings(): CoreplySettings {
@@ -53,19 +52,13 @@ export class Coreply {
   }
 
   updateSettings(newSettings: Partial<CoreplySettings>) {
-    const previousDebounceMs = this.settings.globalSettings.debounceMs;
-    const hadPendingSuggestion = this.scheduleSuggestion.isPending;
     this.settings = {
       ...this.settings,
       ...newSettings,
     };
-    if (this.settings.globalSettings.debounceMs !== previousDebounceMs) {
-      this.scheduleSuggestion.clear();
-      this.scheduleSuggestion = this.createScheduleSuggestion();
-      if (hadPendingSuggestion) {
-        this.emitCachedSuggestionOrSchedule();
-      }
-    }
+    this.fetchSuggestionDebounced = this.createFetchSuggestionDebounced(
+      this.settings.globalSettings.debounceMs,
+    );
   }
 
   ingestMessages(messages: ChatMessage[]) {
@@ -78,56 +71,54 @@ export class Coreply {
 
   updateTyping(currentTyping: string) {
     this.currentTyping = currentTyping;
-    this.emitCachedSuggestionOrSchedule();
+    this.emitSuggestion();
   }
 
   reset() {
-    this.scheduleSuggestion.clear();
+    this.fetchSuggestionDebounced.clear();
     this.chatContents.clear();
     this.suggestionStorage.clear();
     this.listener.onSuggestionCleared();
   }
 
-  private emitCachedSuggestionOrSchedule() {
-    const cached = this.suggestionStorage.getSuggestion(this.currentTyping);
-    if (cached !== null) {
-      this.scheduleSuggestion.clear();
-      this.listener.onSuggestionUpdated(`${this.currentTyping}${cached}`);
+  private emitSuggestion() {
+    const typingInfo = new TypingInfo(this.chatContents, this.currentTyping);
+    if (!this.shouldSuggestForCurrentTyping(typingInfo)) {
       return;
     }
-    this.scheduleSuggestion();
+    const cached = this.suggestionStorage.getSuggestion(
+      typingInfo.currentTyping,
+    );
+    if (cached !== null) {
+      this.listener.onSuggestionUpdated(`${typingInfo.currentTyping}${cached}`);
+      return;
+    }
+    this.fetchSuggestionDebounced(typingInfo);
   }
 
-  private createScheduleSuggestion() {
-    return debounce(() => {
-      void this.fetchSuggestion();
-    }, this.settings.globalSettings.debounceMs);
-  }
-
-  private buildTypingInfo(): TypingInfo {
-    return new TypingInfo(this.chatContents, this.currentTyping);
-  }
-
-  private async fetchSuggestion() {
-    const typingInfo = this.buildTypingInfo();
+  private shouldSuggestForCurrentTyping(typingInfo: TypingInfo) {
     if (
       !typingInfo.currentTyping &&
       typingInfo.pastMessages.chatContents.length === 0
     ) {
-      return;
+      return false;
+    }
+    if (
+      !this.settings.globalSettings.typingRegexEnabled ||
+      !this.settings.globalSettings.typingRegexPattern
+    ) {
+      return true;
     }
 
-    if (this.settings.globalSettings.typingRegexEnabled && this.settings.globalSettings.typingRegexPattern) {
-      try {
-        const regex = new RegExp(this.settings.globalSettings.typingRegexPattern);
-        if (!regex.test(typingInfo.currentTyping)) {
-          return;
-        }
-      } catch {
-        // Ignore invalid regex and continue with suggestion generation.
-      }
+    try {
+      const regex = new RegExp(this.settings.globalSettings.typingRegexPattern);
+      return regex.test(typingInfo.currentTyping);
+    } catch {
+      return true;
     }
+  }
 
+  private async fetchSuggestion(typingInfo: TypingInfo) {
     try {
       const suggestion = await requestSuggestions(
         typingInfo,
@@ -144,7 +135,9 @@ export class Coreply {
         finalSuggestion,
       );
       if (cached !== null) {
-        this.listener.onSuggestionUpdated(`${typingInfo.currentTyping}${cached}`);
+        this.listener.onSuggestionUpdated(
+          `${typingInfo.currentTyping}${cached}`,
+        );
       }
     } catch (error) {
       this.listener.onError(

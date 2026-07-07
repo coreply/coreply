@@ -1,4 +1,4 @@
-import { PUNCTUATION_SPLIT_REGEX, PUNCTUATIONS } from "../constants";
+import { PUNCTUATIONS } from "../constants";
 import type { TypingInfo } from "./payload";
 
 export class SuggestionStorage {
@@ -9,17 +9,25 @@ export class SuggestionStorage {
     }
 
     private splitAndKeepPunctuations(text: string): string[] {
-        const parts = text.split(PUNCTUATION_SPLIT_REGEX).filter(Boolean);
-        if (parts.length < 2) {
-            return parts;
+        const segmenter = new Intl.Segmenter('en', {
+            granularity: 'word',
+        });
+
+        let tokens = Array.from(
+            segmenter.segment(text),
+            (segment) => segment.segment,
+        ).filter((s) => s.trim().length > 0);
+
+        // Merge trailing punctuation with previous token (matching native behavior)
+        if (tokens.length >= 2) {
+            const lastToken = tokens[tokens.length - 1];
+            if (lastToken.length === 1 && PUNCTUATIONS.has(lastToken)) {
+                tokens = tokens.slice(0, -2);
+                tokens.push(tokens[tokens.length - 1] + lastToken);
+            }
         }
-        const lastPart = parts.at(-1) ?? '';
-        if (lastPart.length === 1 && PUNCTUATIONS.has(lastPart)) {
-            const modifiedParts = parts.slice(0, -2);
-            modifiedParts.push(`${parts[parts.length - 2]}${lastPart}`);
-            return modifiedParts;
-        }
-        return parts;
+
+        return tokens;
     }
 
     private getKeyFromText(text: string): string {

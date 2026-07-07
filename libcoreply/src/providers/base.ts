@@ -30,13 +30,17 @@ export async function generateWithAIProvider(
     userPrompt += `The reply should start with '${typingInfo.currentTyping.replace(/\s+/g, " ")}'\n`;
   }
   const model = provider(generationSettings.model);
-  const providerOptions = parseProviderOptions(generationSettings.providerOptions);
+  const providerOptions = parseProviderOptions(
+    generationSettings.providerOptions,
+  );
   delete generationSettings.model;
   delete generationSettings.providerOptions;
+  let providerOptionsObject: Record<string, any> = {};
+  providerOptionsObject[provider.name] = providerOptions;
   const result = await generateText({
     model: model,
     ...generationSettings,
-    providerOptions,
+    providerOptions: providerOptionsObject,
   });
 
   return result.text.trim();

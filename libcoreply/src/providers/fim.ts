@@ -22,7 +22,7 @@ export async function generateWithFIM(
     },
     body: JSON.stringify({
       model: generationSettings.model,
-      temperature: 0.7,
+      temperature: generationSettings.temperature,
       top_p: 1.0,
       max_tokens: 100,
       stream: false,

@@ -19,7 +19,7 @@ export async function generateWithAdvanced(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${providerSettings.apiKey}`,
+      Authorization: `Bearer ${providerSettings.authorizationBearer}`,
       "HTTP-Referer": "https://coreply.app",
       "X-Title": "Coreply: Autocomplete for Texting",
     },

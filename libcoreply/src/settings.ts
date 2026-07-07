@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { disableWhenFieldFalse } from "./form-metadata";
 
 export const DEFAULT_SYSTEM_PROMPT =
   "You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks";
@@ -51,10 +50,9 @@ export const globalSettingsSchema = z.object({
     .default(true)
     .describe("Whether to show errors in the UI"),
   typingRegexEnabled: z.boolean().default(false),
-  typingRegexPattern: z
-    .string()
-    .default("^.*[\\s.!?,;:]$")
-    .meta(disableWhenFieldFalse("typingRegexEnabled")),
+  typingRegexPattern: z.string().default("^.*[\\s.!?,;:]$").meta({
+    disabledWhenFieldFalse: "typingRegexEnabled",
+  }),
   debounceMs: z.number().int().min(0).max(1000).default(350),
   suggestionPresentationType: z
     .enum(["inline", "overlay", "both"])
@@ -71,6 +69,16 @@ export const presentationSettingsSchema = globalSettingsSchema.pick({
   showErrors: true,
   suggestionPresentationType: true,
 });
+
+export const coreplySettingsSchema = z.object({
+  globalSettings: globalSettingsSchema,
+  providerId: z.string(),
+  providerSettings: z.record(z.string(), z.unknown()),
+  generationSettings: z.record(z.string(), z.unknown()),
+  selectedApps: z.array(z.string()).default([]),
+});
+
+export type CoreplySettings = z.infer<typeof coreplySettingsSchema>;
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>;
 export type FetchControlSettings = z.infer<typeof fetchControlSettingsSchema>;
