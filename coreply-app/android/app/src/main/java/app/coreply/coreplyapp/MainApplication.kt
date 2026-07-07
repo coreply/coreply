@@ -22,6 +22,7 @@ package app.coreply.coreplyapp
 
 import android.app.Application
 import android.content.res.Configuration
+import android.util.Log
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -34,7 +35,9 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ExpoReactHostFactory
 
+import app.coreply.coreplyapp.data.LegacyNativeToExpoSettingsMigration
 import app.coreply.coreplyapp.utils.PreferenceHelper
+import kotlinx.coroutines.runBlocking
 
 /**
  * Created on 1/25/17.
@@ -54,6 +57,13 @@ open class MainApplication : Application(), ReactApplication {
     override fun onCreate() {
         super.onCreate()
         PreferenceHelper.init(this)
+                runCatching {
+			runBlocking {
+				LegacyNativeToExpoSettingsMigration(applicationContext).migrateIfNeeded()
+			}
+		}.onFailure { error ->
+			Log.e("Coreply", "Failed to migrate native settings to Expo storage", error)
+		}
         DefaultNewArchitectureEntryPoint.releaseLevel = ReleaseLevel.STABLE
         loadReactNative(this)
         ApplicationLifecycleDispatcher.onApplicationCreate(this)

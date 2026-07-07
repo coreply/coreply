@@ -47,7 +47,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
     
-    private fun updateUiStateFromPreferences() {
+    fun updateUiStateFromPreferences() {
         uiState = SettingsUiState(
             masterSwitchEnabled = preferencesManager.masterSwitchState.value && AccessibilityStatus.isAccessibilityEnabled(getApplication()),
             apiType = preferencesManager.apiTypeState.value,

@@ -67,6 +67,7 @@ fun ModernSettingsScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 viewModel.updateMasterSwitchState(context)
+                viewModel.updateUiStateFromPreferences()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
