@@ -5,9 +5,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/outfit";
 import { ActivityAction, startActivityAsync } from "expo-intent-launcher";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,44 +23,22 @@ export default function AccessibilityDisclosureScreen() {
     Outfit_700Bold,
   });
   const router = useRouter();
-  const [isLaunchingSettings, setIsLaunchingSettings] = useState(false);
-
-  const handleAccept = async () => {
-    if (isLaunchingSettings) {
-      return;
-    }
-
-    setIsLaunchingSettings(true);
-
-    try {
-      if (Platform.OS === "android") {
-        await startActivityAsync(ActivityAction.ACCESSIBILITY_SETTINGS);
-      }
-
-      router.back();
-    } finally {
-      setIsLaunchingSettings(false);
-    }
-  };
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <TextClassContext.Provider value="font-sans">
           {fontsLoaded && (
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              className="bg-background"
+            >
               <View
-                className="flex-1 items-center px-4 py-4"
+                className="flex-1 items-center px-4 py-6"
                 style={styles.content}
               >
-                <Image
-                  source={require("@/assets/images/android-icon-foreground.png")}
-                  contentFit="contain"
-                  style={styles.icon}
-                />
-
                 <Text
-                  className="text-center text-2xl"
+                  className="text-center text-xl"
                   style={{ fontFamily: "Outfit_700Bold" }}
                 >
                   Accessibility Service Disclosure
@@ -73,7 +49,7 @@ export default function AccessibilityDisclosureScreen() {
                 </Text>
 
                 <View
-                  className="w-full border border-border bg-white px-4 py-4"
+                  className="w-full border border-border bg-form px-4 py-4"
                   style={styles.card}
                 >
                   <View style={styles.section}>
@@ -116,14 +92,16 @@ export default function AccessibilityDisclosureScreen() {
                 >
                   <Button
                     className="w-full"
-                    onPress={handleAccept}
-                    disabled={isLaunchingSettings}
+                    onPress={async () => {
+                      router.back();
+                      if (Platform.OS === "android") {
+                        await startActivityAsync(
+                          ActivityAction.ACCESSIBILITY_SETTINGS,
+                        );
+                      }
+                    }}
                   >
-                    <Text className="font-sans">
-                      {isLaunchingSettings && Platform.OS === "android"
-                        ? "Opening Accessibility Settings..."
-                        : "I Agree & Enable"}
-                    </Text>
+                    <Text className="font-sans">I Agree & Enable</Text>
                   </Button>
 
                   <Button
