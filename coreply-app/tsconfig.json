@@ -1,6 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "types": ["chrome-types"],
     "strict": true,
     "paths": {
       "@/*": [
@@ -15,7 +16,7 @@
       ],
     }
   },
-  "include": [
+    "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",

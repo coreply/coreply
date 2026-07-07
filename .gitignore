@@ -6,3 +6,5 @@ node_modules/
 .playwright-cli/
 .pnpm-store/
 AGENTS.md
+.test-browser-profile/
+misc.xml

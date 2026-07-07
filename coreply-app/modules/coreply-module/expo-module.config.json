@@ -1,0 +1,6 @@
+{
+  "platforms": ["android", "web"],
+  "android": {
+    "modules": ["app.coreply.coreplymodule.CoreplyModule"]
+  }
+}

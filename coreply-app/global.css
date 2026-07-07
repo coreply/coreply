@@ -30,8 +30,8 @@
     @variant light {
     --color-background: oklch(0.977 0.001 17.176);
     --color-foreground: oklch(0.221 0.008 182.201);
-    --color-card: var(--color-brand-50);
-    --color-card-foreground: var(--color-brand-900);
+    --color-card: var(--color-brand-950);
+    --color-card-foreground: var(--color-brand-100);
     --color-popover: var(--color-background);
     --color-popover-foreground: var(--color-brand-900);
     --color-primary: var(--color-brand-500);
@@ -46,6 +46,7 @@
     --color-border: var(--color-brand-900);
     --color-input: var(--color-brand-200);
     --color-ring: var(--color-brand-500);
+    --color-form: var(--color-white);
     --color-chart-1: oklch(0.646 0.222 41.116);
     --color-chart-2: oklch(0.6 0.118 184.704);
     --color-chart-3: oklch(0.398 0.07 227.392);
@@ -64,22 +65,23 @@
     @variant dark {
       --color-background: oklch(0.221 0.008 182.201);
       --color-foreground: oklch(0.977 0.001 17.176);
-      --color-card: var(--color-brand-800);
-      --color-card-foreground: var(--color-brand-50);
-      --color-popover: var(--color-brand-800);
+      --color-card: var(--color-brand-50);
+      --color-card-foreground: var(--color-brand-900);
+      --color-popover: var(--color-background);
       --color-popover-foreground: var(--color-brand-50);
-      --color-primary: var(--color-brand-300);
-      --color-primary-foreground: var(--color-brand-950);
+      --color-primary: var(--color-brand-500);
+      --color-primary-foreground: var(--color-foreground);
       --color-secondary: var(--color-brand-700);
       --color-secondary-foreground: var(--color-brand-50);
       --color-muted: var(--color-brand-700);
-      --color-muted-foreground: var(--color-brand-300);
-      --color-accent: var(--color-brand-700);
+      --color-muted-foreground: var(--color-brand-800);
+      --color-accent: var(--color-brand-200);
       --color-accent-foreground: var(--color-brand-50);
-      --color-destructive: oklch(0.704 0.191 22.216);
-      --color-border: oklch(var(--color-brand-700) / 0.2);
-      --color-input: oklch(var(--color-brand-700) / 0.15);
+      --color-destructive: oklch(0.804 0.18 22.216);
+      --color-border: var(--color-brand-200);
+      --color-input: var(--color-brand-800);
       --color-ring: var(--color-brand-300);
+      --color-form: oklch(0.18 0.01 182.201);
       --color-chart-1: oklch(0.488 0.243 264.376);
       --color-chart-2: oklch(0.696 0.17 162.48);
       --color-chart-3: oklch(0.769 0.188 70.08);

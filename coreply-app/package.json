@@ -10,9 +10,12 @@
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/slider": "^5.2.0",
     "@rn-primitives/portal": "^1.4.0",
+    "@wxt-dev/storage": "^1.2.8",
+    "chrome-types": "^0.1.431",
     "clsx": "^2.1.1",
     "coreply-shared-components": "workspace:*",
     "expo": "~56.0.8",
+    "expo-brownfield": "~56.0.21",
     "expo-constants": "~56.0.16",
     "expo-device": "~56.0.4",
     "expo-font": "~56.0.6",
@@ -27,6 +30,7 @@
     "expo-system-ui": "~56.0.5",
     "expo-web-browser": "~56.0.5",
     "libcoreply": "workspace:*",
+    "lucide-react-native": "^1.18.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
@@ -39,7 +43,8 @@
     "react-native-worklets": "0.8.3",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",
-    "uniwind": "^1.9.0"
+    "uniwind": "^1.9.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",

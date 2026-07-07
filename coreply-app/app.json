@@ -20,7 +20,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
     },
@@ -36,7 +36,15 @@
           }
         }
       ],
-      ["expo-font",{"fonts":["node_modules/@expo-google-fonts/outfit/400Regular/Outfit_400Regular.ttf"]}]
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/@expo-google-fonts/outfit/400Regular/Outfit_400Regular.ttf"
+          ]
+        }
+      ],
+      "expo-brownfield"
     ],
     "experiments": {
       "typedRoutes": true,
