@@ -10,10 +10,10 @@ import { Head } from "expo-router/build/head";
 
 // This file should only import and register the root. No components or exports
 // should be added here.
-const AppComponent = (props) => {
+const AppComponent = () => {
   return (
     <Head.Provider>
-      <ExpoRoot context={ctx} />
+      <ExpoRoot context={ctx} location="/" />
     </Head.Provider>
   );
 };
