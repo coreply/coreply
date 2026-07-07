@@ -1,8 +1,6 @@
-import { createAsyncStorage } from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect, useState } from "react";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
 import {
-  AppState,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -26,12 +24,17 @@ import {
   providerDefinitions,
 } from "libcoreply";
 import { ToggleButton } from "@/components/groups/toggle-button";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import type { Option } from "@/components/ui/select";
 import { View } from "react-native";
 import { Text, TextClassContext } from "@/components/ui/text";
+import { ChevronRight } from "lucide-react-native";
 
 import { ThemedView } from "@/components/themed-view";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
+
+import { Image } from "expo-image";
 
 import {
   Outfit_300Light,
@@ -45,62 +48,51 @@ import {
 import "../../global.css";
 
 import type { FetchControlSettings, PresentationSettings } from "libcoreply";
-import type { ZodSchema } from "zod";
 
-import CoreplyModule from "@/modules/coreply-module/src/CoreplyModule";
+import { createAsyncStorage } from "@/constants/storage";
+
+import * as Brownfield from "@/utils/brownfield-wrapper";
+
+import { Stack } from "expo-router";
+
+import { ZodType } from "zod";
 
 const storage = createAsyncStorage("coreply.settings");
 
-function parseStoredJson(value: string | null) {
-  if (!value) {
-    return undefined;
-  }
-
+const parseJsonStringWithFallback = (
+  jsonString: string | null,
+  schema: ZodType,
+  fallback: any,
+) => {
   try {
-    return JSON.parse(value) as unknown;
-  } catch {
-    return undefined;
+    const parsed = JSON.parse(jsonString ?? "{}");
+    const validated = schema.safeParse(parsed);
+    if (validated.success) {
+      return validated.data;
+    }
+  } catch (error) {
+    return fallback;
   }
-}
-
-function parseStoredObject<T extends Record<string, any>>(
-  schema: ZodSchema<T>,
-  value: unknown,
-  fallback: T,
-) {
-  const candidate = value && typeof value === "object" ? value : {};
-  const parsed = schema.safeParse(candidate);
-  return parsed.success ? parsed.data : fallback;
-}
-
-type ProviderDefinition =
-  (typeof providerDefinitions)[keyof typeof providerDefinitions];
-
-function getValidProviderId(providerId: string | null | undefined) {
-  if (providerId && providerId in providerDefinitions) {
-    return providerId as keyof typeof providerDefinitions;
-  }
-
-  return "openaiCompatible" as const;
-}
+  return fallback;
+};
 
 function usePersistedSettings() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [providerId, setProviderId] = useState<string>("openaiCompatible");
-  const [providerSettings, setProviderSettings] = useState<Record<string, any>>(
-    {},
-  );
-  const [generationSettings, setGenerationSettings] = useState<
+  const [initialProviderSettings, setInitialProviderSettings] = useState<
     Record<string, any>
   >({});
-  const [fetchControlSettings, setFetchControlSettings] =
+  const [initialGenerationSettings, setInitialGenerationSettings] = useState<
+    Record<string, any>
+  >({});
+  const [initialFetchControlSettings, setInitialFetchControlSettings] =
     useState<FetchControlSettings>(DEFAULT_FETCH_CONTROL_SETTINGS);
-  const [presentationSettings, setPresentationSettings] =
+  const [initialPresentationSettings, setInitialPresentationSettings] =
     useState<PresentationSettings>(DEFAULT_PRESENTATION_SETTINGS);
 
   useEffect(() => {
     storage.getItem("providerId").then((storedProviderId) => {
-      const actualProviderId = getValidProviderId(storedProviderId);
+      const actualProviderId = storedProviderId ?? "openaiCompatible";
       Promise.all([
         storage.getItem(`${actualProviderId}.providerSettings`),
         storage.getItem(`${actualProviderId}.generationSettings`),
@@ -111,37 +103,29 @@ function usePersistedSettings() {
           storedGenerationSettings,
           storedGlobalSettings,
         ]) => {
-          const parsedProviderSettings = parseStoredJson(
+          const provider =
+            providerDefinitions[
+              actualProviderId as keyof typeof providerDefinitions
+            ];
+          const parsedProviderSettings = parseJsonStringWithFallback(
             storedProviderSettings,
+            provider.providerSettingsSchema,
+            {},
           );
-          const parsedGenerationSettings = parseStoredJson(
+          const parsedGenerationSettings = parseJsonStringWithFallback(
             storedGenerationSettings,
+            provider.generationSettingsSchema,
+            {},
           );
-          const parsedGlobalSettings = parseStoredJson(storedGlobalSettings);
-
-          const providerDefinition = providerDefinitions[
-            actualProviderId as keyof typeof providerDefinitions
-          ] as ProviderDefinition | undefined;
+          const parsedGlobalSettings = parseJsonStringWithFallback(
+            storedGlobalSettings,
+            globalSettingsSchema,
+            {},
+          );
 
           setProviderId(actualProviderId);
-          setProviderSettings(
-            providerDefinition
-              ? parseStoredObject(
-                  providerDefinition.providerSettingsSchema,
-                  parsedProviderSettings,
-                  {},
-                )
-              : {},
-          );
-          setGenerationSettings(
-            providerDefinition
-              ? parseStoredObject(
-                  providerDefinition.generationSettingsSchema,
-                  parsedGenerationSettings,
-                  {},
-                )
-              : {},
-          );
+          setInitialProviderSettings(parsedProviderSettings);
+          setInitialGenerationSettings(parsedGenerationSettings);
 
           if (parsedGlobalSettings) {
             const validatedGlobalResult =
@@ -151,10 +135,10 @@ function usePersistedSettings() {
             }
 
             const validatedGlobal = validatedGlobalResult.data;
-            setFetchControlSettings(
+            setInitialFetchControlSettings(
               fetchControlSettingsSchema.parse(validatedGlobal),
             );
-            setPresentationSettings(
+            setInitialPresentationSettings(
               presentationSettingsSchema.parse(validatedGlobal),
             );
           }
@@ -173,16 +157,10 @@ function usePersistedSettings() {
     storage.setItem("providerId", providerId);
   }, [isLoaded, providerId]);
 
-  useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
-
-    const parsed =
-      providerDefinitions[
-        providerId as keyof typeof providerDefinitions
-      ]?.providerSettingsSchema.safeParse(providerSettings);
-
+  const saveProviderSettings = (newSettings: Record<string, any>) => {
+    const provider =
+      providerDefinitions[providerId as keyof typeof providerDefinitions];
+    const parsed = provider?.providerSettingsSchema.safeParse(newSettings);
     if (!parsed?.success) {
       return;
     }
@@ -191,18 +169,22 @@ function usePersistedSettings() {
       `${providerId}.providerSettings`,
       JSON.stringify(parsed.data),
     );
-  }, [isLoaded, providerId, providerSettings]);
-
-  useEffect(() => {
-    if (!isLoaded) {
-      return;
+    if (isLoaded && Platform.OS === "android") {
+      Brownfield.sendMessage({
+        type: "settingsUpdated",
+        data: {
+          providerId,
+          providerSettings: parsed.data,
+        },
+      });
     }
+  };
 
+  const saveGenerationSettings = (newSettings: Record<string, any>) => {
     const parsed =
       providerDefinitions[
         providerId as keyof typeof providerDefinitions
-      ]?.generationSettingsSchema.safeParse(generationSettings);
-
+      ]?.generationSettingsSchema.safeParse(newSettings);
     if (!parsed?.success) {
       return;
     }
@@ -211,35 +193,104 @@ function usePersistedSettings() {
       `${providerId}.generationSettings`,
       JSON.stringify(parsed.data),
     );
-  }, [isLoaded, providerId, generationSettings]);
+    if (isLoaded && Platform.OS === "android") {
+      Brownfield.sendMessage({
+        type: "settingsUpdated",
+        data: {
+          providerId,
+          generationSettings: parsed.data,
+        },
+      });
+    }
+  };
 
-  useEffect(() => {
-    if (!isLoaded) {
+  const saveFetchControlSettings = (newSettings: FetchControlSettings) => {
+    const parsed = fetchControlSettingsSchema.safeParse(newSettings);
+    if (!parsed.success) {
       return;
     }
 
-    const merged = { ...fetchControlSettings, ...presentationSettings };
-    storage.setItem(
-      "globalSettings",
-      JSON.stringify(globalSettingsSchema.parse(merged)),
-    );
-  }, [fetchControlSettings, isLoaded, presentationSettings]);
+    void storage.getItem("globalSettings").then((storedGlobalSettings) => {
+      const currentGlobalSettings = parseJsonStringWithFallback(
+        storedGlobalSettings,
+        globalSettingsSchema,
+        {},
+      );
+      const mergedGlobalSettings = globalSettingsSchema.parse({
+        ...currentGlobalSettings,
+        ...parsed.data,
+      });
+      void storage.setItem(
+        "globalSettings",
+        JSON.stringify(mergedGlobalSettings),
+      );
+      if (isLoaded && Platform.OS === "android") {
+        Brownfield.sendMessage({
+          type: "settingsUpdated",
+          data: {
+            providerId,
+            globalSettings: mergedGlobalSettings,
+          },
+        });
+      }
+    });
+  };
+
+  const savePresentationSettings = (newSettings: PresentationSettings) => {
+    const parsed = presentationSettingsSchema.safeParse(newSettings);
+    if (!parsed.success) {
+      return;
+    }
+
+    void storage.getItem("globalSettings").then((storedGlobalSettings) => {
+      const currentGlobalSettings = parseJsonStringWithFallback(
+        storedGlobalSettings,
+        globalSettingsSchema,
+        {},
+      );
+      const mergedGlobalSettings = globalSettingsSchema.parse({
+        ...currentGlobalSettings,
+        ...parsed.data,
+      });
+      void storage.setItem(
+        "globalSettings",
+        JSON.stringify(mergedGlobalSettings),
+      );
+      if (isLoaded && Platform.OS === "android") {
+        Brownfield.sendMessage({
+          type: "settingsUpdated",
+          data: {
+            providerId,
+            globalSettings: mergedGlobalSettings,
+          },
+        });
+      }
+    });
+  };
 
   return {
     providerId,
     setProviderId,
-    providerSettings,
-    setProviderSettings,
-    generationSettings,
-    setGenerationSettings,
-    fetchControlSettings,
-    setFetchControlSettings,
-    presentationSettings,
-    setPresentationSettings,
+    initialProviderSettings,
+    initialGenerationSettings,
+    initialFetchControlSettings,
+    initialPresentationSettings,
+    setInitialProviderSettings,
+    setInitialGenerationSettings,
+    setInitialFetchControlSettings,
+    setInitialPresentationSettings,
+    saveProviderSettings,
+    saveGenerationSettings,
+    saveFetchControlSettings,
+    savePresentationSettings,
   };
 }
 
 export default function SettingsScreen() {
+  const [accessibilityEnabled] =
+    Platform.OS === "android"
+      ? Brownfield.useSharedState("accessibilityEnabled", false)
+      : [false];
   const [fontsLoaded] = useFonts({
     Outfit_300Light,
     Outfit_400Regular,
@@ -248,43 +299,20 @@ export default function SettingsScreen() {
     Outfit_700Bold,
   });
   const router = useRouter();
-  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState(() =>
-    CoreplyModule.isAccessibilityEnabled(),
-  );
   const {
     providerId,
     setProviderId,
-    providerSettings,
-    setProviderSettings,
-    generationSettings,
-    setGenerationSettings,
-    fetchControlSettings,
-    setFetchControlSettings,
-    presentationSettings,
-    setPresentationSettings,
+    initialProviderSettings,
+    initialGenerationSettings,
+    initialFetchControlSettings,
+    initialPresentationSettings,
+    setInitialProviderSettings,
+    setInitialGenerationSettings,
+    saveProviderSettings,
+    saveGenerationSettings,
+    saveFetchControlSettings,
+    savePresentationSettings,
   } = usePersistedSettings();
-
-  const refreshAccessibilityState = useCallback(() => {
-    setIsAccessibilityEnabled(CoreplyModule.isAccessibilityEnabled());
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshAccessibilityState();
-    }, [refreshAccessibilityState]),
-  );
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      if (nextState === "active") {
-        refreshAccessibilityState();
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [refreshAccessibilityState]);
 
   // Handle provider change - load saved settings for the new provider
   const handleProviderChange = async (option: Option) => {
@@ -294,40 +322,36 @@ export default function SettingsScreen() {
         storage.getItem(`${newProviderId}.providerSettings`),
         storage.getItem(`${newProviderId}.generationSettings`),
       ]);
-    const providerDefinition = providerDefinitions[
-      newProviderId as keyof typeof providerDefinitions
-    ] as ProviderDefinition | undefined;
+    const provider =
+      providerDefinitions[newProviderId as keyof typeof providerDefinitions];
 
     setProviderId(newProviderId);
-    setProviderSettings(
-      providerDefinition
-        ? parseStoredObject(
-            providerDefinition.providerSettingsSchema,
-            parseStoredJson(storedProviderSettings),
-            {},
-          )
-        : {},
+    setInitialProviderSettings(
+      parseJsonStringWithFallback(
+        storedProviderSettings,
+        provider.providerSettingsSchema,
+        {},
+      ),
     );
-    setGenerationSettings(
-      providerDefinition
-        ? parseStoredObject(
-            providerDefinition.generationSettingsSchema,
-            parseStoredJson(storedGenerationSettings),
-            {},
-          )
-        : {},
+    setInitialGenerationSettings(
+      parseJsonStringWithFallback(
+        storedGenerationSettings,
+        provider.generationSettingsSchema,
+        {},
+      ),
     );
   };
 
-  const handleTogglePress = useCallback(() => {
-    if (isAccessibilityEnabled) {
-      CoreplyModule.requestDisableAccessibility();
-      setIsAccessibilityEnabled(false);
+  const handleTogglePress = () => {
+    if (accessibilityEnabled) {
+      Brownfield.sendMessage({
+        type: "disableService",
+      });
       return;
     }
 
     router.push("/accessibility-disclosure");
-  }, [isAccessibilityEnabled, router]);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -336,14 +360,25 @@ export default function SettingsScreen() {
     >
       <ThemedView style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
+          <Stack.Header hidden />
           <TextClassContext.Provider value="font-display">
             {fontsLoaded && (
               <ScrollView
                 stickyHeaderIndices={[0]}
                 stickyHeaderHiddenOnScroll={true}
+                className="bg-background"
               >
                 <View>
-                  <View className="bg-background font-display py-3 px-3 border-border border-b">
+                  <View className="bg-background font-display py-3 px-3 border-border border-b flex-row items-center">
+                    <Image
+                      source={require("@/assets/images/android-icon-foreground.png")}
+                      contentFit="contain"
+                      style={{
+                        width: 36,
+                        height: 36,
+                        transform: [{ scale: 1.5 }],
+                      }}
+                    ></Image>
                     <Text
                       className="text-2xl"
                       style={{ fontFamily: "Outfit_700Bold" }}
@@ -358,16 +393,16 @@ export default function SettingsScreen() {
                         className="text-lg"
                         style={{ fontFamily: "Outfit_600SemiBold" }}
                       >
-                        Coreply is {isAccessibilityEnabled ? "on" : "off"}
+                        Coreply is {accessibilityEnabled ? "on" : "off"}
                       </Text>
                       <Text className="text-xs text-muted-foreground font-sans">
-                        {isAccessibilityEnabled
+                        {accessibilityEnabled
                           ? "Accessibility access is enabled"
                           : "Tap the toggle to start Coreply"}
                       </Text>
                     </View>
                     <ToggleButton
-                      isOn={isAccessibilityEnabled}
+                      isOn={accessibilityEnabled}
                       onPress={handleTogglePress}
                     />
                   </View>
@@ -375,8 +410,36 @@ export default function SettingsScreen() {
 
                 <View
                   style={styles.scrollContent}
-                  className="border-x border-border mx-2"
+                  className="border-x border-border mx-2 bg-background"
                 >
+                  <View>
+                    <Text
+                      className="mb-2 text-lg px-3"
+                      style={{ fontFamily: "Outfit_600SemiBold" }}
+                    >
+                      Select Apps
+                    </Text>
+                    <View className="px-3">
+                      <Button
+                        variant="ghost"
+                        className="h-auto min-h-16 w-full flex-row items-center justify-between rounded-none border border-border bg-form px-4 py-4 shadow-none"
+                        onPress={() => router.push("/select-apps")}
+                      >
+                        <View className="h-auto flex-1 gap-1">
+                          <Text className="text-left text-base text-foreground">
+                            Select Apps
+                          </Text>
+                          <Text className="text-left text-sm text-muted-foreground font-sans">
+                            Choose apps enabling Coreply.
+                          </Text>
+                        </View>
+                        <Icon
+                          as={ChevronRight}
+                          className="ml-3 size-5 text-muted-foreground"
+                        />
+                      </Button>
+                    </View>
+                  </View>
                   <View>
                     <View className="px-3">
                       <ProviderSelector
@@ -387,15 +450,15 @@ export default function SettingsScreen() {
                     <View className="px-3">
                       <ProviderSettingsForm
                         providerId={providerId}
-                        settings={providerSettings}
-                        onChange={setProviderSettings}
+                        settings={initialProviderSettings}
+                        onChange={saveProviderSettings}
                       />
                     </View>
                     <View className="p-3">
                       <GenerationSettingsForm
                         providerId={providerId}
-                        settings={generationSettings}
-                        onChange={setGenerationSettings}
+                        settings={initialGenerationSettings}
+                        onChange={saveGenerationSettings}
                       />
                     </View>
                   </View>
@@ -408,14 +471,14 @@ export default function SettingsScreen() {
                     </Text>
                     <View className="p-3">
                       <FetchControlForm
-                        settings={fetchControlSettings}
-                        onChange={setFetchControlSettings}
+                        settings={initialFetchControlSettings}
+                        onChange={saveFetchControlSettings}
                       />
                     </View>
                     <View className="p-3">
                       <PresentationForm
-                        settings={presentationSettings}
-                        onChange={setPresentationSettings}
+                        settings={initialPresentationSettings}
+                        onChange={savePresentationSettings}
                       />
                     </View>
                   </View>
