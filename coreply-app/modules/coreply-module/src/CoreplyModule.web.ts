@@ -1,4 +1,5 @@
 import { registerWebModule, NativeModule } from 'expo';
+import type { InstalledAppInfo } from './CoreplyModule.types';
 
 class CoreplyModule extends NativeModule<{}> {
   hello() {
@@ -10,6 +11,10 @@ class CoreplyModule extends NativeModule<{}> {
   }
 
   requestDisableAccessibility() {}
+
+  async getInstalledAppsAsync(): Promise<InstalledAppInfo[]> {
+    return [];
+  }
 }
 
 export default registerWebModule(CoreplyModule, 'CoreplyModule');
