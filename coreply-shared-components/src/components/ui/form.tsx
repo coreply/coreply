@@ -1,34 +1,42 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Generate,
+  RuleEffect,
   type JsonSchema,
-  type Rule,
   type UISchemaElement,
+  decode,
+  type ControlElement,
 } from "@jsonforms/core";
 import { JsonForms } from "@jsonforms/react";
 import { View } from "react-native";
 import { Text } from "./text";
-import type { CoreplyUiRule } from "libcoreply";
 import { z, type ZodSchema } from "zod";
 import { customRenderers } from "../../renderers";
+import debounce from "debounce";
 
-type JsonSchemaWithCoreplyMeta = JsonSchema & {
-  properties?: Record<string, JsonSchemaWithCoreplyMeta>;
-  ["x-coreply-rule"]?: CoreplyUiRule;
-};
+function safeParseWithCustomStringErrors<T extends Record<string, any>>(
+  schema: ZodSchema<T>,
+  data: unknown,
+) {
+  return schema.safeParse(data, {
+    error: (issue) => {
+      if (
+        issue.code === "invalid_type" &&
+        issue.expected === "string" &&
+        issue.input === undefined
+      ) {
+        return { message: "value cannot be empty" };
+      }
 
-function encodeJsonPointerSegment(value: string) {
-  return value.replace(/~/g, "~0").replace(/\//g, "~1");
-}
-
-function decodeJsonPointerSegment(value: string) {
-  return value.replace(/~1/g, "/").replace(/~0/g, "~");
+      return undefined;
+    },
+  });
 }
 
 function resolveSchemaFromScope(
-  schema: JsonSchemaWithCoreplyMeta,
+  schema: JsonSchema,
   scope: string,
-) {
+): (JsonSchema & { disabledWhenFieldFalse?: string }) | undefined {
   if (scope === "#") {
     return schema;
   }
@@ -37,7 +45,7 @@ function resolveSchemaFromScope(
     .replace(/^#\//, "")
     .split("/")
     .filter(Boolean)
-    .map(decodeJsonPointerSegment);
+    .map(decode);
 
   let current: unknown = schema;
   for (const segment of pathSegments) {
@@ -53,47 +61,33 @@ function resolveSchemaFromScope(
   }
 
   return typeof current === "object" && current !== null
-    ? (current as JsonSchemaWithCoreplyMeta)
+    ? (current as JsonSchema & { disabledWhenFieldFalse?: string })
     : undefined;
-}
-
-function toJsonFormsRule(rule: CoreplyUiRule): Rule | undefined {
-  const scope =
-    rule.condition.scope ??
-    (rule.condition.field
-      ? `#/properties/${encodeJsonPointerSegment(rule.condition.field)}`
-      : undefined);
-
-  if (!scope) {
-    return undefined;
-  }
-
-  return {
-    effect: rule.effect,
-    condition: {
-      scope,
-      schema: rule.condition.schema,
-      ...(rule.condition.failWhenUndefined === undefined
-        ? {}
-        : { failWhenUndefined: rule.condition.failWhenUndefined }),
-    },
-  };
 }
 
 function applySchemaRules(
   element: UISchemaElement,
-  schema: JsonSchemaWithCoreplyMeta,
+  schema: JsonSchema,
 ): UISchemaElement {
   if (element.type === "Control") {
-    const propertySchema = resolveSchemaFromScope(schema, element.scope);
-    const rule = propertySchema?.["x-coreply-rule"];
-    const resolvedRule = rule ? toJsonFormsRule(rule) : undefined;
-
-    if (!resolvedRule || element.rule) {
-      return element;
+    const controlElement = element as ControlElement;
+    const propertySchema = resolveSchemaFromScope(schema, controlElement.scope);
+    const rule = propertySchema?.disabledWhenFieldFalse;
+    if (rule) {
+      return {
+        ...element,
+        rule: {
+          effect: RuleEffect.DISABLE,
+          condition: {
+            scope: `#/properties/${rule}`,
+            validate: (context) => {
+              return !(context.fullData as Record<string, any>)[rule];
+            },
+          },
+        },
+      };
     }
-
-    return { ...element, rule: resolvedRule };
+    return element;
   }
 
   if ("elements" in element && Array.isArray(element.elements)) {
@@ -108,9 +102,8 @@ function applySchemaRules(
   return element;
 }
 
-function createDefaultUiSchema(schema: JsonSchemaWithCoreplyMeta) {
-  const generated = Generate.uiSchema(schema) as UISchemaElement;
-  console.log("generated", generated);
+function createDefaultUiSchema(schema: JsonSchema) {
+  const generated = Generate.uiSchema(schema);
   return applySchemaRules(generated, schema);
 }
 
@@ -133,15 +126,35 @@ export function SchemaForm<T extends Record<string, any>>({
 }: SchemaFormProps<T>) {
   const [draftData, setDraftData] = useState<T>(data);
 
+  const additionalErrors = useMemo(() => {
+    const parsed = safeParseWithCustomStringErrors(schema, draftData);
+    if (parsed.success) {
+      return [];
+    }
+
+    return parsed.error.issues.map((issue) => ({
+      instancePath:
+        issue.path.length > 0
+          ? `/${issue.path
+              .map((segment) =>
+                String(segment).replaceAll("~", "~0").replaceAll("/", "~1"),
+              )
+              .join("/")}`
+          : "",
+      message: issue.message,
+      schemaPath: "",
+      keyword: issue.code,
+      params: {},
+    }));
+  }, [draftData, schema]);
+
   // Convert Zod schema to JSON Schema
   const jsonSchema = useMemo(() => {
     return z.toJSONSchema(schema, {
       io: "input",
       target: "openapi-3.0",
-    }) as JsonSchemaWithCoreplyMeta;
+    }) as JsonSchema;
   }, [schema]);
-
-  console.log("jsonSchema", jsonSchema);
 
   const resolvedUiSchema = useMemo(() => {
     if (uiSchema) {
@@ -157,7 +170,7 @@ export function SchemaForm<T extends Record<string, any>>({
 
   return (
     <View
-      className={className || "p-3 border-border border bg-white rounded-lg"}
+      className={className || "p-3 border-border border bg-form rounded-lg"}
     >
       {title && (
         <Text
@@ -171,18 +184,13 @@ export function SchemaForm<T extends Record<string, any>>({
         schema={jsonSchema}
         uischema={resolvedUiSchema}
         data={draftData}
-        onChange={({ data: newData, errors }) => {
+        onChange={debounce(({ data: newData }) => {
           setDraftData(newData);
-          if ((errors?.length ?? 0) > 0) {
-            return;
-          }
-          const parsed = schema.safeParse(newData);
-          if (parsed.success) {
-            onChange(newData);
-          }
-        }}
+          onChange(newData);
+        }, 200)}
         renderers={customRenderers}
-        validationMode="ValidateAndShow"
+        additionalErrors={additionalErrors}
+        validationMode="NoValidation"
       />
     </View>
   );

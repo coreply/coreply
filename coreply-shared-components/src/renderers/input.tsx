@@ -83,14 +83,12 @@ const InputControl = ({
         if (!isEnabled) {
           return;
         }
-
-        if (!isNumeric) {
-          handleChange(path, value);
-          return;
-        }
-
         if (value === "") {
           handleChange(path, undefined);
+          return;
+        }
+        if (!isNumeric) {
+          handleChange(path, value);
           return;
         }
 

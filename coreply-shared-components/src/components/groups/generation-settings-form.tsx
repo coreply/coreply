@@ -16,8 +16,9 @@ export function GenerationSettingsForm({
   className,
 }: GenerationSettingsFormProps) {
   // Get the schema for the selected provider
-  const provider = providerDefinitions[providerId as keyof typeof providerDefinitions];
-  
+  const provider =
+    providerDefinitions[providerId as keyof typeof providerDefinitions];
+
   if (!provider) {
     return null;
   }

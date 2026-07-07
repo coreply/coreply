@@ -18,7 +18,6 @@ type NumericJsonSchema = JsonSchema & {
 };
 
 function hasExplicitSliderBounds(schema: any) {
-  console.log("schema", schema);
   if (schema.type !== "number" && schema.type !== "integer") {
     return false;
   }
@@ -90,9 +89,7 @@ const SliderControl = ({
   const isInteger = numericSchema.type === "integer";
   const minimum = numericSchema.minimum as number;
   const maximum = numericSchema.maximum as number;
-  const step = numericSchema.multipleOf
-    ? numericSchema.multipleOf
-    : (maximum - minimum) / 20;
+  const step = getStep(minimum, maximum, numericSchema.multipleOf);
 
   return (
     <View className="mb-4 gap-1.5">

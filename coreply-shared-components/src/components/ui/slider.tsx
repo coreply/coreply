@@ -56,7 +56,7 @@ function Slider({
         rangeClassName={rangeClassName}
         thumbClassName={thumbClassName}
         onValueChange={
-          onValueChange ? (nextValue) => onValueChange(nextValue) : undefined
+          onValueChange ? (nextValue) => onValueChange(nextValue) : () => {}
         }
         {...props}
       />
