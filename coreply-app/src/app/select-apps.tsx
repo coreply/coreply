@@ -192,10 +192,7 @@ export default function SelectAppsScreen() {
                 </View>
               ) : loadError ? (
                 <View style={styles.centeredState}>
-                  <Text
-                    className="text-lg text-destructive"
-                    style={{ fontFamily: "Outfit_600SemiBold" }}
-                  >
+                  <Text className="text-lg text-destructive font-semibold">
                     Error
                   </Text>
                   <Text className="text-center text-sm text-muted-foreground font-sans">
@@ -217,10 +214,7 @@ export default function SelectAppsScreen() {
 
                   {supportedApps.length > 0 ? (
                     <View style={styles.section}>
-                      <Text
-                        className="text-lg text-foreground mb-2"
-                        style={{ fontFamily: "Outfit_600SemiBold" }}
-                      >
+                      <Text className="text-lg text-foreground mb-2 font-semibold">
                         Coreply Supported Apps
                       </Text>
                       <InfoCard text="Coreply is not affiliated with or endorsed by the apps listed here. Because third-party apps can change at any time, Coreply may stop working or behave differently even for apps shown as supported." />
@@ -239,10 +233,7 @@ export default function SelectAppsScreen() {
 
                   {otherApps.length > 0 ? (
                     <View style={styles.section}>
-                      <Text
-                        className="text-lg text-foreground mb-2"
-                        style={{ fontFamily: "Outfit_600SemiBold" }}
-                      >
+                      <Text className="text-lg text-foreground mb-2 font-semibold">
                         Other Apps
                       </Text>
                       <InfoCard text="Coreply may not work in these apps, or may behave unexpectedly, because every app is different. If enabled, on-screen content from these apps may be sent to the API service you configured to generate suggestions." />
@@ -281,7 +272,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "center",
-    fontFamily: "Outfit_400Regular",
   },
   safeArea: {
     flex: 1,

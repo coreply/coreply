@@ -11,16 +11,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ProviderSelector,
   ProviderSettingsForm,
-  GenerationSettingsForm,
-  FetchControlForm,
-  PresentationForm,
+  GlobalSettingsForm,
 } from "@/components/groups";
 import {
-  DEFAULT_FETCH_CONTROL_SETTINGS,
-  DEFAULT_PRESENTATION_SETTINGS,
+  DEFAULT_GLOBAL_SETTINGS,
   globalSettingsSchema,
-  fetchControlSettingsSchema,
-  presentationSettingsSchema,
   providerDefinitions,
 } from "libcoreply";
 import { ToggleButton } from "@/components/groups/toggle-button";
@@ -47,7 +42,7 @@ import {
 
 import "../../global.css";
 
-import type { FetchControlSettings, PresentationSettings } from "libcoreply";
+import type { GlobalSettings } from "libcoreply";
 
 import { createAsyncStorage } from "@/constants/storage";
 
@@ -64,8 +59,11 @@ const parseJsonStringWithFallback = (
   schema: ZodType,
   fallback: any,
 ) => {
+  if (!jsonString) {
+    return fallback;
+  }
   try {
-    const parsed = JSON.parse(jsonString ?? "{}");
+    const parsed = JSON.parse(jsonString);
     const validated = schema.safeParse(parsed);
     if (validated.success) {
       return validated.data;
@@ -76,76 +74,60 @@ const parseJsonStringWithFallback = (
   return fallback;
 };
 
+const parseJsonObjectWithFallback = (
+  jsonString: string | null,
+  fallback: Record<string, any>,
+) => {
+  if (!jsonString) {
+    return fallback;
+  }
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch {
+    return fallback;
+  }
+  return fallback;
+};
+
 function usePersistedSettings() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [providerId, setProviderId] = useState<string>("openaiCompatible");
-  const [initialProviderSettings, setInitialProviderSettings] = useState<
+  const [initialProviderConfig, setInitialProviderConfig] = useState<
     Record<string, any>
   >({});
-  const [initialGenerationSettings, setInitialGenerationSettings] = useState<
-    Record<string, any>
-  >({});
-  const [initialFetchControlSettings, setInitialFetchControlSettings] =
-    useState<FetchControlSettings>(DEFAULT_FETCH_CONTROL_SETTINGS);
-  const [initialPresentationSettings, setInitialPresentationSettings] =
-    useState<PresentationSettings>(DEFAULT_PRESENTATION_SETTINGS);
+  const [initialGlobalSettings, setInitialGlobalSettings] =
+    useState<GlobalSettings>(DEFAULT_GLOBAL_SETTINGS);
 
   useEffect(() => {
     storage.getItem("providerId").then((storedProviderId) => {
       const actualProviderId = storedProviderId ?? "openaiCompatible";
       Promise.all([
-        storage.getItem(`${actualProviderId}.providerSettings`),
-        storage.getItem(`${actualProviderId}.generationSettings`),
+        storage.getItem(`${actualProviderId}.providerConfig`),
         storage.getItem("globalSettings"),
-      ]).then(
-        ([
-          storedProviderSettings,
-          storedGenerationSettings,
+      ]).then(([storedProviderConfig, storedGlobalSettings]) => {
+        const provider =
+          providerDefinitions[
+            actualProviderId as keyof typeof providerDefinitions
+          ];
+        const parsedProviderConfig = parseJsonObjectWithFallback(
+          storedProviderConfig,
+          provider.settingsDefaults,
+        );
+        const parsedGlobalSettings = parseJsonStringWithFallback(
           storedGlobalSettings,
-        ]) => {
-          const provider =
-            providerDefinitions[
-              actualProviderId as keyof typeof providerDefinitions
-            ];
-          const parsedProviderSettings = parseJsonStringWithFallback(
-            storedProviderSettings,
-            provider.providerSettingsSchema,
-            {},
-          );
-          const parsedGenerationSettings = parseJsonStringWithFallback(
-            storedGenerationSettings,
-            provider.generationSettingsSchema,
-            {},
-          );
-          const parsedGlobalSettings = parseJsonStringWithFallback(
-            storedGlobalSettings,
-            globalSettingsSchema,
-            {},
-          );
+          globalSettingsSchema,
+          DEFAULT_GLOBAL_SETTINGS,
+        );
 
-          setProviderId(actualProviderId);
-          setInitialProviderSettings(parsedProviderSettings);
-          setInitialGenerationSettings(parsedGenerationSettings);
+        setProviderId(actualProviderId);
+        setInitialProviderConfig(parsedProviderConfig);
+        setInitialGlobalSettings(parsedGlobalSettings);
 
-          if (parsedGlobalSettings) {
-            const validatedGlobalResult =
-              globalSettingsSchema.safeParse(parsedGlobalSettings);
-            if (!validatedGlobalResult.success) {
-              return;
-            }
-
-            const validatedGlobal = validatedGlobalResult.data;
-            setInitialFetchControlSettings(
-              fetchControlSettingsSchema.parse(validatedGlobal),
-            );
-            setInitialPresentationSettings(
-              presentationSettingsSchema.parse(validatedGlobal),
-            );
-          }
-
-          setIsLoaded(true);
-        },
-      );
+        setIsLoaded(true);
+      });
     });
   }, []);
 
@@ -157,132 +139,57 @@ function usePersistedSettings() {
     storage.setItem("providerId", providerId);
   }, [isLoaded, providerId]);
 
-  const saveProviderSettings = (newSettings: Record<string, any>) => {
+  const saveProviderConfig = (newSettings: Record<string, any>) => {
     const provider =
       providerDefinitions[providerId as keyof typeof providerDefinitions];
-    const parsed = provider?.providerSettingsSchema.safeParse(newSettings);
+    storage.setItem(
+      `${providerId}.providerConfig`,
+      JSON.stringify(newSettings),
+    );
+
+    const parsed = provider?.settingsSchema.safeParse(newSettings);
     if (!parsed?.success) {
       return;
     }
 
-    storage.setItem(
-      `${providerId}.providerSettings`,
-      JSON.stringify(parsed.data),
-    );
     if (isLoaded && Platform.OS === "android") {
       Brownfield.sendMessage({
         type: "settingsUpdated",
         data: {
           providerId,
-          providerSettings: parsed.data,
+          providerConfig: parsed.data,
         },
       });
     }
   };
 
-  const saveGenerationSettings = (newSettings: Record<string, any>) => {
-    const parsed =
-      providerDefinitions[
-        providerId as keyof typeof providerDefinitions
-      ]?.generationSettingsSchema.safeParse(newSettings);
-    if (!parsed?.success) {
+  const saveGlobalSettings = (newSettings: GlobalSettings) => {
+    const parsed = globalSettingsSchema.safeParse(newSettings);
+    if (!parsed.success) {
       return;
     }
 
-    storage.setItem(
-      `${providerId}.generationSettings`,
-      JSON.stringify(parsed.data),
-    );
+    void storage.setItem("globalSettings", JSON.stringify(parsed.data));
     if (isLoaded && Platform.OS === "android") {
       Brownfield.sendMessage({
         type: "settingsUpdated",
         data: {
           providerId,
-          generationSettings: parsed.data,
+          globalSettings: parsed.data,
         },
       });
     }
-  };
-
-  const saveFetchControlSettings = (newSettings: FetchControlSettings) => {
-    const parsed = fetchControlSettingsSchema.safeParse(newSettings);
-    if (!parsed.success) {
-      return;
-    }
-
-    void storage.getItem("globalSettings").then((storedGlobalSettings) => {
-      const currentGlobalSettings = parseJsonStringWithFallback(
-        storedGlobalSettings,
-        globalSettingsSchema,
-        {},
-      );
-      const mergedGlobalSettings = globalSettingsSchema.parse({
-        ...currentGlobalSettings,
-        ...parsed.data,
-      });
-      void storage.setItem(
-        "globalSettings",
-        JSON.stringify(mergedGlobalSettings),
-      );
-      if (isLoaded && Platform.OS === "android") {
-        Brownfield.sendMessage({
-          type: "settingsUpdated",
-          data: {
-            providerId,
-            globalSettings: mergedGlobalSettings,
-          },
-        });
-      }
-    });
-  };
-
-  const savePresentationSettings = (newSettings: PresentationSettings) => {
-    const parsed = presentationSettingsSchema.safeParse(newSettings);
-    if (!parsed.success) {
-      return;
-    }
-
-    void storage.getItem("globalSettings").then((storedGlobalSettings) => {
-      const currentGlobalSettings = parseJsonStringWithFallback(
-        storedGlobalSettings,
-        globalSettingsSchema,
-        {},
-      );
-      const mergedGlobalSettings = globalSettingsSchema.parse({
-        ...currentGlobalSettings,
-        ...parsed.data,
-      });
-      void storage.setItem(
-        "globalSettings",
-        JSON.stringify(mergedGlobalSettings),
-      );
-      if (isLoaded && Platform.OS === "android") {
-        Brownfield.sendMessage({
-          type: "settingsUpdated",
-          data: {
-            providerId,
-            globalSettings: mergedGlobalSettings,
-          },
-        });
-      }
-    });
   };
 
   return {
+    isLoaded,
     providerId,
     setProviderId,
-    initialProviderSettings,
-    initialGenerationSettings,
-    initialFetchControlSettings,
-    initialPresentationSettings,
-    setInitialProviderSettings,
-    setInitialGenerationSettings,
-    setInitialFetchControlSettings,
-    setInitialPresentationSettings,
-    saveProviderSettings,
-    saveGenerationSettings,
-    saveFetchControlSettings,
-    savePresentationSettings,
+    initialProviderConfig,
+    initialGlobalSettings,
+    setInitialProviderConfig,
+    saveProviderConfig,
+    saveGlobalSettings,
   };
 }
 
@@ -300,46 +207,41 @@ export default function SettingsScreen() {
   });
   const router = useRouter();
   const {
+    isLoaded,
     providerId,
     setProviderId,
-    initialProviderSettings,
-    initialGenerationSettings,
-    initialFetchControlSettings,
-    initialPresentationSettings,
-    setInitialProviderSettings,
-    setInitialGenerationSettings,
-    saveProviderSettings,
-    saveGenerationSettings,
-    saveFetchControlSettings,
-    savePresentationSettings,
+    initialProviderConfig,
+    initialGlobalSettings,
+    setInitialProviderConfig,
+    saveProviderConfig,
+    saveGlobalSettings,
   } = usePersistedSettings();
 
   // Handle provider change - load saved settings for the new provider
   const handleProviderChange = async (option: Option) => {
     const newProviderId = option?.value || providerId;
-    const [storedProviderSettings, storedGenerationSettings] =
-      await Promise.all([
-        storage.getItem(`${newProviderId}.providerSettings`),
-        storage.getItem(`${newProviderId}.generationSettings`),
-      ]);
+    const storedProviderConfig = await storage.getItem(
+      `${newProviderId}.providerConfig`,
+    );
     const provider =
       providerDefinitions[newProviderId as keyof typeof providerDefinitions];
+    const nextProviderConfig = parseJsonObjectWithFallback(
+      storedProviderConfig,
+      provider.settingsDefaults,
+    );
 
     setProviderId(newProviderId);
-    setInitialProviderSettings(
-      parseJsonStringWithFallback(
-        storedProviderSettings,
-        provider.providerSettingsSchema,
-        {},
-      ),
-    );
-    setInitialGenerationSettings(
-      parseJsonStringWithFallback(
-        storedGenerationSettings,
-        provider.generationSettingsSchema,
-        {},
-      ),
-    );
+    setInitialProviderConfig(nextProviderConfig);
+
+    if (isLoaded && Platform.OS === "android") {
+      Brownfield.sendMessage({
+        type: "settingsUpdated",
+        data: {
+          providerId: newProviderId,
+          providerConfig: nextProviderConfig,
+        },
+      });
+    }
   };
 
   const handleTogglePress = () => {
@@ -379,20 +281,12 @@ export default function SettingsScreen() {
                         transform: [{ scale: 1.5 }],
                       }}
                     ></Image>
-                    <Text
-                      className="text-2xl"
-                      style={{ fontFamily: "Outfit_700Bold" }}
-                    >
-                      Coreply
-                    </Text>
+                    <Text className="text-2xl font-bold">Coreply</Text>
                   </View>
 
                   <View className="flex-row justify-between p-3 border-border border-b bg-background">
                     <View className="">
-                      <Text
-                        className="text-lg"
-                        style={{ fontFamily: "Outfit_600SemiBold" }}
-                      >
+                      <Text className="text-lg font-semibold">
                         Coreply is {accessibilityEnabled ? "on" : "off"}
                       </Text>
                       <Text className="text-xs text-muted-foreground font-sans">
@@ -413,20 +307,17 @@ export default function SettingsScreen() {
                   className="border-x border-border mx-2 bg-background"
                 >
                   <View>
-                    <Text
-                      className="mb-2 text-lg px-3"
-                      style={{ fontFamily: "Outfit_600SemiBold" }}
-                    >
+                    <Text className="mb-2 text-lg px-3 font-semibold">
                       Select Apps
                     </Text>
-                    <View className="px-3">
+                    <View className="px-3 pb-3">
                       <Button
                         variant="ghost"
-                        className="h-auto min-h-16 w-full flex-row items-center justify-between rounded-none border border-border bg-form px-4 py-4 shadow-none"
+                        className="h-auto min-h-16 w-full flex-row items-center justify-between rounded-none border border-border bg-form px-3 py-3 shadow-none"
                         onPress={() => router.push("/select-apps")}
                       >
                         <View className="h-auto flex-1 gap-1">
-                          <Text className="text-left text-base text-foreground">
+                          <Text className="text-left text-base text-foreground font-medium">
                             Select Apps
                           </Text>
                           <Text className="text-left text-sm text-muted-foreground font-sans">
@@ -440,7 +331,10 @@ export default function SettingsScreen() {
                       </Button>
                     </View>
                   </View>
-                  <View>
+                  <View className="border-t border-border pt-3">
+                    <Text className="mb-2 text-lg px-3 font-semibold">
+                      API Provider
+                    </Text>
                     <View className="px-3">
                       <ProviderSelector
                         selectedProviderKey={providerId}
@@ -450,35 +344,22 @@ export default function SettingsScreen() {
                     <View className="px-3">
                       <ProviderSettingsForm
                         providerId={providerId}
-                        settings={initialProviderSettings}
-                        onChange={saveProviderSettings}
-                      />
-                    </View>
-                    <View className="p-3">
-                      <GenerationSettingsForm
-                        providerId={providerId}
-                        settings={initialGenerationSettings}
-                        onChange={saveGenerationSettings}
+                        settings={initialProviderConfig}
+                        onChange={saveProviderConfig}
                       />
                     </View>
                   </View>
-                  <View className="pt-3 border-t border-border">
-                    <Text
-                      className="mb-2 text-lg px-3"
-                      style={{ fontFamily: "Outfit_600SemiBold" }}
-                    >
-                      Coreply Settings
-                    </Text>
-                    <View className="p-3">
-                      <FetchControlForm
-                        settings={initialFetchControlSettings}
-                        onChange={saveFetchControlSettings}
-                      />
-                    </View>
-                    <View className="p-3">
-                      <PresentationForm
-                        settings={initialPresentationSettings}
-                        onChange={savePresentationSettings}
+                  <View className="border-t border-border">
+                    <View className="pt-3 px-3">
+                      <Text
+                        className="mb-2 text-lg"
+                        style={{ fontFamily: "Outfit_600SemiBold" }}
+                      >
+                        Coreply Settings
+                      </Text>
+                      <GlobalSettingsForm
+                        settings={initialGlobalSettings}
+                        onChange={saveGlobalSettings}
                       />
                     </View>
                   </View>
@@ -497,7 +378,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "center",
-    fontFamily: "Outfit_400Regular",
   },
   safeArea: {
     flex: 1,

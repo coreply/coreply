@@ -37,10 +37,7 @@ export default function AccessibilityDisclosureScreen() {
                 className="flex-1 items-center px-4 py-6"
                 style={styles.content}
               >
-                <Text
-                  className="text-center text-xl"
-                  style={{ fontFamily: "Outfit_700Bold" }}
-                >
+                <Text className="text-center text-xl font-bold">
                   Accessibility Service Disclosure
                 </Text>
 
@@ -53,10 +50,7 @@ export default function AccessibilityDisclosureScreen() {
                   style={styles.card}
                 >
                   <View style={styles.section}>
-                    <Text
-                      className="text-lg text-foreground"
-                      style={{ fontFamily: "Outfit_600SemiBold" }}
-                    >
+                    <Text className="text-lg text-foreground font-semibold">
                       What data is collected
                     </Text>
                     <Text className="font-sans text-sm text-foreground ">
@@ -70,10 +64,7 @@ export default function AccessibilityDisclosureScreen() {
                   </View>
 
                   <View style={styles.section}>
-                    <Text
-                      className="text-lg text-foreground"
-                      style={{ fontFamily: "Outfit_600SemiBold" }}
-                    >
+                    <Text className="text-lg text-foreground font-semibold">
                       How your data is shared
                     </Text>
                     <Text className="font-sans text-sm text-foreground">
@@ -126,7 +117,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "center",
-    fontFamily: "Outfit_400Regular",
   },
   safeArea: {
     flex: 1,
