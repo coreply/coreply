@@ -157,7 +157,6 @@ open class AppListener : AccessibilityService() {
 
             measureWindowFlow.tryEmit(inputWidget)
             getMessagesFlow.tryEmit(root)
-            sendTypingUpdate()
         }
 
         if (!isSupportedApp && overlayViewModel.uiState.value.isRunning) {
@@ -200,6 +199,7 @@ open class AppListener : AccessibilityService() {
 
         val appContext = applicationContext
         preferencesManager = PreferencesManager.getInstance(appContext)
+        expoSettingsStorage = ExpoSettingsStorage(appContext)
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(appContext))
             .build()
@@ -222,6 +222,7 @@ open class AppListener : AccessibilityService() {
 
         overlay = Overlay(appContext, getSystemService(WINDOW_SERVICE) as WindowManager)
         overlayViewModel = overlay.viewModel
+        overlayViewModel.onTypingUpdated = ::sendTypingUpdate
 
         initializeThrottledFlows()
         MainScope().launch {
@@ -246,7 +247,6 @@ open class AppListener : AccessibilityService() {
                 }
             }
         }
-        expoSettingsStorage = ExpoSettingsStorage(appContext)
 
     }
 
@@ -300,7 +300,6 @@ open class AppListener : AccessibilityService() {
             measureWindowFlow.collect {
                 try {
                     overlayViewModel.refresh(RefreshType.CHAR_LOCATION, true)
-                    sendTypingUpdate()
                 } catch (e: Exception) {
                     Log.e("CoWA", "Error in measureWindow background operation", e)
                 }
@@ -364,7 +363,6 @@ open class AppListener : AccessibilityService() {
     }
 
     private fun sendSettings(payload: JSONObject) {
-        Log.v("CoWA", "sending settings $payload")
         sendWrapperMessage(JSONObject().apply {
             put("type", "settings")
             put("payload", payload)
@@ -372,10 +370,10 @@ open class AppListener : AccessibilityService() {
     }
 
     private suspend fun sendSettings() {
-		if (!::expoSettingsStorage.isInitialized) {
+        if (!::expoSettingsStorage.isInitialized) {
             return
         }
-		val payload = expoSettingsStorage.getStoredCoreplySettings() ?: return
+        val payload = expoSettingsStorage.getStoredCoreplySettings() ?: return
         sendSettings(payload)
     }
 

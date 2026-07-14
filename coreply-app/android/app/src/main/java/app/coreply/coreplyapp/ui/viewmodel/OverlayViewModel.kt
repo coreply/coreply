@@ -64,6 +64,7 @@ data class OverlayUiState(
 class OverlayViewModel : ViewModel() {
 	private var _uiState = MutableStateFlow(OverlayUiState())
 	val uiState: StateFlow<OverlayUiState> = _uiState.asStateFlow()
+	var onTypingUpdated: (() -> Unit)? = null
 
 	fun updateTextSize(textSize: Float) {
 		_uiState.update { state -> state.copy(inlineTextSize = textSize) }
@@ -324,6 +325,7 @@ class OverlayViewModel : ViewModel() {
 		}
 		if (actualMessage != _uiState.value.currentTyping) {
 			_uiState.update { state -> state.copy(currentTyping = actualMessage) }
+			onTypingUpdated?.invoke()
 		}
 	}
 

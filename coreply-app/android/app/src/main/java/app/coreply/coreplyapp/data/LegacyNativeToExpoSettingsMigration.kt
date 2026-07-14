@@ -36,8 +36,7 @@ class LegacyNativeToExpoSettingsMigration(context: Context) {
 			val providerId = resolveProviderId()
 			expoSettingsStorage.saveCoreSettings(
 				providerId = providerId,
-				providerSettings = buildProviderSettings(providerId),
-				generationSettings = buildGenerationSettings(providerId),
+				providerConfig = buildProviderConfig(providerId),
 				globalSettings = buildGlobalSettings(),
 			)
 		}
@@ -60,43 +59,66 @@ class LegacyNativeToExpoSettingsMigration(context: Context) {
 		}
 	}
 
-	private fun buildProviderSettings(providerId: String): JSONObject {
+	private fun buildProviderConfig(providerId: String): JSONObject {
 		return JSONObject().apply {
 			when (providerId) {
 				"advanced" -> {
-					put("requestUrl", preferencesManager.customApiUrlState.value)
-					put("authorizationBearer", preferencesManager.customApiKeyState.value)
-				}
-
-				"fim", "openaiCompatible" -> {
-					put("baseURL", preferencesManager.customApiUrlState.value)
-					put("apiKey", preferencesManager.customApiKeyState.value)
-				}
-			}
-		}
-	}
-
-	private fun buildGenerationSettings(providerId: String): JSONObject {
-		return JSONObject().apply {
-			when (providerId) {
-				"advanced" -> {
-					put("bodyTemplate", preferencesManager.advancedConfigBodyState.value)
 					put(
-						"suggestionTemplate",
-						preferencesManager.suggestionContentTemplateState.value,
+						"provider",
+						JSONObject().apply {
+							put("requestUrl", preferencesManager.customApiUrlState.value)
+							put("authorizationBearer", preferencesManager.customApiKeyState.value)
+						},
+					)
+					put(
+						"templates",
+						JSONObject().apply {
+							put("bodyTemplate", preferencesManager.advancedConfigBodyState.value)
+							put(
+								"suggestionTemplate",
+								preferencesManager.suggestionContentTemplateState.value,
+							)
+						},
 					)
 				}
 
 				"fim" -> {
-					put("model", preferencesManager.customModelNameState.value)
-					put("temperature", preferencesManager.temperatureState.value.toDouble())
+					put(
+						"provider",
+						JSONObject().apply {
+							put("baseURL", preferencesManager.customApiUrlState.value)
+							put("apiKey", preferencesManager.customApiKeyState.value)
+						},
+					)
+					put(
+						"request",
+						JSONObject().apply {
+							put("model", preferencesManager.customModelNameState.value)
+							put("temperature", preferencesManager.temperatureState.value.toDouble())
+						},
+					)
 				}
 
 				else -> {
-					put("model", preferencesManager.customModelNameState.value)
-					put("system", preferencesManager.customSystemPromptState.value)
-					put("temperature", preferencesManager.temperatureState.value.toDouble())
-					put("topP", preferencesManager.topPState.value.toDouble())
+					put(
+						"provider",
+						JSONObject().apply {
+							put("baseURL", preferencesManager.customApiUrlState.value)
+							put("apiKey", preferencesManager.customApiKeyState.value)
+						},
+					)
+					put(
+						"model",
+						preferencesManager.customModelNameState.value,
+					)
+					put(
+						"generateText",
+						JSONObject().apply {
+							put("system", preferencesManager.customSystemPromptState.value)
+							put("temperature", preferencesManager.temperatureState.value.toDouble())
+							put("topP", preferencesManager.topPState.value.toDouble())
+						},
+					)
 				}
 			}
 		}
@@ -104,13 +126,23 @@ class LegacyNativeToExpoSettingsMigration(context: Context) {
 
 	private fun buildGlobalSettings(): JSONObject {
 		return JSONObject().apply {
-			put("showErrors", preferencesManager.showErrorsState.value)
-			put("typingRegexEnabled", preferencesManager.typingRegexEnabledState.value)
-			put("typingRegexPattern", preferencesManager.typingRegexPatternState.value)
-			put("debounceMs", preferencesManager.customDebounceState.value)
 			put(
-				"suggestionPresentationType",
-				mapSuggestionPresentationType(preferencesManager.suggestionPresentationTypeState.value),
+				"fetchControl",
+				JSONObject().apply {
+					put("typingRegexEnabled", preferencesManager.typingRegexEnabledState.value)
+					put("typingRegexPattern", preferencesManager.typingRegexPatternState.value)
+					put("debounceMs", preferencesManager.customDebounceState.value)
+				},
+			)
+			put(
+				"presentation",
+				JSONObject().apply {
+					put("showErrors", preferencesManager.showErrorsState.value)
+					put(
+						"suggestionPresentationType",
+						mapSuggestionPresentationType(preferencesManager.suggestionPresentationTypeState.value),
+					)
+				},
 			)
 		}
 	}

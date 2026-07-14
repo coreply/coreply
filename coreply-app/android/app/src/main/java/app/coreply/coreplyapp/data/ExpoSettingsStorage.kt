@@ -27,15 +27,13 @@ class ExpoSettingsStorage(context: Context) {
 
 	suspend fun saveCoreSettings(
 		providerId: String,
-		providerSettings: JSONObject,
-		generationSettings: JSONObject,
+		providerConfig: JSONObject,
 		globalSettings: JSONObject,
 	) {
 		coreSettingsStorage.setValues(
 			listOf(
 				SharedEntry("providerId", providerId),
-				SharedEntry("$providerId.providerSettings", providerSettings.toString()),
-				SharedEntry("$providerId.generationSettings", generationSettings.toString()),
+				SharedEntry("$providerId.providerConfig", providerConfig.toString()),
 				SharedEntry("globalSettings", globalSettings.toString()),
 			),
 		)
@@ -57,8 +55,7 @@ class ExpoSettingsStorage(context: Context) {
 			it.isBlank()
 		} ?: return null
 		val values = getCoreValues(
-			"$providerId.providerSettings",
-			"$providerId.generationSettings",
+			"$providerId.providerConfig",
 			"globalSettings",
 			SELECTED_APPS_STORAGE_KEY,
 		)
@@ -68,12 +65,8 @@ class ExpoSettingsStorage(context: Context) {
 		return JSONObject().apply {
 			put("providerId", providerId)
 			put(
-				"providerSettings",
-				parseJsonObject(values["$providerId.providerSettings"]) ?: JSONObject(),
-			)
-			put(
-				"generationSettings",
-				parseJsonObject(values["$providerId.generationSettings"]) ?: JSONObject(),
+				"providerConfig",
+				parseJsonObject(values["$providerId.providerConfig"]) ?: JSONObject(),
 			)
 			put("globalSettings", globalSettings)
 			put("selectedApps", selectedApps)

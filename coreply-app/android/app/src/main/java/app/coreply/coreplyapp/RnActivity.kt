@@ -50,13 +50,16 @@ class RnActivity : ReactActivity(){
                                 preferencesManager.updateSelectedApps(selectedApps)
                             }
 
-                            val showErrors = globalSettings?.get("showErrors") as? Boolean
+                            val presentationSettings =
+                                globalSettings?.get("presentation") as? Map<*, *>
+
+                            val showErrors = presentationSettings?.get("showErrors") as? Boolean
                             if (showErrors != null) {
                                 preferencesManager.updateShowErrors(showErrors)
                             }
 
                             val suggestionPresentationType =
-                                when (globalSettings?.get("suggestionPresentationType") as? String) {
+                                when (presentationSettings?.get("suggestionPresentationType") as? String) {
                                     "overlay" -> SuggestionPresentationType.BUBBLE
                                     "inline" -> SuggestionPresentationType.INLINE
                                     "both" -> SuggestionPresentationType.BOTH
