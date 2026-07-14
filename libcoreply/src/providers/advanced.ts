@@ -1,25 +1,23 @@
 import Mustache from "mustache";
-import type { ProviderDefinition } from "./index";
+import type { providerDefinitions } from "./index";
 import type { TypingInfo } from "../context";
 
 export async function generateWithAdvanced(
-  providerDefinition: ProviderDefinition,
-  providerSettings: any,
-  generationSettings: any,
+  providerDefinition: typeof providerDefinitions.advanced,
+  settingsByReference: any,
   typingInfo: TypingInfo,
 ): Promise<string> {
-  providerDefinition.generationSettingsSchema.parse(generationSettings);
-  providerDefinition.providerSettingsSchema.parse(providerSettings);
+  const settings = providerDefinition.settingsSchema.parse(settingsByReference);
   const bodyTemplate = Mustache.render(
-    generationSettings.bodyTemplate,
+    settings.templates.bodyTemplate,
     typingInfo.contextMap,
   );
 
-  const response = await fetch(providerSettings.requestUrl, {
+  const response = await fetch(settings.provider.requestUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${providerSettings.authorizationBearer}`,
+      Authorization: `Bearer ${settings.provider.authorizationBearer}`,
       "HTTP-Referer": "https://coreply.app",
       "X-Title": "Coreply: Autocomplete for Texting",
     },
@@ -51,7 +49,7 @@ export async function generateWithAdvanced(
   };
 
   return Mustache.render(
-    generationSettings.suggestionTemplate || "{{assistantMessage}}",
+    settings.templates.suggestionTemplate || "{{assistantMessage}}",
     suggestionContext,
   ).trim();
 }

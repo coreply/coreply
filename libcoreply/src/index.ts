@@ -1,10 +1,6 @@
 import debounce, { type DebouncedFunction } from "debounce";
 import Mustache from "mustache";
-import {
-  DEFAULT_FETCH_CONTROL_SETTINGS,
-  DEFAULT_PRESENTATION_SETTINGS,
-  type CoreplySettings,
-} from "./settings";
+import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
 import {
   ChatContents,
   type ChatMessage,
@@ -18,13 +14,9 @@ Mustache.escape = (value: string) => value;
 
 export class Coreply {
   private settings: CoreplySettings = {
-    globalSettings: {
-      ...DEFAULT_FETCH_CONTROL_SETTINGS,
-      ...DEFAULT_PRESENTATION_SETTINGS,
-    },
+    globalSettings: DEFAULT_GLOBAL_SETTINGS,
     providerId: "openaiCompatible",
-    providerSettings: {},
-    generationSettings: {},
+    providerConfig: {},
     selectedApps: [],
   };
   private readonly chatContents = new ChatContents();
@@ -57,7 +49,7 @@ export class Coreply {
       ...newSettings,
     };
     this.fetchSuggestionDebounced = this.createFetchSuggestionDebounced(
-      this.settings.globalSettings.debounceMs,
+      this.settings.globalSettings.fetchControl.debounceMs,
     );
   }
 
@@ -66,10 +58,14 @@ export class Coreply {
     if (clearSuggestions) {
       this.suggestionStorage.clear();
       this.listener.onSuggestionCleared();
+      this.emitSuggestion();
     }
   }
 
   updateTyping(currentTyping: string) {
+    if (currentTyping === this.currentTyping) {
+      return;
+    }
     this.currentTyping = currentTyping;
     this.emitSuggestion();
   }
@@ -104,14 +100,16 @@ export class Coreply {
       return false;
     }
     if (
-      !this.settings.globalSettings.typingRegexEnabled ||
-      !this.settings.globalSettings.typingRegexPattern
+      !this.settings.globalSettings.fetchControl.typingRegexEnabled ||
+      !this.settings.globalSettings.fetchControl.typingRegexPattern
     ) {
       return true;
     }
 
     try {
-      const regex = new RegExp(this.settings.globalSettings.typingRegexPattern);
+      const regex = new RegExp(
+        this.settings.globalSettings.fetchControl.typingRegexPattern,
+      );
       return regex.test(typingInfo.currentTyping);
     } catch {
       return true;
@@ -123,8 +121,7 @@ export class Coreply {
       const suggestion = await requestSuggestions(
         typingInfo,
         this.settings.providerId,
-        this.settings.providerSettings,
-        this.settings.generationSettings,
+        this.settings.providerConfig,
       );
       const normalized = suggestion.replace(/\n/g, " ");
       const finalSuggestion = normalized.startsWith(" ")
@@ -140,6 +137,7 @@ export class Coreply {
         );
       }
     } catch (error) {
+      console.log("Error fetching suggestion:", error);
       this.listener.onError(
         error instanceof Error ? error : new Error(String(error)),
       );

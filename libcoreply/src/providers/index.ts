@@ -1,40 +1,37 @@
+import { createAzure } from "@ai-sdk/azure";
+import { createGoogleVertex } from "@ai-sdk/google-vertex/edge";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { createAzure } from "@ai-sdk/azure";
-import { createVertex } from "@ai-sdk/google-vertex/edge";
-
-import { generateWithAIProvider } from "./base";
-import { generateWithFIM } from "./fim";
-import { generateWithAdvanced } from "./advanced";
+import { createGateway } from "ai";
 import { z } from "zod";
-import { DEFAULT_ADVANCED_BODY } from "../settings";
-
-const passwordFieldMeta = {
-  control: "password",
-};
-
-const multilineFieldMeta = {
-  control: "textarea",
-};
+import { DEFAULT_ADVANCED_BODY, DEFAULT_SYSTEM_PROMPT } from "../settings";
+import { generateWithAdvanced } from "./advanced";
+import { generateWithAIProvider } from "./base";
+import { generateWithDummy } from "./dummy";
+import { generateWithFIM } from "./fim";
 
 const BaseSettingsSchema = z.object({
   maxOutputTokens: z
-    .number()
+    .int()
     .min(1)
     .max(300)
+    .multipleOf(1)
     .optional()
     .describe("Maximum number of tokens to generate in the reply"),
   temperature: z
     .number()
     .min(0)
     .max(1)
+    .multipleOf(0.1)
     .optional()
-    .default(1.0)
-    .describe("Controls randomness. Lower is more deterministic, higher is more creative"),
+    .describe(
+      "Controls randomness. Lower is more deterministic, higher is more creative",
+    ),
   topP: z
     .number()
     .min(0)
     .max(1)
+    .multipleOf(0.1)
     .optional()
     .describe("Nucleus sampling threshold for token selection"),
   topK: z
@@ -42,32 +39,32 @@ const BaseSettingsSchema = z.object({
     .int()
     .min(1)
     .max(100)
+    .multipleOf(1)
     .optional()
     .describe("Limits token selection to the top K candidates at each step"),
   presencePenalty: z
     .number()
     .min(-1)
     .max(1)
+    .multipleOf(0.1)
     .optional()
-    .default(0)
-    .describe("Encourages the model to introduce new topics instead of repeating existing ones"),
+    .describe(
+      "Encourages the model to introduce new topics instead of repeating existing ones",
+    ),
   frequencyPenalty: z
     .number()
     .min(-1)
     .max(1)
+    .multipleOf(0.1)
     .optional()
-    .default(0)
     .describe("Reduces repeated tokens and phrases in the generated reply"),
-  seed: z
-    .number()
-    .int()
-    .optional()
-    .describe("Optional seed for deterministic outputs"),
   maxRetries: z
     .number()
     .int()
     .min(0)
-    .default(0)
+    .max(3)
+    .multipleOf(1)
+    .optional()
     .describe("Number of times to retry the request on failure"),
   timeout: z
     .number()
@@ -75,156 +72,336 @@ const BaseSettingsSchema = z.object({
     .max(5000)
     .optional()
     .describe("Request timeout in milliseconds"),
+  seed: z
+    .number()
+    .int()
+    .optional()
+    .describe("Seed for deterministic outputs (optional)"),
 });
 
-const OrdinaryGenerateTextSchema = z.object({
-  system: z
+const BaseSettingsDefaults = {
+  maxOutputTokens: 50,
+  temperature: 1.0,
+  topP: 1.0,
+  topK: 100,
+  presencePenalty: 0,
+  frequencyPenalty: 0,
+};
+
+function createProviderOptionsFieldSchema(description: string) {
+  return z
     .string()
     .optional()
-    .describe("Optional system instruction applied before the chat context")
-    .meta(multilineFieldMeta),
-  model: z
-    .string()
-    .optional()
-    .describe("Model ID to use for text generation"),
-  providerOptions: z
-    .string()
-    .optional()
-    .describe("Raw JSON object passed directly to AI SDK providerOptions")
-    .meta(multilineFieldMeta),
-});
+    .describe(description)
+    .meta({ control: "textarea" })
+    .refine(
+      (val) => {
+        if (val === "" || val === undefined) {
+          return true;
+        }
+
+        try {
+          const parsed = JSON.parse(val);
+          return (
+            !!parsed && typeof parsed === "object" && !Array.isArray(parsed)
+          );
+        } catch {
+          return false;
+        }
+      },
+      {
+        message:
+          "Invalid JSON format or provider options must be a JSON object",
+      },
+    );
+}
+
+function createProviderOptionsSchema(description?: string) {
+  return createProviderOptionsFieldSchema(
+    description ??
+      'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"openai": {...}}',
+  );
+}
+
+function createGenerateTextSchema() {
+  return z.object({
+    instructions: z
+      .string()
+      .describe("Instructions applied before the chat context")
+      .meta({ control: "textarea" }),
+
+    ...BaseSettingsSchema.shape,
+  });
+}
+
+const GenerateTextDefaults = {
+  instructions: DEFAULT_SYSTEM_PROMPT,
+  ...BaseSettingsDefaults,
+};
 
 export const providerDefinitions = {
   openai: {
     name: "OpenAI",
     factoryFunc: createOpenAI,
-    providerSettingsSchema: z.object({
-      baseURL: z
-        .string()
-        .optional()
-        .describe("Optional custom API base URL for OpenAI-compatible routing"),
-      apiKey: z
-        .string()
-        .optional()
-        .describe("OpenAI API key")
-        .meta(passwordFieldMeta),
-      organization: z
-        .string()
-        .optional()
-        .describe("Optional OpenAI organization ID"),
-      project: z.string().optional().describe("Optional OpenAI project ID"),
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("OpenAI API key")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe(
+            "Custom API base URL for OpenAI-compatible routing (optional)",
+          ),
+        organization: z
+          .string()
+          .optional()
+          .describe("OpenAI organization ID (optional)"),
+        project: z.string().optional().describe("OpenAI project ID (optional)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(),
     }),
-    generationSettingsSchema: z.object({
-      ...OrdinaryGenerateTextSchema.shape,
-      ...BaseSettingsSchema.shape,
-    }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions: '{"openai": {"reasoningEffort": "none"}}',
+    },
     requestFunc: generateWithAIProvider,
   },
   openaiCompatible: {
     name: "OpenAI Compatible",
     factoryFunc: createOpenAICompatible,
-    providerSettingsSchema: z.object({
-      baseURL: z
+    settingsSchema: z.object({
+      name: z
         .string()
-        .optional()
-        .default("")
-        .describe("Base URL of the OpenAI-compatible API endpoint"),
-      apiKey: z
-        .string()
-        .describe("API key for the OpenAI-compatible provider")
-        .meta(passwordFieldMeta),
+        .default("openAICompatible")
+        .describe(
+          "Provider namespace used for providerOptions and providerMetadata",
+        ),
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("API key for the OpenAI-compatible provider")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .describe("Base URL of the OpenAI-compatible API endpoint"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(
+        'Raw JSON object passed directly to AI SDK providerOptions. Use the same namespace as the "name" field, for example {"openAICompatible": {...}}',
+      ),
     }),
-    generationSettingsSchema: z.object({
-      ...OrdinaryGenerateTextSchema.shape,
-      ...BaseSettingsSchema.shape,
-    }),
+    settingsDefaults: {
+      name: "openAICompatible",
+      provider: {
+        baseURL: "https://api.openai.com/v1",
+      },
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions: '{"openAICompatible": {"reasoningEffort": "none"}}',
+    },
     requestFunc: generateWithAIProvider,
   },
   azure: {
     name: "Azure",
     factoryFunc: createAzure,
-    providerSettingsSchema: z.object({
-      resourceName: z
-        .string()
-        .optional()
-        .describe("Azure OpenAI resource name, used when base URL is not provided"),
-      baseURL: z
-        .string()
-        .optional()
-        .describe("Optional full Azure OpenAI base URL"),
-      apiKey: z
-        .string()
-        .optional()
-        .describe("Azure OpenAI API key")
-        .meta(passwordFieldMeta),
-      apiVersion: z
-        .string()
-        .optional()
-        .describe("Azure OpenAI API version to use for requests"),
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        resourceName: z
+          .string()
+          .optional()
+          .describe(
+            "Azure OpenAI resource name, used when base URL is not provided",
+          ),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Full Azure OpenAI base URL (optional)"),
+        apiKey: z
+          .string()
+          .optional()
+          .describe("Azure OpenAI API key")
+          .meta({ feature: "password" }),
+        apiVersion: z
+          .string()
+          .optional()
+          .describe("Azure OpenAI API version to use for requests"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(),
     }),
-    generationSettingsSchema: z.object({
-      ...OrdinaryGenerateTextSchema.shape,
-      ...BaseSettingsSchema.shape,
-    }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions: '{"azure": {"reasoningEffort": "none"}}',
+    },
     requestFunc: generateWithAIProvider,
   },
   googleVertex: {
-    name: "Google Vertex (Express Mode)",
-    factoryFunc: createVertex,
-    providerSettingsSchema: z.object({
-      apiKey: z
-        .string()
-        .describe("Only API key mode is supported")
-        .meta(passwordFieldMeta),
+    name: "Google Vertex",
+    factoryFunc: createGoogleVertex,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .optional()
+          .describe(
+            "You should either provide an API key or provide the service account credentials below. ",
+          )
+          .meta({ feature: "password" }),
+        project: z
+          .string()
+          .optional()
+          .describe("Project ID (if not API key supplied)"),
+        location: z
+          .string()
+          .optional()
+          .describe("Location (if not API key supplied)"),
+        googleCredentials: z
+          .object({
+            clientEmail: z
+              .string()
+              .optional()
+              .describe("Service account client email"),
+            privateKey: z
+              .string()
+              .optional()
+              .describe("Service account private key")
+              .meta({ control: "textarea", feature: "password" }),
+            privateKeyId: z
+              .string()
+              .optional()
+              .describe("Service account private key ID"),
+          })
+          .optional()
+          .describe("Service account credentials (if no API key supplied)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(),
     }),
-    generationSettingsSchema: z.object({
-      ...OrdinaryGenerateTextSchema.shape,
-      ...BaseSettingsSchema.shape,
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions:
+        '{"googleVertex": {"thinkingConfig": {"thinkingBudget": 0}}}',
+    },
+    requestFunc: generateWithAIProvider,
+  },
+  gateway: {
+    name: "Vercel AI Gateway",
+    factoryFunc: createGateway,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("AI Gateway API key or Vercel access token")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Custom AI Gateway URL prefix (optional)"),
+        teamIdOrSlug: z
+          .string()
+          .optional()
+          .describe("Vercel team ID or slug (optional)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsFieldSchema(
+        'Raw JSON object for AI SDK providerOptions. Gateway supports multiple namespaces (e.g. {"gateway": {...}, "openai": {...}})',
+      ),
     }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions: undefined,
+    },
     requestFunc: generateWithAIProvider,
   },
   fim: {
     name: "Mistral FIM",
     factoryFunc: null,
-    providerSettingsSchema: z.object({
-      baseURL: z
-        .string()
-        .describe("Base URL of the Fill-in-the-Middle API endpoint"),
-      apiKey: z
-        .string()
-        .describe("API key for the FIM provider")
-        .meta(passwordFieldMeta),
+    settingsSchema: z.object({
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("API key for the FIM provider")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .describe("Base URL of the Fill-in-the-Middle API endpoint"),
+      }),
+      request: z.object({
+        model: z
+          .string()
+          .describe("Model ID to use for fill-in-the-middle generation"),
+        temperature: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe("Controls randomness for fill-in-the-middle generation"),
+      }),
     }),
-    generationSettingsSchema: z.object({
-      model: z.string().describe("Model ID to use for fill-in-the-middle generation"),
-    }),
+    settingsDefaults: {
+      provider: {},
+      request: {
+        model: "codestral-latest",
+        temperature: 1.0,
+      },
+    },
     requestFunc: generateWithFIM,
   },
   advanced: {
     name: "Advanced Mode",
     factoryFunc: null,
-    providerSettingsSchema: z.object({
-      requestUrl: z
-        .string()
-        .describe("Request URL that will receive the generated payload"),
-      authorizationBearer: z
-        .string()
-        .describe("Bearer token sent in the Authorization header")
-        .meta(passwordFieldMeta),
+    settingsSchema: z.object({
+      provider: z.object({
+        requestUrl: z
+          .httpUrl()
+          .describe("Request URL that will receive the generated payload"),
+        authorizationBearer: z
+          .string()
+          .optional()
+          .describe("Bearer token sent in the Authorization header")
+          .meta({ feature: "password" }),
+      }),
+      templates: z.object({
+        bodyTemplate: z
+          .string()
+          .describe("Mustache template used to build the outbound request body")
+          .meta({ control: "textarea" }),
+        suggestionTemplate: z
+          .string()
+          .describe(
+            "Mustache template used to extract the final suggestion from the response",
+          ),
+      }),
     }),
-    generationSettingsSchema: z.object({
-      bodyTemplate: z
-        .string()
-        .optional()
-        .default(DEFAULT_ADVANCED_BODY)
-        .describe("Mustache template used to build the outbound request body")
-        .meta(multilineFieldMeta),
-      suggestionTemplate: z
-        .string()
-        .optional()
-        .default("{{assistantMessage}}")
-        .describe("Mustache template used to extract the final suggestion from the response"),
-    }),
+    settingsDefaults: {
+      provider: {},
+      templates: {
+        bodyTemplate: DEFAULT_ADVANCED_BODY,
+        suggestionTemplate: "{{assistantMessage}}",
+      },
+    },
     requestFunc: generateWithAdvanced,
   },
 };
@@ -232,6 +409,6 @@ export const providerDefinitions = {
 export type ProviderDefinition =
   (typeof providerDefinitions)[keyof typeof providerDefinitions];
 
+export * from "./advanced";
 export * from "./base";
 export * from "./fim";
-export * from "./advanced";

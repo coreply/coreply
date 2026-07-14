@@ -22,11 +22,15 @@ export const DEFAULT_ADVANCED_BODY = `{
 }`;
 
 export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
-  showErrors: true,
-  typingRegexEnabled: false,
-  typingRegexPattern: "^.*[\\s.!?,;:]$",
-  debounceMs: 350,
-  suggestionPresentationType: "both",
+  fetchControl: {
+    typingRegexEnabled: false,
+    typingRegexPattern: "^.*[\\s.!?,;:]$",
+    debounceMs: 350,
+  },
+  presentation: {
+    showErrors: true,
+    suggestionPresentationType: "both",
+  },
 };
 
 export function createDefaultGlobalSettings(): GlobalSettings {
@@ -34,47 +38,42 @@ export function createDefaultGlobalSettings(): GlobalSettings {
 }
 
 export const DEFAULT_FETCH_CONTROL_SETTINGS: FetchControlSettings = {
-  typingRegexEnabled: false,
-  typingRegexPattern: "^.*[\\s.!?,;:]$",
-  debounceMs: 350,
+  ...DEFAULT_GLOBAL_SETTINGS.fetchControl,
 };
 
 export const DEFAULT_PRESENTATION_SETTINGS: PresentationSettings = {
-  showErrors: true,
-  suggestionPresentationType: "both",
+  ...DEFAULT_GLOBAL_SETTINGS.presentation,
 };
 
 export const globalSettingsSchema = z.object({
-  showErrors: z
-    .boolean()
-    .default(true)
-    .describe("Whether to show errors in the UI"),
-  typingRegexEnabled: z.boolean().default(false),
-  typingRegexPattern: z.string().default("^.*[\\s.!?,;:]$").meta({
-    disabledWhenFieldFalse: "typingRegexEnabled",
+  fetchControl: z.object({
+    typingRegexEnabled: z.boolean().default(false),
+    typingRegexPattern: z.string().default("^.*[\\s.!?,;:]$").meta({
+      disabledWhenFieldFalse: "typingRegexEnabled",
+    }),
+    debounceMs: z.number().int().min(0).max(1000).default(350),
   }),
-  debounceMs: z.number().int().min(0).max(1000).default(350),
-  suggestionPresentationType: z
-    .enum(["inline", "overlay", "both"])
-    .default("both"),
+  presentation: z.object({
+    showErrors: z
+      .boolean()
+      .default(true)
+      .describe("Whether to show errors in the UI"),
+    suggestionPresentationType: z
+      .enum(["inline", "overlay", "both"])
+      .default("both"),
+  }),
 });
 
-export const fetchControlSettingsSchema = globalSettingsSchema.pick({
-  typingRegexEnabled: true,
-  typingRegexPattern: true,
-  debounceMs: true,
-});
+export const fetchControlSettingsSchema =
+  globalSettingsSchema.shape.fetchControl;
 
-export const presentationSettingsSchema = globalSettingsSchema.pick({
-  showErrors: true,
-  suggestionPresentationType: true,
-});
+export const presentationSettingsSchema =
+  globalSettingsSchema.shape.presentation;
 
 export const coreplySettingsSchema = z.object({
   globalSettings: globalSettingsSchema,
   providerId: z.string(),
-  providerSettings: z.record(z.string(), z.unknown()),
-  generationSettings: z.record(z.string(), z.unknown()),
+  providerConfig: z.record(z.string(), z.unknown()),
   selectedApps: z.array(z.string()).default([]),
 });
 

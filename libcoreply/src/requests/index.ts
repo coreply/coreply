@@ -4,8 +4,7 @@ import { providerDefinitions } from "../providers";
 export async function requestSuggestions(
   typingInfo: TypingInfo,
   providerId: string,
-  providerSettings: Record<string, unknown>,
-  generationSettings: Record<string, unknown>,
+  providerConfig: Record<string, unknown>,
 ): Promise<string> {
   const providerDefinition =
     providerDefinitions[providerId as keyof typeof providerDefinitions];
@@ -14,9 +13,8 @@ export async function requestSuggestions(
   }
 
   return providerDefinition.requestFunc(
-    providerDefinition,
-    providerSettings,
-    generationSettings,
+    providerDefinition as any,
+    providerConfig,
     typingInfo,
   );
 }

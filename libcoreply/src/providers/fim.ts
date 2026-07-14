@@ -1,15 +1,13 @@
-import type { ProviderDefinition } from "./index";
+import type { providerDefinitions } from "./index";
 import type { TypingInfo } from "../context";
 
 export async function generateWithFIM(
-  providerDefinition: ProviderDefinition,
-  providerSettings: any,
-  generationSettings: any,
+  providerDefinition: typeof providerDefinitions.fim,
+  settingsByReference: any,
   typingInfo: TypingInfo,
 ): Promise<string> {
-  providerDefinition.generationSettingsSchema.parse(generationSettings);
-  providerDefinition.providerSettingsSchema.parse(providerSettings);
-  let baseURL = providerSettings.baseURL;
+  const settings = providerDefinition.settingsSchema.parse(settingsByReference);
+  let baseURL = settings.provider.baseURL;
   if (!baseURL.endsWith("/")) {
     baseURL += "/";
   }
@@ -17,12 +15,12 @@ export async function generateWithFIM(
   const response = await fetch(`${baseURL}completions`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${providerSettings.apiKey}`,
+      Authorization: `Bearer ${settings.provider.apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: generationSettings.model,
-      temperature: generationSettings.temperature,
+      model: settings.request.model,
+      temperature: settings.request.temperature,
       top_p: 1.0,
       max_tokens: 100,
       stream: false,
