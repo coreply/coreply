@@ -48,17 +48,32 @@ function tokenizeText(input: string): string[] {
         granularity: 'word',
     });
 
-    let tokens = Array.from(
+    const segments = Array.from(
         segmenter.segment(input),
         (segment) => segment.segment,
-    ).filter((s) => s.trim().length > 0);
+    );
+    const tokens: string[] = [];
+    let leadingWhitespace = '';
+
+    for (const segment of segments) {
+        if (segment.trim().length === 0) {
+            if (tokens.length === 0) {
+                leadingWhitespace += segment;
+            } else {
+                tokens[tokens.length - 1] += segment;
+            }
+            continue;
+        }
+        tokens.push(`${leadingWhitespace}${segment}`);
+        leadingWhitespace = '';
+    }
 
     // Merge trailing punctuation with previous token (matching native behavior)
     if (tokens.length >= 2) {
         const lastToken = tokens[tokens.length - 1];
+        const previousToken = tokens[tokens.length - 2];
         if (lastToken.length === 1 && PUNCTUATIONS.has(lastToken)) {
-            tokens = tokens.slice(0, -2);
-            tokens.push(tokens[tokens.length - 1] + lastToken);
+            tokens.splice(tokens.length - 2, 2, `${previousToken}${lastToken}`);
         }
     }
 

@@ -3,31 +3,75 @@ import type { TypingInfo } from "./payload";
 
 export class SuggestionStorage {
     private readonly history = new Map<string, string>();
+    private readonly sentenceSegmenter = new Intl.Segmenter(undefined, {
+        granularity: 'sentence',
+    });
+    private readonly wordSegmenter = new Intl.Segmenter(undefined, {
+        granularity: 'word',
+    });
 
     clear() {
         this.history.clear();
     }
 
-    private splitAndKeepPunctuations(text: string): string[] {
-        const segmenter = new Intl.Segmenter('en', {
-            granularity: 'word',
-        });
+    private splitIntoSuggestionChunks(text: string): string[] {
+        const trimmed = text.trimEnd();
+        if (!trimmed) {
+            return [];
+        }
 
-        let tokens = Array.from(
-            segmenter.segment(text),
-            (segment) => segment.segment,
-        ).filter((s) => s.trim().length > 0);
+        const chunks: string[] = [];
+        let carry = '';
 
-        // Merge trailing punctuation with previous token (matching native behavior)
-        if (tokens.length >= 2) {
-            const lastToken = tokens[tokens.length - 1];
-            if (lastToken.length === 1 && PUNCTUATIONS.has(lastToken)) {
-                tokens = tokens.slice(0, -2);
-                tokens.push(tokens[tokens.length - 1] + lastToken);
+        for (const sentenceSegment of this.sentenceSegmenter.segment(trimmed)) {
+            const sentence = sentenceSegment.segment;
+            const wordSegments = Array.from(this.wordSegmenter.segment(sentence));
+            const lastWordLikeIndex = wordSegments.findLastIndex(
+                (segment) => segment.isWordLike === true,
+            );
+
+            if (lastWordLikeIndex === -1) {
+                carry += sentence;
+                continue;
+            }
+
+            let splitIndex = wordSegments.length;
+            while (splitIndex > lastWordLikeIndex + 1) {
+                const trailingSegment = wordSegments[splitIndex - 1];
+                if (
+                    trailingSegment.isWordLike === true ||
+                    trailingSegment.segment.trim().length > 0
+                ) {
+                    break;
+                }
+                splitIndex -= 1;
+            }
+
+            const chunk =
+                carry +
+                wordSegments
+                    .slice(0, splitIndex)
+                    .map((segment) => segment.segment)
+                    .join('');
+            if (chunk.trim().length > 0) {
+                chunks.push(chunk);
+            }
+
+            carry = wordSegments
+                .slice(splitIndex)
+                .map((segment) => segment.segment)
+                .join('');
+        }
+
+        if (carry.trim().length > 0) {
+            if (chunks.length === 0) {
+                chunks.push(carry);
+            } else {
+                chunks[chunks.length - 1] += carry;
             }
         }
 
-        return tokens;
+        return chunks;
     }
 
     private getKeyFromText(text: string): string {
@@ -85,7 +129,7 @@ export class SuggestionStorage {
         const frontTrimmedSuggestion = this.trimMessagePrefix(this.normalizeWhitespace(suggestion)).slice(
             this.trimMessagePrefix(this.normalizeWhitespace(typingInfo.currentTyping)).length,
         );
-        const parts = this.splitAndKeepPunctuations(frontTrimmedSuggestion);
+        const parts = this.splitIntoSuggestionChunks(frontTrimmedSuggestion);
         for (let index = 0; index < parts.length - 1; index += 1) {
             const key = this.getKeyFromText(`${typingInfo.currentTyping}${parts.slice(0, index + 1).join('')}`);
             if (!this.history.has(key)) {
