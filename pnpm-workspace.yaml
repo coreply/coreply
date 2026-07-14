@@ -7,6 +7,3 @@ packages:
 allowBuilds:
   esbuild: true
   spawn-sync: true
-minimumReleaseAgeExclude:
-  - expo-brownfield@56.0.21
-  - expo-build-properties@56.0.20

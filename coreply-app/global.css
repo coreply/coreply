@@ -12,6 +12,11 @@
 
   --spacing-hairline: hairlineWidth();
   --font-sans: Outfit_400Regular;
+  --font-subheading: Outfit_600SemiBold;
+  --font-light: Outfit_300Light;
+  --font-medium: Outfit_500Medium;
+  --font-semibold: Outfit_600SemiBold;
+  --font-bold: Outfit_700Bold;
 
   /* Brand color palette */
   --color-brand-50: oklch(0.23 0.015 172.321);
