@@ -20,35 +20,27 @@ export function ProviderSelector({
   onProviderChange,
 }: ProviderSelectorProps) {
   return (
-    <>
-      <Text
-        className="mb-2 text-lg"
-        style={{ fontFamily: "Outfit_600SemiBold" }}
-      >
-        API provider
-      </Text>
-      <Select
-        onValueChange={onProviderChange}
-        className="mb-6"
-        value={{
-          value: selectedProviderKey,
-          label:
-            providerDefinitions[
-              selectedProviderKey as keyof typeof providerDefinitions
-            ].name,
-        }}
-      >
-        <SelectTrigger className="shadow-none bg-white border-border border">
-          <SelectValue placeholder="Select a provider" />
-        </SelectTrigger>
-        <SelectContent>
-          {Object.entries(providerDefinitions).map(([key, provider]) => (
-            <SelectItem key={key} label={provider.name} value={key}>
-              {provider.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
+    <Select
+      onValueChange={onProviderChange}
+      className="mb-6"
+      value={{
+        value: selectedProviderKey,
+        label:
+          providerDefinitions[
+            selectedProviderKey as keyof typeof providerDefinitions
+          ].name,
+      }}
+    >
+      <SelectTrigger className="shadow-none bg-white border-border border">
+        <SelectValue placeholder="Select a provider" />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.entries(providerDefinitions).map(([key, provider]) => (
+          <SelectItem key={key} label={provider.name} value={key}>
+            {provider.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

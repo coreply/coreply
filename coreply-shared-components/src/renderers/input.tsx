@@ -8,13 +8,11 @@ import { Icon } from "../components/ui/icon";
 import { Eye, EyeOff } from "lucide-react-native";
 import { type ReactNode, useState } from "react";
 
-function getStringControlType(schema: any) {
+function getStringControlType(
+  schema: ControlProps["schema"] & { feature?: string; control?: string },
+) {
   if (schema.control === "textarea") {
     return "textarea";
-  }
-
-  if (schema.control === "password") {
-    return "password";
   }
 
   return "default";
@@ -40,16 +38,25 @@ function FieldShell({
   return (
     <View className="mb-4 gap-1.5">
       {hasTextContent(label) ? (
-        <Text className="text-sm" style={{ fontFamily: "Outfit_500Medium" }}>
-          {label}
-          {required && " *"}
-        </Text>
+        <View className="flex-row items-center justify-between">
+          <Text className="text-sm font-medium">
+            {label}
+            {required && " *"}
+          </Text>
+          {required && (
+            <Text className="text-xs text-muted-foreground font-sans">
+              Required
+            </Text>
+          )}
+        </View>
       ) : null}
       {children}
       {hasTextContent(errors) ? (
         <Text className="text-xs text-destructive font-sans">{errors}</Text>
       ) : hasTextContent(description) ? (
-        <Text className="text-xs text-muted-foreground">{description}</Text>
+        <Text className="text-xs text-muted-foreground font-sans">
+          {description}
+        </Text>
       ) : null}
     </View>
   );
@@ -64,7 +71,9 @@ const InputControl = ({
   required,
   errors,
   enabled,
-}: ControlProps) => {
+}: ControlProps & {
+  schema: ControlProps["schema"] & { feature?: string; control?: string };
+}) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const isEnabled = enabled !== false;
   const isNumeric = schema.type === "number" || schema.type === "integer";
@@ -72,7 +81,7 @@ const InputControl = ({
   const inputType = isNumeric ? "numeric" : "default";
   const controlType = getStringControlType(schema);
   const isMultiline = controlType === "textarea";
-  const isPassword = controlType === "password";
+  const isPassword = schema.feature === "password";
   const value = data === undefined || data === null ? "" : String(data);
   const hasErrors = Boolean(errors);
 
@@ -99,7 +108,9 @@ const InputControl = ({
       }}
       className={[
         "shadow-none",
-        isMultiline ? "h-64 min-h-64 py-3" : undefined,
+        isMultiline && (!isPassword || passwordVisible)
+          ? "h-64 min-h-64 py-3"
+          : undefined,
         hasErrors ? "border-destructive" : undefined,
       ]
         .filter(Boolean)
@@ -107,9 +118,13 @@ const InputControl = ({
       keyboardType={inputType}
       aria-invalid={hasErrors}
       editable={isEnabled}
-      multiline={isMultiline}
-      numberOfLines={isMultiline ? 6 : undefined}
-      textAlignVertical={isMultiline ? "top" : undefined}
+      multiline={isMultiline && (!isPassword || passwordVisible)}
+      numberOfLines={
+        isMultiline && (!isPassword || passwordVisible) ? 6 : undefined
+      }
+      textAlignVertical={
+        isMultiline && (!isPassword || passwordVisible) ? "top" : undefined
+      }
       secureTextEntry={isPassword && !passwordVisible}
       autoCapitalize={isPassword ? "none" : undefined}
       autoCorrect={isPassword ? false : undefined}

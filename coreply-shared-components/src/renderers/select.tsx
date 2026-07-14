@@ -1,5 +1,11 @@
-import { rankWith, schemaMatches, uiTypeIs, and } from "@jsonforms/core";
-import { withJsonFormsControlProps, type ControlProps } from "@jsonforms/react";
+import {
+  rankWith,
+  schemaMatches,
+  uiTypeIs,
+  and,
+  type ControlProps,
+} from "@jsonforms/core";
+import { withJsonFormsControlProps } from "@jsonforms/react";
 import { View } from "react-native";
 import { Text, TextClassContext } from "../components/ui/text";
 import {
@@ -45,6 +51,7 @@ const SelectControl = ({
   required,
   errors,
   enabled,
+  visible,
 }: ControlProps & { label?: string; required?: boolean }) => {
   const options = getStringOptions(schema as Record<string, any>);
   const selectedOption =
@@ -55,54 +62,58 @@ const SelectControl = ({
   const isEnabled = enabled !== false;
 
   return (
-    <View className="mb-4 gap-1.5">
-      <TextClassContext.Provider value="font-sans">
-        {hasTextContent(label) ? (
-          <Text className="text-sm font-bold">
-            {label}
-            {required && " *"}
-          </Text>
-        ) : null}
-        <Select
-          disabled={!isEnabled}
-          value={
-            selectedOption
-              ? { value: selectedOption, label: selectedOption }
-              : undefined
-          }
-          onValueChange={(value) => {
-            if (!isEnabled) {
-              return;
-            }
-
-            handleChange(path, value?.value);
-          }}
-        >
-          <SelectTrigger
-            aria-invalid={hasErrors}
+    visible && (
+      <View className="mb-4 gap-1.5">
+        <TextClassContext.Provider value="font-sans">
+          {hasTextContent(label) ? (
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm font-bold">
+                {label}
+                {required && " *"}
+              </Text>
+            </View>
+          ) : null}
+          <Select
             disabled={!isEnabled}
-            className={hasErrors ? "border-destructive" : undefined}
+            value={
+              selectedOption
+                ? { value: selectedOption, label: selectedOption }
+                : undefined
+            }
+            onValueChange={(value) => {
+              if (!isEnabled) {
+                return;
+              }
+
+              handleChange(path, value?.value);
+            }}
           >
-            <SelectValue placeholder={label || "Select an option"} />
-          </SelectTrigger>
-          <SelectContent side="top">
-            {options.map((option) => (
-              <SelectItem key={option} label={option} value={option as any}>
-                {option}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {hasTextContent(schema.description) ? (
-          <Text className="text-xs text-muted-foreground">
-            {schema.description}
-          </Text>
-        ) : null}
-        {hasTextContent(errors) ? (
-          <Text className="text-xs text-destructive">{errors}</Text>
-        ) : null}
-      </TextClassContext.Provider>
-    </View>
+            <SelectTrigger
+              aria-invalid={hasErrors}
+              disabled={!isEnabled}
+              className={hasErrors ? "border-destructive" : undefined}
+            >
+              <SelectValue placeholder={label || "Select an option"} />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {options.map((option) => (
+                <SelectItem key={option} label={option} value={option as any}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {hasTextContent(schema.description) ? (
+            <Text className="text-xs text-muted-foreground">
+              {schema.description}
+            </Text>
+          ) : null}
+          {hasTextContent(errors) ? (
+            <Text className="text-xs text-destructive">{errors}</Text>
+          ) : null}
+        </TextClassContext.Provider>
+      </View>
+    )
   );
 };
 

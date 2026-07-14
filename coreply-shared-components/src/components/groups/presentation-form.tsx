@@ -19,7 +19,6 @@ export function PresentationForm({
       schema={presentationSettingsSchema}
       data={settings}
       onChange={onChange}
-      title="Presentation"
       className={className}
     />
   );

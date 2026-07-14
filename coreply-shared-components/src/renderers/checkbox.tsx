@@ -23,27 +23,29 @@ const CheckboxControl = ({
 
   return (
     <View className="mb-4 gap-1.5">
-      <View className="flex-row items-center">
-        <Checkbox
-          checked={Boolean(data)}
-          onCheckedChange={(checked) => {
-            if (!isEnabled) {
-              return;
-            }
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center">
+          <Checkbox
+            checked={Boolean(data)}
+            onCheckedChange={(checked) => {
+              if (!isEnabled) {
+                return;
+              }
 
-            handleChange(path, checked);
-          }}
-          aria-invalid={hasErrors}
-          disabled={!isEnabled}
-          className={hasErrors ? "border-destructive" : undefined}
-        />
-        <Text className="ml-2 text-sm" style={{ fontFamily: "Outfit_500Medium" }}>
-          {label}
-          {required && " *"}
-        </Text>
+              handleChange(path, checked);
+            }}
+            aria-invalid={hasErrors}
+            disabled={!isEnabled}
+            className={hasErrors ? "border-destructive" : undefined}
+          />
+          <Text className="ml-2 text-sm font-medium">
+            {label}
+            {required && " *"}
+          </Text>
+        </View>
       </View>
       {hasTextContent(schema.description) ? (
-        <Text className="text-xs text-muted-foreground ml-6">
+        <Text className="text-xs text-muted-foreground ml-6 font-sans">
           {schema.description}
         </Text>
       ) : null}

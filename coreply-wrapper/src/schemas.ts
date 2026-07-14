@@ -2,7 +2,10 @@ import { z } from "zod";
 import { chatMessageSchema, coreplySettingsSchema } from "libcoreply";
 
 export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("settings"), payload: coreplySettingsSchema }),
+  z.object({
+    type: z.literal("settings"),
+    payload: coreplySettingsSchema.partial(),
+  }),
   z.object({
     type: z.literal("ingestMessages"),
     payload: z.object({

@@ -15,19 +15,18 @@ export function ProviderSettingsForm({
   onChange,
   className,
 }: ProviderSettingsFormProps) {
-  // Get the schema for the selected provider
-  const provider = providerDefinitions[providerId as keyof typeof providerDefinitions];
-  
+  const provider =
+    providerDefinitions[providerId as keyof typeof providerDefinitions];
+
   if (!provider) {
     return null;
   }
 
   return (
     <SchemaForm
-      schema={provider.providerSettingsSchema}
+      schema={provider.settingsSchema}
       data={settings}
       onChange={onChange}
-      title="Provider Settings"
       className={className}
     />
   );

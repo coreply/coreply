@@ -89,25 +89,27 @@ const SliderControl = ({
   const isInteger = numericSchema.type === "integer";
   const minimum = numericSchema.minimum as number;
   const maximum = numericSchema.maximum as number;
-  const step = getStep(minimum, maximum, numericSchema.multipleOf);
+  const step = isInteger
+    ? Number(getStep(minimum, maximum, numericSchema.multipleOf).toFixed(0))
+    : getStep(minimum, maximum, numericSchema.multipleOf);
 
   return (
     <View className="mb-4 gap-1.5">
       {label && (
-        <View className="flex-row items-center gap-2">
-          <Text className="text-sm" style={{ fontFamily: "Outfit_500Medium" }}>
-            {label}:
-          </Text>
-          <Text className="text-muted-foreground text-sm font-sans">
-            {data}
-          </Text>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-2">
+            <Text className="text-sm font-medium">{label}:</Text>
+            <Text className="text-muted-foreground text-sm font-sans">
+              {data !== undefined ? Number(data.toFixed(2)) : "Use default"}
+            </Text>
+          </View>
         </View>
       )}
       <Slider
         value={data}
-        min={minimum}
+        min={required ? minimum : minimum - step}
         max={maximum}
-        step={isInteger ? Number(step.toFixed(0)) : step}
+        step={step}
         aria-invalid={errors ? true : undefined}
         disabled={!enabled}
         trackClassName={errors ? "bg-destructive/20" : "bg-brand-800"}
@@ -115,6 +117,10 @@ const SliderControl = ({
         thumbClassName={errors ? "text-destructive" : "text-input"}
         onValueChange={(value) => {
           if (!enabled) {
+            return;
+          }
+          if (!required && value < minimum) {
+            handleChange(path, undefined);
             return;
           }
           handleChange(path, value);

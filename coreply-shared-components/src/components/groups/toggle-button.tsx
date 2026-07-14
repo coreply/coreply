@@ -13,7 +13,7 @@ export function ToggleButton({ isOn, onPress }: ToggleButtonProps) {
       variant="outline"
       className={[
         "h-15 w-15 border border-border shadow-none",
-        isOn ? "bg-brand-500" : "bg-brand-950",
+        isOn ? "bg-brand-500" : "bg-card",
       ].join(" ")}
       style={{ transform: [{ rotate: isOn ? "0deg" : "180deg" }] }}
       onPress={onPress}

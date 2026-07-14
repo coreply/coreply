@@ -19,7 +19,6 @@ export function FetchControlForm({
       schema={fetchControlSettingsSchema}
       data={settings}
       onChange={onChange}
-      title="Fetch Control"
       className={className}
     />
   );
