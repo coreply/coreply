@@ -7,7 +7,6 @@ import { z } from "zod";
 import { DEFAULT_ADVANCED_BODY, DEFAULT_SYSTEM_PROMPT } from "../settings";
 import { generateWithAdvanced } from "./advanced";
 import { generateWithAIProvider } from "./base";
-import { generateWithDummy } from "./dummy";
 import { generateWithFIM } from "./fim";
 
 const BaseSettingsSchema = z.object({
