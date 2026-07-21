@@ -1,7 +1,10 @@
 import { createAzure } from "@ai-sdk/azure";
 import { createGoogleVertex } from "@ai-sdk/google-vertex/edge";
+import { createGroq } from "@ai-sdk/groq";
+import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createXai } from "@ai-sdk/xai";
 import { createGateway } from "ai";
 import { z } from "zod";
 import { DEFAULT_ADVANCED_BODY, DEFAULT_SYSTEM_PROMPT } from "../settings";
@@ -245,6 +248,93 @@ export const providerDefinitions = {
         ...GenerateTextDefaults,
       },
       providerOptions: '{"azure": {"reasoningEffort": "none"}}',
+    },
+    requestFunc: generateWithAIProvider,
+  },
+  xai: {
+    name: "xAI",
+    factoryFunc: createXai,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("xAI API key")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Custom xAI API base URL (optional)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(
+        'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"xai": {...}}',
+      ),
+    }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions: '{"xai": {"reasoningEffort": "none"}}',
+    },
+    requestFunc: generateWithAIProvider,
+  },
+  mistral: {
+    name: "Mistral",
+    factoryFunc: createMistral,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("Mistral API key")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Custom Mistral API base URL (optional)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(
+        'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"mistral": {...}}',
+      ),
+    }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions: undefined,
+    },
+    requestFunc: generateWithAIProvider,
+  },
+  groq: {
+    name: "Groq",
+    factoryFunc: createGroq,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("Groq API key")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Custom Groq API base URL (optional)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(
+        'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"groq": {...}}',
+      ),
+    }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions: '{"groq": {"reasoningEffort": "none"}}',
     },
     requestFunc: generateWithAIProvider,
   },

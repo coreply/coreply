@@ -12,8 +12,11 @@
 	"dependencies": {
 		"@ai-sdk/azure": "^4.0.10",
 		"@ai-sdk/google-vertex": "^5.0.14",
+		"@ai-sdk/groq": "^3.0.52",
+		"@ai-sdk/mistral": "^2.0.38",
 		"@ai-sdk/openai": "^4.0.10",
 		"@ai-sdk/openai-compatible": "^3.0.7",
+		"@ai-sdk/xai": "^2.0.78",
 		"ai": "^7.0.19",
 		"debounce": "^3.0.0",
 		"mustache": "^4.2.0",
