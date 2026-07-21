@@ -1,0 +1,7 @@
+{
+    "browser":{
+        "launchOptions":{
+            "args":["--load-extension=./coreply-browser-extension/.output/chrome-mv3-dev"]
+        }
+    }
+}

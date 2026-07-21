@@ -8,3 +8,4 @@ node_modules/
 AGENTS.md
 .test-browser-profile/
 misc.xml
+.specs*/
