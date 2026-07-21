@@ -34,7 +34,7 @@ export function ProviderSelector({
       <SelectTrigger className="shadow-none bg-white border-border border">
         <SelectValue placeholder="Select a provider" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent portalHost="coreplyPortal">
         {Object.entries(providerDefinitions).map(([key, provider]) => (
           <SelectItem key={key} label={provider.name} value={key}>
             {provider.name}

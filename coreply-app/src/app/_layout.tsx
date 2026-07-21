@@ -13,7 +13,7 @@ export default function TabLayout() {
       {/* <AppTabs /> */}
 
       <Stack screenOptions={{ headerShown: false }} />
-      <PortalHost />
+      <PortalHost name="coreplyPortal" />
     </ThemeProvider>
   );
 }

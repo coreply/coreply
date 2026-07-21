@@ -95,7 +95,7 @@ const SelectControl = ({
             >
               <SelectValue placeholder={label || "Select an option"} />
             </SelectTrigger>
-            <SelectContent side="top">
+            <SelectContent side="top" portalHost="coreplyPortal">
               {options.map((option) => (
                 <SelectItem key={option} label={option} value={option as any}>
                   {option}
