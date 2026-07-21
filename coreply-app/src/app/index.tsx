@@ -53,6 +53,7 @@ import { Stack } from "expo-router";
 import { ZodType } from "zod";
 
 const storage = createAsyncStorage("coreply.settings");
+const MASTER_SWITCH_KEY = "masterSwitch";
 
 const parseJsonStringWithFallback = (
   jsonString: string | null,
@@ -142,15 +143,16 @@ function usePersistedSettings() {
   const saveProviderConfig = (newSettings: Record<string, any>) => {
     const provider =
       providerDefinitions[providerId as keyof typeof providerDefinitions];
-    storage.setItem(
-      `${providerId}.providerConfig`,
-      JSON.stringify(newSettings),
-    );
 
     const parsed = provider?.settingsSchema.safeParse(newSettings);
     if (!parsed?.success) {
       return;
     }
+
+    storage.setItem(
+      `${providerId}.providerConfig`,
+      JSON.stringify(newSettings),
+    );
 
     if (isLoaded && Platform.OS === "android") {
       Brownfield.sendMessage({
@@ -194,10 +196,11 @@ function usePersistedSettings() {
 }
 
 export default function SettingsScreen() {
-  const [accessibilityEnabled] =
+  const [androidAccessibilityEnabled] =
     Platform.OS === "android"
       ? Brownfield.useSharedState("accessibilityEnabled", false)
       : [false];
+  const [extensionEnabled, setExtensionEnabled] = useState(true);
   const [fontsLoaded] = useFonts({
     Outfit_300Light,
     Outfit_400Regular,
@@ -216,6 +219,19 @@ export default function SettingsScreen() {
     saveProviderConfig,
     saveGlobalSettings,
   } = usePersistedSettings();
+
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      return;
+    }
+
+    storage.getItem(MASTER_SWITCH_KEY).then((storedValue) => {
+      setExtensionEnabled(storedValue !== "false");
+    });
+  }, []);
+
+  const accessibilityEnabled =
+    Platform.OS === "web" ? extensionEnabled : androidAccessibilityEnabled;
 
   // Handle provider change - load saved settings for the new provider
   const handleProviderChange = async (option: Option) => {
@@ -245,6 +261,13 @@ export default function SettingsScreen() {
   };
 
   const handleTogglePress = () => {
+    if (Platform.OS === "web") {
+      const nextEnabled = !extensionEnabled;
+      setExtensionEnabled(nextEnabled);
+      void storage.setItem(MASTER_SWITCH_KEY, JSON.stringify(nextEnabled));
+      return;
+    }
+
     if (accessibilityEnabled) {
       Brownfield.sendMessage({
         type: "disableService",
@@ -290,9 +313,13 @@ export default function SettingsScreen() {
                         Coreply is {accessibilityEnabled ? "on" : "off"}
                       </Text>
                       <Text className="text-xs text-muted-foreground font-sans">
-                        {accessibilityEnabled
-                          ? "Accessibility access is enabled"
-                          : "Tap the toggle to start Coreply"}
+                        {Platform.OS === "web"
+                          ? accessibilityEnabled
+                            ? "Coreply suggestions are enabled in this extension"
+                            : "Tap the toggle to start Coreply in this extension"
+                          : accessibilityEnabled
+                            ? "Accessibility access is enabled"
+                            : "Tap the toggle to start Coreply"}
                       </Text>
                     </View>
                     <ToggleButton
@@ -341,13 +368,15 @@ export default function SettingsScreen() {
                         onProviderChange={handleProviderChange}
                       />
                     </View>
-                    <View className="px-3">
-                      <ProviderSettingsForm
-                        providerId={providerId}
-                        settings={initialProviderConfig}
-                        onChange={saveProviderConfig}
-                      />
-                    </View>
+                    {isLoaded ? (
+                      <View className="px-3">
+                        <ProviderSettingsForm
+                          providerId={providerId}
+                          settings={initialProviderConfig}
+                          onChange={saveProviderConfig}
+                        />
+                      </View>
+                    ) : null}
                   </View>
                   <View className="border-t border-border">
                     <View className="pt-3 px-3">
@@ -357,10 +386,12 @@ export default function SettingsScreen() {
                       >
                         Coreply Settings
                       </Text>
-                      <GlobalSettingsForm
-                        settings={initialGlobalSettings}
-                        onChange={saveGlobalSettings}
-                      />
+                      {isLoaded ? (
+                        <GlobalSettingsForm
+                          settings={initialGlobalSettings}
+                          onChange={saveGlobalSettings}
+                        />
+                      ) : null}
                     </View>
                   </View>
                 </View>
