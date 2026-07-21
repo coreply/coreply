@@ -1,0 +1,1 @@
+You should run `pnpm build` in the `coreply-app` package and the output will appear in a folder named `popup` in this directory.
