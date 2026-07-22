@@ -17,7 +17,7 @@ SHA-256 hash of the signing certificate: `87:95:62:D0:13:BD:E2:44:8E:D9:B2:F3:78
 ## Supported Texting Apps
 
 |                                                           |
-|-----------------------------------------------------------|
+| --------------------------------------------------------- |
 | **WhatsApp**                                              |
 | <img src="./docs/static/whatsapp.gif" width="360" />      |
 | **Instagram**                                             |
@@ -31,8 +31,7 @@ SHA-256 hash of the signing certificate: `87:95:62:D0:13:BD:E2:44:8E:D9:B2:F3:78
 | **Hinge**                                                 |
 | **LINE**                                                  |
 | **Heymandi**                                              |
-| **Gmail**<sup>3</sup>                                     |
-| **Telegram**<sup>4</sup>                                  |
+| **Telegram**<sup>3</sup>                                  |
 | **Mattermost**<sup>2</sup>                                |
 | **Facebook Messenger**<sup>1</sup>                        |
 | **Google Messages**<sup>1</sup>                           |
@@ -45,9 +44,7 @@ SHA-256 hash of the signing certificate: `87:95:62:D0:13:BD:E2:44:8E:D9:B2:F3:78
 <sup>1</sup> Performance issues: Coreply may not follow smoothly the animations and transitions.  
 <sup>2</sup> Limited role detection: Coreply cannot detect whether the message is sent or
 received.  
-<sup>3</sup> In Gmail, Coreply only works on the quick reply text field at the bottom of the
-email.  
-<sup>4</sup> Including Direct Download version, Play Store version, and Nekogram.
+<sup>3</sup> Including Direct Download version, Play Store version, and Nekogram.
 
 _DISCLAIMER: Coreply is not affiliated with or endorsed by the above-mentioned apps or their parent
 companies._
@@ -75,8 +72,8 @@ companies._
    settings" dialog, you can
    follow [these steps](https://support.google.com/android/answer/12623953?hl=en).**
 4. Start typing in your messaging app, and see suggestions appear!
-    - Single tap on the suggestion to insert one word
-    - Long press to insert the entire suggestion.
+   - Single tap on the suggestion to insert one word
+   - Long press to insert the entire suggestion.
 
 ### Configurations
 
@@ -88,7 +85,7 @@ the app.
 #### OpenAI-Compatible APIs
 
 | Provider                                                      | Guide                                        |
-|---------------------------------------------------------------|----------------------------------------------|
+| ------------------------------------------------------------- | -------------------------------------------- |
 | [Google AI Studio (Gemini API)](https://aistudio.google.com/) | [Here](./docs/providers.md#google-ai-studio) |
 | [Groq](https://groq.com/)                                     | [Here](./docs/providers.md#groq)             |
 | [Openrouter](https://openrouter.ai/)                          | [Here](./docs/providers.md#openrouter)       |
@@ -107,12 +104,11 @@ See [Prompting](docs/prompting.md) for details.
 3. Sync the Gradle files and resolve any dependencies.
 4. Build and run the app on your preferred device or emulator.
 
-
 ## Contributing
 
 All contributions are welcome. However, please expect breaking changes as this project is in active
-development. A contributor license agreement (CLA), or change in license is under consideration.
-Please to reach out before making significant contributions.
+development. A contributor license agreement (CLA) is required for any contributions. The CLA can be found in [CLA.md](./CLA.md).
+Reaching out or opening an issue is recommended before starting to work on anything.
 
 ## Known Issues
 
@@ -123,8 +119,7 @@ Please to reach out before making significant contributions.
 - Banking apps in asia commonly block apps from unknown sources having accessibility services
   permission due to security reasons. If you are facing this issue, you can
   setup [an accessibility shortcut](https://support.google.com/accessibility/android/answer/7650693?hl=en#step_1)
-  to toggle the coreply on/off quickly. In the future there might be a Play Store listing to avoid
-  this issue.
+  to toggle the coreply on/off quickly.
 
 ## Star History
 
@@ -132,9 +127,9 @@ Please to reach out before making significant contributions.
 
 ## License Notice
 
-Coreply
+**Coreply**
 
-Copyright (C) 2024 Coreply
+Copyright (C) 2026-present Magnifeum Sun Limited
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -148,3 +143,29 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+## License Notice of Third-Party Libraries Used in Coreply
+
+**Expo**
+
+The MIT License (MIT)
+
+Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -49,3 +49,5 @@ example
 /playwright/.auth/
 .playwright
 .playwright-cli
+
+AGENTS.md
