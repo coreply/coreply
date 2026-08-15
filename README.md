@@ -128,7 +128,7 @@ Please to reach out before making significant contributions.
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=coreply/coreply&type=Date)](https://www.star-history.com/#coreply/coreply&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=coreply/coreply&type=Date)](https://star-history.dera.page/#coreply/coreply&Date)
 
 ## License Notice
 
