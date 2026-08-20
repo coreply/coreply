@@ -14,7 +14,7 @@ export const DEFAULT_ADVANCED_BODY = `{
         },
         {
             "role": "user",
-            "content": "Chat history:\n{{#pastMessages}}{{#messages}}{{#sent}}Me: {{/sent}}{{#received}}Them: {{/received}}{{content.jsonEscaped}}\n{{/messages}}{{/pastMessages}}{{#currentTyping}}Current typing: {{currentTyping.jsonEscaped}}{{/currentTyping}}{{^currentTyping}}Suggest a reply.{{/currentTyping}}"
+            "content": "Contexts:\n{{{contextsJson}}}\n{{#currentTypingMap}}Current typing: {{jsonEscaped}}{{/currentTypingMap}}{{^currentTypingMap}}Suggest a reply.{{/currentTypingMap}}"
         }
     ],
     "max_tokens": 50,

@@ -9,7 +9,7 @@
     "@jsonforms/react": "^3.7.0",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/slider": "^5.2.0",
-    "@rn-primitives/portal": "^1.5.2",
+    "@rn-primitives/portal": "^1.4.0",
     "@wxt-dev/storage": "^1.2.8",
     "chrome-types": "^0.1.431",
     "clsx": "^2.1.1",

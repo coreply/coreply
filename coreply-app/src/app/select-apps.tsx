@@ -22,12 +22,17 @@ import { Switch } from "@/components/ui/switch";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { loadSelectedApps, saveSelectedApps } from "@/constants/selected-apps";
-import { SUPPORTED_APP_SET } from "@/constants/supported-apps";
 import CoreplyModule from "@/modules/coreply-module/src/CoreplyModule";
 import type { InstalledAppInfo } from "@/modules/coreply-module/src/CoreplyModule.types";
 import * as Brownfield from "@/utils/brownfield-wrapper";
+import { profileGroups } from "libcoreply";
 
 import "../../global.css";
+
+// ** Extracted supported apps from profileGroups instead of separate file
+const SUPPORTED_APP_SET = new Set<string>(
+  profileGroups.map((group) => group.rule),
+);
 
 function sortApps(apps: InstalledAppInfo[], initialSelectedPackages: string[]) {
   const initialSelectedPackageSet = new Set(initialSelectedPackages);
@@ -154,6 +159,7 @@ export default function SelectAppsScreen() {
     }
   };
 
+  // ** Using SUPPORTED_APP_SET derived from profileGroups.rules
   const supportedApps = useMemo(
     () =>
       sortApps(

@@ -1,8 +1,10 @@
-import type { TypingInfo } from "../context";
+import type { CoreplyContext } from "../context";
 import { providerDefinitions } from "../providers";
 
+// ** Updated to use contexts and currentTyping instead of full TypingInfo
 export async function requestSuggestions(
-  typingInfo: TypingInfo,
+  contexts: CoreplyContext[],
+  currentTyping: string,
   providerId: string,
   providerConfig: Record<string, unknown>,
 ): Promise<string> {
@@ -15,6 +17,7 @@ export async function requestSuggestions(
   return providerDefinition.requestFunc(
     providerDefinition as any,
     providerConfig,
-    typingInfo,
+    contexts,
+    currentTyping,
   );
 }

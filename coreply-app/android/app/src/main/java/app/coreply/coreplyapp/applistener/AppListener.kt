@@ -36,6 +36,7 @@ import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import app.coreply.coreplyapp.BuildConfig
 import app.coreply.coreplyapp.R
 import app.coreply.coreplyapp.data.ExpoSettingsStorage
 import app.coreply.coreplyapp.data.PreferencesManager
@@ -74,6 +75,11 @@ private class LocalWebViewClient(private val assetLoader: WebViewAssetLoader) :
 
 @OptIn(FlowPreview::class)
 open class AppListener : AccessibilityService() {
+    companion object {
+        private const val LOG_TAG = "CoWA"
+        private const val LOG_CHUNK_SIZE = 4000
+    }
+
     private lateinit var overlay: Overlay
     private lateinit var overlayViewModel: OverlayViewModel
     private val pixelCalculator: PixelCalculator = PixelCalculator(this)
@@ -82,7 +88,7 @@ open class AppListener : AccessibilityService() {
     private lateinit var webView: WebView
     private val suggestionStorage = SuggestionStorage()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val measureWindowFlow = MutableSharedFlow<AccessibilityNodeInfo>(
+    private val measureWindowFlow = MutableSharedFlow<Boolean>(
         replay = 0,
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -94,6 +100,9 @@ open class AppListener : AccessibilityService() {
     )
     private var wrapperReady = false
     private var javaScriptReplyProxy: JavaScriptReplyProxy? = null
+
+    // ** Added collectionMode field with default value "minimal"
+    private var collectionMode: String = "minimal"
 
     private lateinit var brownfieldListenerId: String;
 
@@ -120,77 +129,89 @@ open class AppListener : AccessibilityService() {
     }
 
     private fun refreshOverlay(root: AccessibilityNodeInfo): Boolean {
-        var isSupportedApp = false
-        val previousInputNodeStillHere = overlayViewModel.refresh(RefreshType.NORMAL, false)
+        // ** New architecture: AppListener role is just to send snapshots
+        // No longer needs onscreenprocessor, decide package name based on root node, no need to find focus
+        val rootPackageName = root.packageName
+        val isSupportedApp = rootPackageName != null &&
+                preferencesManager.selectedAppsState.value.contains(rootPackageName)
+
+        overlayViewModel.refresh(RefreshType.NORMAL, false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             overlayViewModel.updateInputMethod(inputMethod)
         }
 
-        val (supportedAppProperty, inputWidget) = if (previousInputNodeStillHere) {
-            Pair(
-                overlayViewModel.uiState.value.currentApp,
-                overlayViewModel.uiState.value.currentInput
-            )
-        } else {
-            detectSupportedApp(root, preferencesManager.selectedAppsState.value)
+        measureWindowFlow.tryEmit(true)
+        getMessagesFlow.tryEmit(root)
+        // ** Removed: layout processing now handled in libcoreply
+
+        // ** Handle overlay enable/disable based on collection mode and app support
+        // ** Removed broken inputWidget enable logic - now finds input from root node
+        // ** Overlay is disabled when app not supported or collectionMode is minimal/frequent
+        if ((!isSupportedApp || collectionMode == "minimal" || collectionMode == "frequent") &&
+            overlayViewModel.uiState.value.isRunning
+        ) {
+            overlayViewModel.disable()
+        } else if (isSupportedApp && collectionMode == "active" &&
+            (!overlayViewModel.uiState.value.isRunning || overlayViewModel.uiState.value.currentInput == null)
+        ) {
+            enableOverlayForRoot(root, true)
         }
 
-        if (supportedAppProperty != null && inputWidget != null) {
-            isSupportedApp = true
-            val info = serviceInfo
-            info.notificationTimeout = 0
-            info.eventTypes =
+        return isSupportedApp
+    }
+
+    private fun enableOverlayForRoot(root: AccessibilityNodeInfo, refreshText: Boolean) {
+        val inputWidget = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) ?: return
+        overlayViewModel.enable(
+            inputWidget,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) inputMethod else null,
+        )
+        if (refreshText) {
+            overlayViewModel.refresh(RefreshType.CHAR_LOCATION, true)
+        }
+    }
+
+
+    private fun updateServiceInfoForCollectionMode() {
+        Log.d(LOG_TAG, "Updating service info for collection mode: $collectionMode")
+        val info = serviceInfo
+        info.notificationTimeout = if (collectionMode == "minimal") 2000 else 0
+        info.eventTypes = when (collectionMode) {
+            "minimal" ->
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                        AccessibilityEvent.TYPE_VIEW_CLICKED or
+                        AccessibilityEvent.TYPE_VIEW_FOCUSED or
+                        AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+
+            "frequent", "active" ->
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
                         AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
                         AccessibilityEvent.TYPE_VIEW_CLICKED or
                         AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
                         AccessibilityEvent.TYPE_VIEW_FOCUSED or
                         AccessibilityEvent.TYPE_VIEW_SCROLLED
-            serviceInfo = info
 
-            overlayViewModel.enable(
-                supportedAppProperty,
-                inputWidget,
-                root,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) inputMethod else null,
-            )
-
-            measureWindowFlow.tryEmit(inputWidget)
-            getMessagesFlow.tryEmit(root)
-        }
-
-        if (!isSupportedApp && overlayViewModel.uiState.value.isRunning) {
-            val info = serviceInfo
-            info.notificationTimeout = 2000
-            info.eventTypes =
+            else ->
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                        AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
                         AccessibilityEvent.TYPE_VIEW_CLICKED or
+                        AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
                         AccessibilityEvent.TYPE_VIEW_FOCUSED or
-                        AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
-            serviceInfo = info
-            overlayViewModel.disable()
-            sendReset()
+                        AccessibilityEvent.TYPE_VIEW_SCROLLED
         }
-
-        return isSupportedApp
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            info.flags =
+                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INPUT_METHOD_EDITOR
+        } else {
+            info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+        }
+        serviceInfo = info
     }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        val info = serviceInfo
-        info.eventTypes =
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
-                    AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
-                    AccessibilityEvent.TYPE_VIEW_CLICKED or
-                    AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
-                    AccessibilityEvent.TYPE_VIEW_FOCUSED or
-                    AccessibilityEvent.TYPE_VIEW_SCROLLED
-        info.flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INPUT_METHOD_EDITOR
-        } else {
-            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
-        }
-        serviceInfo = info
+        // ** Initialize service info with default collection mode (minimal)
+        updateServiceInfoForCollectionMode()
         Toast.makeText(
             applicationContext,
             getString(R.string.accessibility_started),
@@ -243,7 +264,6 @@ open class AppListener : AccessibilityService() {
                     serviceScope.launch(Dispatchers.Main) {
                         sendSettings(settings)
                     }
-
                 }
             }
         }
@@ -306,20 +326,48 @@ open class AppListener : AccessibilityService() {
             }
         }
         serviceScope.launch {
+            // ** Repurposed this flow to send snapshot directly instead of using getMessagesInternal
             getMessagesFlow.debounce(500.milliseconds).collect {
                 try {
-                    getMessagesInternal()
+                    val startTime = System.currentTimeMillis()
+                    val nodeSnapshot = it.serializeToJson()
+                    val snapshot = JSONObject().apply {
+                        put("platform", "android")
+                        put("snapshot", nodeSnapshot)
+                    }
+                    logLargeDebug("Snapshot JSON", snapshot.toString())
+                    sendWrapperMessage(JSONObject().apply {
+                        put("type", "snapshotUpdated")
+                        put("payload", JSONObject().apply {
+                            put("snapshot", snapshot)
+                        })
+                    })
+                    val endTime = System.currentTimeMillis()
+                    Log.d(LOG_TAG, "Snapshot serialization took ${endTime - startTime} ms")
                 } catch (e: Exception) {
-                    Log.e("CoWA", "Error in getMessages background operation", e)
+                    Log.e(LOG_TAG, "Error in snapshot background operation", e)
                 }
             }
         }
     }
 
-    private fun getMessagesInternal() {
-        overlayViewModel.refresh(RefreshType.TEXT_SIZE, false, pixelCalculator.spToPx(16f))
-        val messages = overlayViewModel.refreshMessageListNode()
-        sendMessages(messages)
+    private fun logLargeDebug(prefix: String, message: String) {
+        if (!BuildConfig.DEBUG) {
+            return
+        }
+        var start = 0
+        var chunkIndex = 0
+        while (start < message.length) {
+            val end = minOf(start + LOG_CHUNK_SIZE, message.length)
+            val chunk = message.substring(start, end)
+            if (chunkIndex == 0) {
+                Log.d(LOG_TAG, "$prefix: $chunk")
+            } else {
+                Log.d(LOG_TAG, chunk)
+            }
+            start = end
+            chunkIndex += 1
+        }
     }
 
     private fun handleWrapperMessage(message: WebMessageCompat) {
@@ -349,9 +397,16 @@ open class AppListener : AccessibilityService() {
                     val payload = json.getJSONObject("payload")
                     overlayViewModel.updateSuggestionError(payload.optString("message"))
                 }
+
+                "collectionModeUpdated" -> {
+                    val payload = json.getJSONObject("payload")
+                    collectionMode = payload.optString("collectionMode", "minimal")
+                    // ** Update service info when collection mode changes
+                    updateServiceInfoForCollectionMode()
+                }
             }
         } catch (e: Exception) {
-            Log.e("CoWA", "Failed to parse wrapper message", e)
+            Log.e(LOG_TAG, "Failed to parse wrapper message", e)
         }
     }
 
@@ -375,24 +430,6 @@ open class AppListener : AccessibilityService() {
         }
         val payload = expoSettingsStorage.getStoredCoreplySettings() ?: return
         sendSettings(payload)
-    }
-
-    private fun sendMessages(messages: List<app.coreply.coreplyapp.utils.ChatMessage>) {
-        val pkgName = overlayViewModel.uiState.value.currentApp?.pkgName ?: return
-        val serializedMessages = JSONArray().apply {
-            messages.forEach { message ->
-                put(JSONObject().apply {
-                    put("sender", message.sender)
-                    put("message", message.message)
-                })
-            }
-        }
-        sendWrapperMessage(JSONObject().apply {
-            put("type", "ingestMessages")
-            put("payload", JSONObject().apply {
-                put("messages", serializedMessages)
-            })
-        })
     }
 
     private fun sendTypingUpdate() {

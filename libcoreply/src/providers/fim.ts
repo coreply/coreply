@@ -1,15 +1,32 @@
 import type { providerDefinitions } from "./index";
-import type { TypingInfo } from "../context";
+import type { CoreplyContext } from "../context";
 
+// ** Updated to use contexts and currentTyping instead of typingInfo
 export async function generateWithFIM(
   providerDefinition: typeof providerDefinitions.fim,
   settingsByReference: any,
-  typingInfo: TypingInfo,
+  contexts: CoreplyContext[],
+  currentTyping: string,
 ): Promise<string> {
   const settings = providerDefinition.settingsSchema.parse(settingsByReference);
   let baseURL = settings.provider.baseURL;
   if (!baseURL.endsWith("/")) {
     baseURL += "/";
+  }
+
+  // Build FIM format from contexts
+  const chatContexts = contexts.filter((c) => c.type === "chat");
+  let pastMessagesFIM = "";
+  for (const context of chatContexts) {
+    // ** Fixed: use context directly as it's already a ChatContext after filtering
+    if (context.data.turns) {
+      for (const turn of context.data.turns) {
+        for (const message of turn.messages) {
+          const prefix = turn.userSent ? "send_message(" : "mock_received(";
+          pastMessagesFIM += `${prefix}"${message.body.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}")\n`;
+        }
+      }
+    }
   }
 
   const response = await fetch(`${baseURL}completions`, {
@@ -28,9 +45,9 @@ export async function generateWithFIM(
       suffix: '")',
       prompt:
         "# Mocking a texting conversation. Messages never repeat. send_message() sends a message. mock_received() means receiving a message from others.\n# Start of Chat History\n" +
-        typingInfo.pastMessages.getFIMFormat() +
+        pastMessagesFIM +
         '\n# Craft a new text\nsend_message("' +
-        typingInfo.currentTyping.replace(/\s+/g, " "),
+        currentTyping.replace(/\s+/g, " "),
     }),
   });
 
@@ -42,5 +59,5 @@ export async function generateWithFIM(
     choices?: Array<{ message?: { content?: string } }>;
   };
   const completionText = json.choices?.[0]?.message?.content ?? "";
-  return `${typingInfo.currentTyping.replace(/\s+/g, " ")}${completionText}`.trim();
+  return `${currentTyping.replace(/\s+/g, " ")}${completionText}`.trim();
 }

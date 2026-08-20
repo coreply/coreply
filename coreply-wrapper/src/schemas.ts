@@ -1,17 +1,10 @@
 import { z } from "zod";
-import { chatMessageSchema, coreplySettingsSchema } from "libcoreply";
+import { coreplySettingsSchema } from "libcoreply";
 
 export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("settings"),
     payload: coreplySettingsSchema.partial(),
-  }),
-  z.object({
-    type: z.literal("ingestMessages"),
-    payload: z.object({
-      messages: z.array(chatMessageSchema),
-      pkgName: z.string().optional(),
-    }),
   }),
   z.object({
     type: z.literal("updateTyping"),
@@ -21,6 +14,13 @@ export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("reset"),
+  }),
+  // ** Added snapshotUpdated message type for handling snapshots from native
+  z.object({
+    type: z.literal("snapshotUpdated"),
+    payload: z.object({
+      snapshot: z.any(),
+    }),
   }),
 ]);
 
@@ -41,6 +41,12 @@ export const wrapperOutboundMessageSchema = z.discriminatedUnion("type", [
     type: z.literal("error"),
     payload: z.object({
       message: z.string(),
+    }),
+  }),
+  z.object({
+    type: z.literal("collectionModeUpdated"),
+    payload: z.object({
+      collectionMode: z.enum(["minimal", "frequent", "active"]),
     }),
   }),
 ]);
