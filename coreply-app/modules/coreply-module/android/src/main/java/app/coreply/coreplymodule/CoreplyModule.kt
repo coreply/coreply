@@ -13,6 +13,8 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.ByteArrayOutputStream
 
+private const val SYSTEM_UI_PACKAGE_NAME = "com.android.systemui"
+
 private fun getIconUri(packageManager: PackageManager, packageName: String): String {
   val drawable = try {
     packageManager.getApplicationIcon(packageName)
@@ -85,6 +87,7 @@ class CoreplyModule : Module() {
       return@AsyncFunction packageManager
         .getInstalledApplications(PackageManager.GET_META_DATA)
         .filter { app ->
+          app.packageName == SYSTEM_UI_PACKAGE_NAME ||
           (app.flags and ApplicationInfo.FLAG_SYSTEM) == 0 ||
             packageManager.getLaunchIntentForPackage(app.packageName) != null
         }
