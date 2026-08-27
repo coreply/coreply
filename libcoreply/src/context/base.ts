@@ -11,5 +11,8 @@
 export interface BaseContext {
   profileId: string;
   label?: string;
+  getSuggestion(text: string): string | null;
+  updateSuggestion(currentTyping: string, suggestion: string): string | null;
+  clearSuggestions(): void;
   tryUpdate(data: any): boolean;
 }

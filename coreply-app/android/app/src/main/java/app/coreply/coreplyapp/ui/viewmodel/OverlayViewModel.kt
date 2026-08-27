@@ -56,7 +56,7 @@ data class OverlayUiState(
     var currentInput: AccessibilityNodeInfo? = null,
     // ** Removed currentMessageListNode and messageListProcessor as they are no longer needed
     var currentStatus: AppSupportStatus = AppSupportStatus.UNKNOWN,
-    var currentTyping: String = "",
+    var currentTyping: String? = null,
     var currentInputMethod: InputMethod? = null,
 )
 
@@ -128,6 +128,7 @@ class OverlayViewModel : ViewModel() {
                 isRunning = true,
                 currentInput = currentInput,
                 currentInputMethod = currentInputMethod,
+                currentTyping = null,
             )
         }
     }
@@ -141,7 +142,7 @@ class OverlayViewModel : ViewModel() {
         _uiState.value.currentInput?.recycle()
         _uiState.update { state ->
             state.copy(
-                currentTyping = "",
+                currentTyping = null,
                 isRunning = false,
                 content = OverlayContent.Empty,
                 currentInput = null,
@@ -264,10 +265,7 @@ class OverlayViewModel : ViewModel() {
                 child?.getBoundsInScreen(childRect)
                 uiState.value.currentInput?.getBoundsInScreen(inputRect)
                 val offsetX = childRect.left - inputRect.left
-                val offsetY = childRect.top - inputRect.top
                 rect.left += offsetX
-                rect.top += offsetY
-                rect.bottom += offsetY
                 rect.right = max(rect.right - offsetX * 3, rect.left + 1)
             } else {
                 rect.right -= (rect.width() * 0.25).toInt()
@@ -329,7 +327,7 @@ class OverlayViewModel : ViewModel() {
             state.copy(
                 currentInput = null,
                 currentInputMethod = null,
-                currentTyping = "",
+                currentTyping = null,
                 currentStatus = AppSupportStatus.UNKNOWN,
                 isRunning = false,
                 content = OverlayContent.Empty,

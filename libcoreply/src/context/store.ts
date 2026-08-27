@@ -1,28 +1,22 @@
 import type { CoreplyContext } from ".";
 import type { DropRule } from "../profile";
 import { profileGroups } from "../profile";
-import { SuggestionStorage } from "./suggestion";
 
 /**
- * Central store that manages both contexts and suggestion storage
+ * Central store that manages contexts
  * Exposes higher-level methods to control context and suggestion management
  */
 export class ContextStore {
-  private readonly suggestionStorage = new SuggestionStorage();
   private contexts: CoreplyContext[] = [];
 
-  // ** Suggestion Storage methods (delegated)
-
-  clearSuggestions() {
-    this.suggestionStorage.clear();
-  }
-
   getSuggestion(text: string): string | null {
-    return this.suggestionStorage.getSuggestion(text);
+    const latestContext = this.contexts.at(-1);
+    return latestContext?.getSuggestion(text) ?? null;
   }
 
   updateSuggestion(currentTyping: string, suggestion: string): string | null {
-    return this.suggestionStorage.updateSuggestion(currentTyping, suggestion);
+    const latestContext = this.contexts.at(-1);
+    return latestContext?.updateSuggestion(currentTyping, suggestion) ?? null;
   }
 
   // ** Context Management methods
@@ -38,7 +32,10 @@ export class ContextStore {
         this.contexts[i].type === context.type &&
         this.contexts[i].profileId === context.profileId
       ) {
-        if (this.contexts[i].tryUpdate && this.contexts[i].tryUpdate(context as any)) {
+        if (
+          this.contexts[i].tryUpdate &&
+          this.contexts[i].tryUpdate(context as any)
+        ) {
           // Move the updated element to the end of the array
           const [updatedContext] = this.contexts.splice(i, 1);
           this.contexts.push(updatedContext);
@@ -69,6 +66,12 @@ export class ContextStore {
     this.contexts = [];
   }
 
+  clearSuggestions(): void {
+    for (const context of this.contexts) {
+      context.clearSuggestions();
+    }
+  }
+
   // ** Helper method to get drop rule for a profile
   private getDropRuleForProfile(profileId: string): DropRule | null {
     for (const group of profileGroups) {
@@ -83,92 +86,50 @@ export class ContextStore {
 
   // ** Helper method to apply drop rule
   private applyDropRule(dropRule: DropRule, currentProfileId: string): void {
-    const differentProfileRule = dropRule.differentProfile;
-    const sameProfileRule = dropRule.sameProfile;
+    const kept: CoreplyContext[] = [];
+    let sameProfileKept = 0;
+    let differentProfileKept = 0;
+    const sameProfileLabelCounts: Record<string, number> = {};
+    const differentProfileLabelCounts: Record<string, number> = {};
 
-    // Handle differentProfile rule
-    // If differentProfile is 0, remove all contexts from different profiles
-    if (differentProfileRule === 0) {
-      this.contexts = this.contexts.filter(
-        (ctx) => ctx.profileId === currentProfileId,
-      );
-    } else if (typeof differentProfileRule === "number") {
-      // If differentProfile is a number, keep only that many contexts from different profiles
-      const differentProfileContexts = this.contexts.filter(
-        (ctx) => ctx.profileId !== currentProfileId,
-      );
-      const sameProfileContexts = this.contexts.filter(
-        (ctx) => ctx.profileId === currentProfileId,
-      );
-
-      // Keep only the latest N different profile contexts
-      const keptDifferent = differentProfileContexts
-        .sort((_a, _b) => {
-          // Sort by some timestamp or order - for now, use array index as proxy
-          // In practice, contexts should have a timestamp field
-          return 0; // Placeholder - need proper sorting
-        })
-        .slice(-differentProfileRule);
-
-      this.contexts = [...sameProfileContexts, ...keptDifferent];
-    }
-
-    // Handle sameProfile rule
-    if (typeof sameProfileRule === "number") {
-      // Keep only that many contexts from the same profile
-      const sameProfileContexts = this.contexts.filter(
-        (ctx) => ctx.profileId === currentProfileId,
-      );
-      const differentProfileContexts = this.contexts.filter(
-        (ctx) => ctx.profileId !== currentProfileId,
-      );
-
-      // Keep only the latest N same profile contexts
-      const keptSame = sameProfileContexts
-        .sort((_a, _b) => {
-          // Sort by some timestamp or order - newest first
-          // In practice, contexts should have a timestamp field
-          return 0; // Placeholder - need proper sorting
-        })
-        .slice(-sameProfileRule);
-
-      this.contexts = [...keptSame, ...differentProfileContexts];
-    } else if (typeof sameProfileRule === "object") {
-      // sameProfile is a record with label/type -> count
-      // Keep specified number of contexts per label/type
-      const sameProfileContexts = this.contexts.filter(
-        (ctx) => ctx.profileId === currentProfileId,
-      );
-      const differentProfileContexts = this.contexts.filter(
-        (ctx) => ctx.profileId !== currentProfileId,
-      );
-
-      // Group same profile contexts by label or type
-      const grouped = new Map<string, CoreplyContext[]>();
-      for (const ctx of sameProfileContexts) {
-        const key = ctx.label || ctx.type;
-        if (!grouped.has(key)) {
-          grouped.set(key, []);
+    for (let i = this.contexts.length - 1; i >= 0; i--) {
+      const context = this.contexts[i];
+      const isSameProfile = context.profileId === currentProfileId;
+      const key = context.label || "default-label";
+      if (isSameProfile) {
+        if (typeof dropRule.sameProfile === "number") {
+          if (sameProfileKept >= dropRule.sameProfile) {
+            continue;
+          }
+          sameProfileKept += 1;
+        } else {
+          const currentCount = sameProfileLabelCounts[key] ?? 0;
+          const maxCount = dropRule.sameProfile[key] ?? 1;
+          if (currentCount >= maxCount) {
+            continue;
+          }
+          sameProfileLabelCounts[key] = currentCount + 1;
         }
-        grouped.get(key)!.push(ctx);
+      } else {
+        if (typeof dropRule.differentProfile === "number") {
+          if (differentProfileKept >= dropRule.differentProfile) {
+            continue;
+          }
+          differentProfileKept += 1;
+        } else {
+          const currentCount = differentProfileLabelCounts[key] ?? 0;
+          const maxCount = dropRule.differentProfile[key] ?? 0;
+          if (currentCount >= maxCount) {
+            continue;
+          }
+          differentProfileLabelCounts[key] = currentCount + 1;
+        }
       }
 
-      // For each group, keep only the specified number
-      const keptSame: CoreplyContext[] = [];
-      for (const [key, contexts] of grouped) {
-        const maxCount = sameProfileRule[key] ?? 1;
-        const sorted = contexts
-          .sort((_a, _b) => {
-            // Sort by some timestamp or order - newest first
-            // In practice, contexts should have a timestamp field
-            return 0; // Placeholder - need proper sorting
-          })
-          .slice(-maxCount);
-        keptSame.push(...sorted);
-      }
-
-      this.contexts = [...keptSame, ...differentProfileContexts];
+      kept.push(context);
     }
+
+    this.contexts = kept.reverse();
   }
 
   // ** Combined clear method

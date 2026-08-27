@@ -11,6 +11,13 @@ export interface WebSnapshot {
 
 export type Snapshot = AndroidSnapshot | WebSnapshot;
 
+export interface Bounds {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 // Android snapshot node structure
 export interface AndroidSnapshotNode {
   id: string;
@@ -24,6 +31,7 @@ export interface AndroidSnapshotNode {
   isFocused: boolean;
   isVisibleToUser: boolean;
   isShowingHintText: boolean;
+  bounds: Bounds;
   children: AndroidSnapshotNode[];
 }
 

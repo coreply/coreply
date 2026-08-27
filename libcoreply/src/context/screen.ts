@@ -5,6 +5,7 @@
 */
 
 import type { BaseContext } from "./base";
+import { SuggestionStorage } from "./suggestion";
 
 export interface ScreenContextData {
   text?: string;
@@ -24,11 +25,24 @@ export class ScreenContextImpl implements ScreenContext {
   profileId: string;
   label?: string;
   data: ScreenContextData;
+  private readonly suggestionStorage = new SuggestionStorage();
 
   constructor(profileId: string, data: ScreenContextData, label?: string) {
     this.profileId = profileId;
     this.label = label;
     this.data = data;
+  }
+
+  getSuggestion(text: string): string | null {
+    return this.suggestionStorage.getSuggestion(text);
+  }
+
+  updateSuggestion(currentTyping: string, suggestion: string): string | null {
+    return this.suggestionStorage.updateSuggestion(currentTyping, suggestion);
+  }
+
+  clearSuggestions(): void {
+    this.suggestionStorage.clear();
   }
 
   tryUpdate(incomingContext: ScreenContext): boolean {

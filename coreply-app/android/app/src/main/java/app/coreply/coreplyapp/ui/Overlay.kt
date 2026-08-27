@@ -232,7 +232,7 @@ class Overlay(
             Log.v("CoWA", "Performing text action with addText: ${currentState.currentInput?.text}")
             arguments.putCharSequence(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                currentState.currentTyping.replace("Compose Message", "") + addText
+                (currentState.currentTyping ?: "").replace("Compose Message", "") + addText
             )
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && currentState.currentInputMethod?.currentInputConnection != null) {
@@ -247,8 +247,8 @@ class Overlay(
                 )
             } else {
                 currentState.currentInputMethod?.currentInputConnection?.setSelection(
-                    currentState.currentTyping.length,
-                    currentState.currentTyping.length
+                    currentState.currentTyping?.length ?: 0,
+                    currentState.currentTyping?.length ?: 0
                 )
                 currentState.currentInputMethod?.currentInputConnection?.commitText(addText, 1, null)
             }
@@ -270,7 +270,7 @@ class Overlay(
         val toSet = if (currentState.currentInput?.isShowingHintText == true || currentState.currentStatus == AppSupportStatus.HINT_TEXT) {
             content.fullText.trimEnd()
         } else {
-            currentState.currentTyping.replace(
+            (currentState.currentTyping ?: "").replace(
                 "Compose Message",
                 ""
             ) + content.fullText.trimEnd()
@@ -294,8 +294,8 @@ class Overlay(
                 currentState.currentInput?.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
             } else {
                 currentState.currentInputMethod?.currentInputConnection?.setSelection(
-                    currentState.currentTyping.length,
-                    currentState.currentTyping.length
+                    currentState.currentTyping?.length ?: 0,
+                    currentState.currentTyping?.length ?: 0
                 )
                 currentState.currentInputMethod?.currentInputConnection?.commitText(content.fullText.trimEnd(), 1, null)
             }
