@@ -14,7 +14,7 @@ export const DEFAULT_ADVANCED_BODY = `{
         },
         {
             "role": "user",
-            "content": "Contexts:\n{{{contextsJson}}}\n{{#currentTypingMap}}Current typing: {{jsonEscaped}}{{/currentTypingMap}}{{^currentTypingMap}}Suggest a reply.{{/currentTypingMap}}"
+            "content": "Contexts:\n{{{contextsJson}}}\n{{#currentTyping}}Current typing: {{jsonEscaped}}{{/currentTyping}}{{^currentTyping}}Suggest a reply.{{/currentTyping}}"
         }
     ],
     "max_tokens": 50,

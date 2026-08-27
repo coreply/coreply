@@ -1,62 +1,43 @@
 import Mustache from "mustache";
 import type { providerDefinitions } from "./index";
 import type { ChatContext, CoreplyContext } from "../context";
-import { PUNCTUATIONS } from "../constants";
-import { toTemplateMap } from "../context";
+import { TypingInfo } from "../context";
+import { ChatContents } from "../context/legacy-chat";
 
-function tokenizeText(input: string): string[] {
-  if (!input) {
-    return [];
-  }
-
-  const segmenter = new Intl.Segmenter("en", {
-    granularity: "word",
-  });
-  const segments = Array.from(
-    segmenter.segment(input),
-    (segment) => segment.segment,
-  );
-  const tokens: string[] = [];
-  let leadingWhitespace = "";
-
-  for (const segment of segments) {
-    if (segment.trim().length === 0) {
-      if (tokens.length === 0) {
-        leadingWhitespace += segment;
-      } else {
-        tokens[tokens.length - 1] += segment;
+function buildChatContents(chatContexts: ChatContext[]): ChatContents {
+  const chatContents = new ChatContents();
+  for (const context of chatContexts) {
+    for (const turn of context.data.turns) {
+      for (const message of turn.messages) {
+        chatContents.addMessage({
+          sender: turn.sender ?? (turn.userSent ? "Me" : "Others"),
+          message: message.body,
+        });
       }
-      continue;
-    }
-    tokens.push(`${leadingWhitespace}${segment}`);
-    leadingWhitespace = "";
-  }
-
-  if (tokens.length >= 2) {
-    const lastToken = tokens[tokens.length - 1];
-    const previousToken = tokens[tokens.length - 2];
-    if (lastToken.length === 1 && PUNCTUATIONS.has(lastToken)) {
-      tokens.splice(tokens.length - 2, 2, `${previousToken}${lastToken}`);
     }
   }
-
-  return tokens;
+  return chatContents;
 }
 
-function serializeContexts(contexts: CoreplyContext[]) {
-  return contexts.map((context) => ({
-    type: context.type,
-    profileId: context.profileId,
-    label: context.label,
-    data: context.data,
-  }));
+export function buildAdvancedContextMap(
+  contexts: CoreplyContext[],
+  currentTyping: string,
+  pkgName = "",
+): Record<string, unknown> {
+  const chatContexts = contexts.filter(
+    (context): context is ChatContext => context.type === "chat",
+  );
+  const chatContents = buildChatContents(chatContexts);
+  const typingInfo = new TypingInfo(chatContents, currentTyping, pkgName);
+
+  return {
+    ...typingInfo.contextMap,
+    contexts,
+    contextsJson: JSON.stringify(contexts),
+  };
 }
 
-function isChatContext(context: CoreplyContext): context is ChatContext {
-  return context.type === "chat";
-}
-
-// ** Updated to use contexts and currentTyping instead of typingInfo
+// ** Updated to use TypingInfo.contextMap (v2-compatible) with v3 fields on top
 export async function generateWithAdvanced(
   providerDefinition: typeof providerDefinitions.advanced,
   settingsByReference: any,
@@ -64,48 +45,15 @@ export async function generateWithAdvanced(
   currentTyping: string,
 ): Promise<string> {
   const settings = providerDefinition.settingsSchema.parse(settingsByReference);
-  const tokens = tokenizeText(currentTyping);
-  const currentTypingTrimmed = tokens.length > 0 ? tokens.slice(0, -1).join("") : "";
-  const currentTypingLastToken = tokens.at(-1) ?? "";
-  const currentTypingEndsWithSeparator = (() => {
-    if (!currentTyping) {
-      return false;
-    }
-    const lastChar = currentTyping.at(-1) ?? "";
-    return lastChar === " " || PUNCTUATIONS.has(lastChar);
-  })();
-  const serializedContexts = serializeContexts(contexts);
-  const chatContexts = contexts.filter(isChatContext);
   const pkgName = "";
 
-  const contextMap = {
-    contexts: serializedContexts,
-    contextsJson: JSON.stringify(serializedContexts),
-    pastMessages: chatContexts.flatMap((context) =>
-        context.data.turns.map((turn) => ({
-          sent: turn.userSent,
-          received: !turn.userSent,
-          sender: toTemplateMap(turn.sender ?? (turn.userSent ? "Me" : "Others")),
-          messages: turn.messages.map((message) => ({
-            sent: turn.userSent,
-            received: !turn.userSent,
-            sender: toTemplateMap(
-              turn.sender ?? (turn.userSent ? "Me" : "Others"),
-            ),
-            content: toTemplateMap(message.body),
-          })),
-        })),
-      ),
-    currentTyping: currentTyping,
-    currentTypingTrimmed,
-    currentTypingLastToken,
-    currentTypingEndsWithSeparator,
-    pkgName,
-    currentTypingMap: toTemplateMap(currentTyping),
-    currentTypingTrimmedMap: toTemplateMap(currentTypingTrimmed),
-    currentTypingLastTokenMap: toTemplateMap(currentTypingLastToken),
-    pkgNameMap: toTemplateMap(pkgName),
-  };
+  const contextMap = buildAdvancedContextMap(contexts, currentTyping, pkgName);
+
+  const chatContexts = contexts.filter(
+    (context): context is ChatContext => context.type === "chat",
+  );
+  const chatContents = buildChatContents(chatContexts);
+  const typingInfo = new TypingInfo(chatContents, currentTyping, pkgName);
 
   const bodyTemplate = Mustache.render(
     settings.templates.bodyTemplate,
@@ -141,9 +89,9 @@ export async function generateWithAdvanced(
       ? assistantMessage.slice(currentTyping.length)
       : assistantMessage,
     assistantMessageAutoTrimCurrentTypingTrimmed: assistantMessage.startsWith(
-      currentTyping.slice(0, -1),
+      typingInfo.currentTypingTrimmed,
     )
-      ? assistantMessage.slice(currentTyping.slice(0, -1).length)
+      ? assistantMessage.slice(typingInfo.currentTypingTrimmed.length)
       : assistantMessage,
   };
 
