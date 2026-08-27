@@ -120,7 +120,7 @@ open class AppListener : AccessibilityService() {
     override fun onInterrupt() {
         setAccessibilityEnabled(false)
         overlay.removeOverlays()
-        sendReset()
+        clearSuggestionStorage()
     }
 
     private fun setAccessibilityEnabled(enabled: Boolean) {
@@ -141,7 +141,9 @@ open class AppListener : AccessibilityService() {
         }
 
         measureWindowFlow.tryEmit(true)
-        getMessagesFlow.tryEmit(root)
+        if (isSupportedApp) {
+            getMessagesFlow.tryEmit(root)
+        }
         // ** Removed: layout processing now handled in libcoreply
 
         // ** Handle overlay enable/disable based on collection mode and app support
@@ -166,6 +168,7 @@ open class AppListener : AccessibilityService() {
             inputWidget,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) inputMethod else null,
         )
+        overlayViewModel.refresh(RefreshType.TEXT_SIZE, false, pixelCalculator.spToPx(16f))
         if (refreshText) {
             overlayViewModel.refresh(RefreshType.CHAR_LOCATION, true)
         }
@@ -201,9 +204,10 @@ open class AppListener : AccessibilityService() {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             info.flags =
-                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INPUT_METHOD_EDITOR
+                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INPUT_METHOD_EDITOR or AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
         } else {
-            info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+            info.flags =
+                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
         }
         serviceInfo = info
     }
@@ -291,7 +295,7 @@ open class AppListener : AccessibilityService() {
         setAccessibilityEnabled(false)
         overlay.removeOverlays()
         overlayViewModel.disable()
-        sendReset()
+        clearSuggestionStorage()
         disableSelf()
     }
 
@@ -299,8 +303,8 @@ open class AppListener : AccessibilityService() {
         if (!::overlayViewModel.isInitialized) {
             return
         }
-        val suggestion =
-            suggestionStorage.getSuggestion(overlayViewModel.uiState.value.currentTyping)
+        val currentTyping = overlayViewModel.uiState.value.currentTyping ?: return
+        val suggestion = suggestionStorage.getSuggestion(currentTyping)
         if (suggestion != null) {
             overlayViewModel.updateSuggestion(suggestion)
         } else if (overlayViewModel.uiState.value.content.type != OverlayContentType.ERROR) {
@@ -389,10 +393,6 @@ open class AppListener : AccessibilityService() {
                     refreshSuggestionFromStorage()
                 }
 
-                "clearSuggestion" -> {
-                    clearSuggestionStorage()
-                }
-
                 "error" -> {
                     val payload = json.getJSONObject("payload")
                     overlayViewModel.updateSuggestionError(payload.optString("message"))
@@ -401,8 +401,21 @@ open class AppListener : AccessibilityService() {
                 "collectionModeUpdated" -> {
                     val payload = json.getJSONObject("payload")
                     collectionMode = payload.optString("collectionMode", "minimal")
+                    if (collectionMode == "minimal") {
+                        clearSuggestionStorage()
+                    }
                     // ** Update service info when collection mode changes
                     updateServiceInfoForCollectionMode()
+                    // Proactively enable the overlay when mode becomes active so we
+                    // don't wait for the next accessibility event to read the input field.
+                    if (collectionMode == "active") {
+                        val root = rootInActiveWindow
+                        if (root != null && root.packageName != null &&
+                            preferencesManager.selectedAppsState.value.contains(root.packageName)
+                        ) {
+                            enableOverlayForRoot(root, true)
+                        }
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -438,15 +451,8 @@ open class AppListener : AccessibilityService() {
         sendWrapperMessage(JSONObject().apply {
             put("type", "updateTyping")
             put("payload", JSONObject().apply {
-                put("currentTyping", uiState.currentTyping)
+                put("currentTyping", uiState.currentTyping ?: "")
             })
-        })
-    }
-
-    private fun sendReset() {
-        clearSuggestionStorage()
-        sendWrapperMessage(JSONObject().apply {
-            put("type", "reset")
         })
     }
 
@@ -457,7 +463,7 @@ open class AppListener : AccessibilityService() {
         }
         setAccessibilityEnabled(false)
         overlayViewModel.disable()
-        sendReset()
+        clearSuggestionStorage()
         serviceScope.cancel()
     }
 }

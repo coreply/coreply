@@ -35,11 +35,7 @@ if (coreplyBridgeObject) {
         },
       });
     },
-    onSuggestionCleared() {
-      postToNative({
-        type: "clearSuggestion",
-      });
-    },
+    onSuggestionCleared() {},
     onError(error) {
       postToNative({
         type: "error",
@@ -67,9 +63,6 @@ if (coreplyBridgeObject) {
           break;
         case "updateTyping":
           coreply.updateTyping(parsedData.payload.currentTyping);
-          break;
-        case "reset":
-          coreply.reset();
           break;
         // ** Added snapshotUpdated event handler to pass snapshots to libcoreply
         case "snapshotUpdated":

@@ -2,7 +2,7 @@ import debounce, { type DebouncedFunction } from "debounce";
 import jsonata from "jsonata";
 import Mustache from "mustache";
 import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
-import { type ChatMessage, ContextStore } from "./context";
+import { ContextStore } from "./context";
 import { profileGroups } from "./profile";
 import { requestSuggestions } from "./requests";
 import type { LibCoreplyListener } from "./listener";
@@ -20,7 +20,7 @@ export class Coreply {
     selectedApps: [],
   };
   private readonly store = new ContextStore();
-  private currentTyping = "";
+  private currentTyping: string | null = null;
   private readonly listener: LibCoreplyListener;
   private fetchSuggestionDebounced: DebouncedFunction<
     (typing: string, store: ContextStore) => void
@@ -62,6 +62,7 @@ export class Coreply {
 
   reset() {
     this.fetchSuggestionDebounced.clear();
+    this.currentTyping = null;
     this.store.clearAll();
     this.listener.onSuggestionCleared();
   }
@@ -88,77 +89,85 @@ export class Coreply {
     // Find matching profile groups
     const matchingGroups = profileGroups.filter((group) => {
       // Match rule against packageName or URL
-      return packageName.includes(group.rule);
+      return packageName === group.rule;
     });
 
-    // Process each matching profile
-    let collectionMode: "minimal" | "frequent" | "active" | null = null;
+    if (matchingGroups.length === 0) {
+      this.listener.onCollectionModeUpdated("minimal");
+      return;
+    }
+
+    const extractorPromises: Promise<boolean>[] = [];
+
     for (const group of matchingGroups) {
       for (const profile of group.profiles) {
-        // Run each extractor (JSONata expression) on the snapshot
         for (const jsonataExpr of profile.extractors) {
-          try {
-            // Run JSONata expression on snapshot to get context data
-            // The JSONata result should be ChatContextData or ScreenContextData
-            // ** Now using actual jsonata library to evaluate expressions
-            this.runJsonata(snapshot, jsonataExpr).then((contextData) => {
-              if (!contextData) {
-                return;
-              }
+          extractorPromises.push(
+            (async () => {
+              try {
+                const contextData = await this.runJsonata(snapshot, jsonataExpr);
+                const freq =
+                  contextData?.snapshotFrequency === "minimal" ||
+                  contextData?.snapshotFrequency === "frequent" ||
+                  contextData?.snapshotFrequency === "active"
+                    ? contextData.snapshotFrequency
+                    : "minimal";
 
-              // Extract collection mode from context data if present
-              if (contextData.snapshotFrequency) {
-                const freq = contextData.snapshotFrequency;
+                this.listener.onCollectionModeUpdated(freq);
+                console.log(freq);
+
+                if (!contextData) {
+                  return false;
+                }
+
+                let context;
                 if (
-                  freq === "minimal" ||
-                  freq === "frequent" ||
-                  freq === "active"
+                  profile.platform === "android" ||
+                  profile.platform === "web"
                 ) {
-                  collectionMode = freq;
-                  this.listener.onCollectionModeUpdated(freq);
-                  // ** Collection mode is sent to native via onCollectionModeUpdated at line 168
+                  if (contextData.type === "chat") {
+                    context = new ChatContextImpl(
+                      profile.id,
+                      contextData,
+                      contextData.label,
+                    );
+                  } else if (contextData.type === "screen") {
+                    context = new ScreenContextImpl(
+                      profile.id,
+                      contextData,
+                      contextData.label,
+                    );
+                  }
                 }
-              }
 
-              // Create context based on type
-              let context;
-              if (
-                profile.platform === "android" ||
-                profile.platform === "web"
-              ) {
-                // Determine context type from data or profile
-                // Check type directly instead of using helper function
-                if (contextData.type === "chat") {
-                  context = new ChatContextImpl(
-                    profile.id,
-                    contextData,
-                    contextData.label,
-                  );
-                } else if (contextData.type === "screen") {
-                  context = new ScreenContextImpl(
-                    profile.id,
-                    contextData,
-                    contextData.label,
-                  );
+                if (context) {
+                  this.store.addContext(context);
                 }
-              }
 
-              // Add to context store if context was created
-              if (context) {
-                // Pass the context data to addContext (which will call tryUpdate internally)
-                this.store.addContext(context);
+                if (freq === "active") {
+                  this.emitSuggestion();
+                }
+
+                return true;
+              } catch (error) {
+                console.error(
+                  `Error processing extractor for profile ${profile.id}:`,
+                  JSON.stringify(error),
+                );
+                return false;
               }
-              console.log(collectionMode);
-            });
-          } catch (error) {
-            console.error(
-              `Error processing extractor for profile ${profile.id}:`,
-              JSON.stringify(error),
-            );
-          }
+            })(),
+          );
         }
       }
     }
+
+    void Promise.all(extractorPromises).then((results) => {
+      const hasContext = results.some((foundContext) => foundContext);
+      if (!hasContext) {
+        this.listener.onCollectionModeUpdated("minimal");
+      }
+    });
   }
 
   // ** Implemented runJsonata using the jsonata library
@@ -185,15 +194,16 @@ export class Coreply {
   // ** Removed isChatContextData helper - now checking type directly
 
   private emitSuggestion() {
-    if (!this.shouldSuggestForCurrentTyping(this.currentTyping, this.store)) {
+    const currentTyping = this.currentTyping ?? "";
+    if (!this.shouldSuggestForCurrentTyping(currentTyping, this.store)) {
       return;
     }
-    const cached = this.store.getSuggestion(this.currentTyping);
+    const cached = this.store.getSuggestion(currentTyping);
     if (cached !== null) {
-      this.listener.onSuggestionUpdated(`${this.currentTyping}${cached}`);
+      this.listener.onSuggestionUpdated(`${currentTyping}${cached}`);
       return;
     }
-    this.fetchSuggestionDebounced(this.currentTyping, this.store);
+    this.fetchSuggestionDebounced(currentTyping, this.store);
   }
 
   private shouldSuggestForCurrentTyping(

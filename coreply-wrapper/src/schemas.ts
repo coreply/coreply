@@ -12,9 +12,6 @@ export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
       currentTyping: z.string(),
     }),
   }),
-  z.object({
-    type: z.literal("reset"),
-  }),
   // ** Added snapshotUpdated message type for handling snapshots from native
   z.object({
     type: z.literal("snapshotUpdated"),
@@ -33,9 +30,6 @@ export const wrapperOutboundMessageSchema = z.discriminatedUnion("type", [
     payload: z.object({
       fullSuggestion: z.string(),
     }),
-  }),
-  z.object({
-    type: z.literal("clearSuggestion"),
   }),
   z.object({
     type: z.literal("error"),
