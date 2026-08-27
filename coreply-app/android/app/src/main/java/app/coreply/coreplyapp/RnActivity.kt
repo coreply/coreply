@@ -19,6 +19,7 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 import expo.modules.brownfield.BrownfieldMessaging
 import expo.modules.brownfield.BrownfieldState
+import expo.modules.splashscreen.SplashScreenManager
 
 class RnActivity : ReactActivity(){
     private lateinit var brownfieldListenerId: String
@@ -30,6 +31,8 @@ class RnActivity : ReactActivity(){
         // This is required for expo-splash-screen.
         setTheme(R.style.AppThemeNoActionBar);
         enableEdgeToEdge()
+
+        SplashScreenManager.registerOnActivity(this)
         BrownfieldState.getOrCreate("accessibilityEnabled")
         BrownfieldState.set("accessibilityEnabled", AccessibilityStatus.isAccessibilityEnabled(this))
         

@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as SplashScreen from "expo-splash-screen";
 
 import {
   ProviderSelector,
@@ -221,6 +222,12 @@ export default function SettingsScreen() {
   } = usePersistedSettings();
 
   useEffect(() => {
+    if (isLoaded && fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoaded, fontsLoaded]);
+
+  useEffect(() => {
     if (Platform.OS !== "web") {
       return;
     }
@@ -296,7 +303,7 @@ export default function SettingsScreen() {
                 <View>
                   <View className="bg-background font-display py-3 px-3 border-border border-b flex-row items-center">
                     <Image
-                      source={require("@/assets/images/android-icon-foreground.png")}
+                      source={require("@/assets/images/coreply-icon-foreground.png")}
                       contentFit="contain"
                       style={{
                         width: 36,
