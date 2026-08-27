@@ -2,40 +2,26 @@
   "expo": {
     "name": "coreply-app",
     "slug": "coreply-app",
-    "version": "1.0.0",
+    "version": "3.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/coreply-icon-foreground.png",
     "scheme": "coreplyapp",
     "userInterfaceStyle": "automatic",
-    "ios": {
-      "icon": "./assets/expo.icon"
-    },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#F8F7F7",
+        "foregroundImage": "./assets/images/coreply-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/favicon.png",
+      "favicon": "./assets/images/coreply-icon-foreground.png",
       "bundler": "metro"
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#208AEF",
-          "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
-          }
-        }
-      ],
+      "expo-splash-screen",
       [
         "expo-font",
         {

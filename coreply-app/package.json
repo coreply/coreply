@@ -1,7 +1,7 @@
 {
   "name": "coreply-app",
   "main": "src/entry.tsx",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "dependencies": {
     "@expo-google-fonts/outfit": "^0.4.3",
     "@expo/ui": "~56.0.15",
@@ -9,7 +9,7 @@
     "@jsonforms/react": "^3.7.0",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/slider": "^5.2.0",
-    "@rn-primitives/portal": "^1.4.0",
+    "@rn-primitives/portal": "^1.5.3",
     "@wxt-dev/storage": "^1.2.8",
     "chrome-types": "^0.1.431",
     "clsx": "^2.1.1",
@@ -56,7 +56,6 @@
   },
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

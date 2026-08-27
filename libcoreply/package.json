@@ -1,18 +1,21 @@
 {
 	"name": "libcoreply",
-	"version": "0.0.0",
+	"version": "3.0.0",
 	"private": true,
 	"type": "module",
 	"main": "./src/index.ts",
 	"types": "./src/index.ts",
 	"scripts": {
 		"build": "tsc -p tsconfig.json",
-		"typecheck": "tsc -p tsconfig.json"
+		"typecheck": "tsc -p tsconfig.json",
+		"test": "vitest"
 	},
 	"dependencies": {
 		"@ai-sdk/azure": "^4.0.10",
+		"@ai-sdk/google": "^4.0.50",
 		"@ai-sdk/google-vertex": "^5.0.14",
 		"@ai-sdk/groq": "^3.0.52",
+		"@ai-sdk/minimax": "^3.0.17",
 		"@ai-sdk/mistral": "^4.0.29",
 		"@ai-sdk/openai": "^4.0.10",
 		"@ai-sdk/openai-compatible": "^3.0.7",
@@ -27,6 +30,7 @@
 	"devDependencies": {
 		"@types/mustache": "^4.2.6",
 		"ts-to-zod": "^5.1.0",
-		"typescript": "~6.0.3"
+		"typescript": "~6.0.3",
+		"vitest": "^4.1.11"
 	}
 }
