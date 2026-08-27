@@ -31,7 +31,11 @@ export function buildChatPrompt(chatData: ChatContextData): string {
   return messages.join("");
 }
 
-export function buildScreenPrompt(screenData: ScreenContextData): string {
+export function buildScreenPrompt(
+  screenData: ScreenContextData,
+  indent: number = 0,
+  isRoot: boolean = true,
+): string {
   const text = screenData.text;
   const children = screenData.children;
 
@@ -40,14 +44,23 @@ export function buildScreenPrompt(screenData: ScreenContextData): string {
   }
 
   const parts: string[] = [];
+  const currentIndent = "  ".repeat(indent);
 
-  if (text) {
-    parts.push(`Screen content:\n${text}\n`);
+  if (isRoot) {
+    parts.push("Text on a screen\n");
+  }
+
+  if (text && text.trim()) {
+    parts.push(`${currentIndent}${text}\n`);
   }
 
   if (children && children.length > 0) {
     for (const child of children) {
-      const childText = buildScreenPrompt(child);
+      const childText = buildScreenPrompt(
+        child,
+        text ? indent + 1 : indent,
+        false,
+      );
       if (childText) {
         parts.push(childText);
       }
