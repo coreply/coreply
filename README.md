@@ -4,7 +4,8 @@
 [![Discord](https://img.shields.io/discord/1367457809742172192?logo=discord&color=violet)](https://discord.gg/zCsQKmTFTk)
 [![Telegram](https://img.shields.io/badge/telegram-group-blue?logo=telegram&link=https://t.me/coreplyappgroup)](https://t.me/coreplyappgroup)
 
-![Coreply banner](./docs/static/narrowbanner.png)
+<img src="./docs/static/coreply_new.webp" alt="Coreply banner" style="height: 50px; width: auto; display: block; margin: 15px 0;"/>
+
 **Coreply** is an open-source Android app providing texting suggestions while you type. It enhances
 your typing experience with intelligent, context-aware suggestions.
 
