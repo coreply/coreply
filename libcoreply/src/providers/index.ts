@@ -1,6 +1,8 @@
 import { createAzure } from "@ai-sdk/azure";
+import { createGoogle } from "@ai-sdk/google";
 import { createGoogleVertex } from "@ai-sdk/google-vertex/edge";
 import { createGroq } from "@ai-sdk/groq";
+import { createMiniMax } from "@ai-sdk/minimax";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
@@ -280,6 +282,40 @@ export const providerDefinitions = {
     },
     requestFunc: generateWithAIProvider,
   },
+  fim: {
+    name: "Mistral FIM",
+    factoryFunc: null,
+    settingsSchema: z.object({
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("API key for the FIM provider")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .describe("Base URL of the Fill-in-the-Middle API endpoint"),
+      }),
+      request: z.object({
+        model: z
+          .string()
+          .describe("Model ID to use for fill-in-the-middle generation"),
+        temperature: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe("Controls randomness for fill-in-the-middle generation"),
+      }),
+    }),
+    settingsDefaults: {
+      provider: {},
+      request: {
+        model: "codestral-latest",
+        temperature: 1.0,
+      },
+    },
+    requestFunc: generateWithFIM,
+  },
   mistral: {
     name: "Mistral",
     factoryFunc: createMistral,
@@ -391,6 +427,65 @@ export const providerDefinitions = {
     },
     requestFunc: generateWithAIProvider,
   },
+  google: {
+    name: "Google (Gemini API)",
+    factoryFunc: createGoogle,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("Google AI API key")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Custom Google AI API base URL (optional)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(
+        'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"google": {...}}',
+      ),
+    }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions:
+        '{"google": {"thinkingConfig": {"thinkingBudget": 0, "thinkingLevel": "minimal"}}}',
+    },
+    requestFunc: generateWithAIProvider,
+  },
+  minimax: {
+    name: "MiniMax",
+    factoryFunc: createMiniMax,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("MiniMax API key")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Custom MiniMax API base URL (optional)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(
+        'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"minimax": {...}}',
+      ),
+    }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions: '{"minimax": {"thinking": {"type": "disabled"}}}',
+    },
+    requestFunc: generateWithAIProvider,
+  },
   gateway: {
     name: "Vercel AI Gateway",
     factoryFunc: createGateway,
@@ -423,40 +518,6 @@ export const providerDefinitions = {
       providerOptions: undefined,
     },
     requestFunc: generateWithAIProvider,
-  },
-  fim: {
-    name: "Mistral FIM",
-    factoryFunc: null,
-    settingsSchema: z.object({
-      provider: z.object({
-        apiKey: z
-          .string()
-          .describe("API key for the FIM provider")
-          .meta({ feature: "password" }),
-        baseURL: z
-          .httpUrl()
-          .describe("Base URL of the Fill-in-the-Middle API endpoint"),
-      }),
-      request: z.object({
-        model: z
-          .string()
-          .describe("Model ID to use for fill-in-the-middle generation"),
-        temperature: z
-          .number()
-          .min(0)
-          .max(1)
-          .optional()
-          .describe("Controls randomness for fill-in-the-middle generation"),
-      }),
-    }),
-    settingsDefaults: {
-      provider: {},
-      request: {
-        model: "codestral-latest",
-        temperature: 1.0,
-      },
-    },
-    requestFunc: generateWithFIM,
   },
   advanced: {
     name: "Advanced Mode",
