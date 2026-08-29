@@ -334,7 +334,6 @@ class Overlay(
 
                 // Update background and positioning based on status
                 val showBubbleBackground = uiState.showBubbleBackground
-                viewModel.updateBackgroundVisibility(showBubbleBackground)
 
                 val inlineText = getInlineText()
                 val bubbleText = getBubbleText()

@@ -44,7 +44,6 @@ import app.coreply.coreplyapp.suggestions.SuggestionStorage
 import app.coreply.coreplyapp.ui.Overlay
 import app.coreply.coreplyapp.ui.OverlayContentType
 import app.coreply.coreplyapp.ui.viewmodel.OverlayViewModel
-import app.coreply.coreplyapp.ui.viewmodel.RefreshType
 import app.coreply.coreplyapp.utils.PixelCalculator
 import app.coreply.coreplymodule.CoreplyDisableRequests
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +56,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import org.json.JSONObject
 import expo.modules.brownfield.BrownfieldMessaging
 import expo.modules.brownfield.BrownfieldState
@@ -88,7 +86,7 @@ open class AppListener : AccessibilityService() {
     private lateinit var webView: WebView
     private val suggestionStorage = SuggestionStorage()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val measureWindowFlow = MutableSharedFlow<Boolean>(
+    private val measureWindowFlow = MutableSharedFlow<Unit>(
         replay = 0,
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -104,9 +102,17 @@ open class AppListener : AccessibilityService() {
     // ** Added collectionMode field with default value "minimal"
     private var collectionMode: String = "minimal"
 
-    private lateinit var brownfieldListenerId: String;
+    private lateinit var brownfieldListenerId: String
+
+    private fun describeNode(node: AccessibilityNodeInfo?): String {
+        if (node == null) {
+            return "null"
+        }
+        return "pkg=${node.packageName}, class=${node.className}, viewId=${node.viewIdResourceName}, text=${node.text}, focused=${node.isFocused}, editable=${node.isEditable}, showingHint=${node.isShowingHintText}"
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        Log.v("CoWA", "there is an accessibility event: $event")
         if (event?.packageName?.startsWith("app.coreply") == true) {
             return
         }
@@ -114,6 +120,7 @@ open class AppListener : AccessibilityService() {
             return
         }
         val root = rootInActiveWindow ?: return
+
         refreshOverlay(root)
     }
 
@@ -129,51 +136,26 @@ open class AppListener : AccessibilityService() {
     }
 
     private fun refreshOverlay(root: AccessibilityNodeInfo): Boolean {
-        // ** New architecture: AppListener role is just to send snapshots
-        // No longer needs onscreenprocessor, decide package name based on root node, no need to find focus
         val rootPackageName = root.packageName
         val isSupportedApp = rootPackageName != null &&
                 preferencesManager.selectedAppsState.value.contains(rootPackageName)
 
-        overlayViewModel.refresh(RefreshType.NORMAL, false)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            overlayViewModel.updateInputMethod(inputMethod)
-        }
+        Log.v(
+            LOG_TAG,
+            "refreshOverlay: rootPackage=$rootPackageName, isSupportedApp=$isSupportedApp, collectionMode=$collectionMode, isRunning=${overlayViewModel.uiState.value.isRunning}"
+        )
 
-        measureWindowFlow.tryEmit(true)
         if (isSupportedApp) {
             getMessagesFlow.tryEmit(root)
-        }
-        // ** Removed: layout processing now handled in libcoreply
-
-        // ** Handle overlay enable/disable based on collection mode and app support
-        // ** Removed broken inputWidget enable logic - now finds input from root node
-        // ** Overlay is disabled when app not supported or collectionMode is minimal/frequent
-        if ((!isSupportedApp || collectionMode == "minimal" || collectionMode == "frequent") &&
-            overlayViewModel.uiState.value.isRunning
-        ) {
+            if (collectionMode == "active") {
+                measureWindowFlow.tryEmit(Unit)
+            }
+        } else if (overlayViewModel.uiState.value.isRunning) {
             overlayViewModel.disable()
-        } else if (isSupportedApp && collectionMode == "active" &&
-            (!overlayViewModel.uiState.value.isRunning || overlayViewModel.uiState.value.currentInput == null)
-        ) {
-            enableOverlayForRoot(root, true)
         }
 
         return isSupportedApp
     }
-
-    private fun enableOverlayForRoot(root: AccessibilityNodeInfo, refreshText: Boolean) {
-        val inputWidget = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) ?: return
-        overlayViewModel.enable(
-            inputWidget,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) inputMethod else null,
-        )
-        overlayViewModel.refresh(RefreshType.TEXT_SIZE, false, pixelCalculator.spToPx(16f))
-        if (refreshText) {
-            overlayViewModel.refresh(RefreshType.CHAR_LOCATION, true)
-        }
-    }
-
 
     private fun updateServiceInfoForCollectionMode() {
         Log.d(LOG_TAG, "Updating service info for collection mode: $collectionMode")
@@ -323,7 +305,9 @@ open class AppListener : AccessibilityService() {
         serviceScope.launch {
             measureWindowFlow.collect {
                 try {
-                    overlayViewModel.refresh(RefreshType.CHAR_LOCATION, true)
+                    val root = rootInActiveWindow
+                    val im = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) inputMethod else null
+                    overlayViewModel.refresh(root, pixelCalculator.spToPx(16f), im)
                 } catch (e: Exception) {
                     Log.e("CoWA", "Error in measureWindow background operation", e)
                 }
@@ -401,19 +385,16 @@ open class AppListener : AccessibilityService() {
                 "collectionModeUpdated" -> {
                     val payload = json.getJSONObject("payload")
                     collectionMode = payload.optString("collectionMode", "minimal")
+                    Log.d(LOG_TAG, "Wrapper updated collectionMode to $collectionMode")
                     if (collectionMode == "minimal") {
                         clearSuggestionStorage()
                     }
-                    // ** Update service info when collection mode changes
                     updateServiceInfoForCollectionMode()
-                    // Proactively enable the overlay when mode becomes active so we
-                    // don't wait for the next accessibility event to read the input field.
                     if (collectionMode == "active") {
-                        val root = rootInActiveWindow
-                        if (root != null && root.packageName != null &&
-                            preferencesManager.selectedAppsState.value.contains(root.packageName)
-                        ) {
-                            enableOverlayForRoot(root, true)
+                        measureWindowFlow.tryEmit(Unit)
+                    } else {
+                        if (overlayViewModel.uiState.value.isRunning) {
+                            overlayViewModel.disable()
                         }
                     }
                 }
@@ -448,6 +429,14 @@ open class AppListener : AccessibilityService() {
     private fun sendTypingUpdate() {
         val uiState = overlayViewModel.uiState.value
         refreshSuggestionFromStorage()
+        Log.v(
+            LOG_TAG,
+            "sendTypingUpdate: currentTyping=${uiState.currentTyping}, currentStatus=${uiState.currentStatus}, currentInput=${
+                describeNode(
+                    uiState.currentInput
+                )
+            }"
+        )
         sendWrapperMessage(JSONObject().apply {
             put("type", "updateTyping")
             put("payload", JSONObject().apply {

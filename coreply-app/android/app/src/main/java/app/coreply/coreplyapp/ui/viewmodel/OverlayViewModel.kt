@@ -28,22 +28,14 @@ import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.lifecycle.ViewModel
 import app.coreply.coreplyapp.applistener.AppSupportStatus
-import app.coreply.coreplyapp.applistener.SupportedAppProperty
 import app.coreply.coreplyapp.ui.OverlayContent
 import app.coreply.coreplyapp.ui.OverlayContentType
-import app.coreply.coreplyapp.utils.ChatMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.math.abs
 import kotlin.math.max
-
-enum class RefreshType {
-    NORMAL,
-    CHAR_LOCATION,
-    TEXT_SIZE,
-}
 
 data class OverlayUiState(
     val inlineTextSize: Float = 48f,
@@ -52,26 +44,16 @@ data class OverlayUiState(
     val content: OverlayContent = OverlayContent.Empty,
     val rect: Rect? = null,
     val chatEntryWidth: Int = 0,
-    // ** Focused on input widget as per new architecture
-    var currentInput: AccessibilityNodeInfo? = null,
-    // ** Removed currentMessageListNode and messageListProcessor as they are no longer needed
-    var currentStatus: AppSupportStatus = AppSupportStatus.UNKNOWN,
-    var currentTyping: String? = null,
-    var currentInputMethod: InputMethod? = null,
+    val currentInput: AccessibilityNodeInfo? = null,
+    val currentStatus: AppSupportStatus = AppSupportStatus.UNKNOWN,
+    val currentTyping: String? = null,
+    val currentInputMethod: InputMethod? = null,
 )
 
 class OverlayViewModel : ViewModel() {
     private var _uiState = MutableStateFlow(OverlayUiState())
     val uiState: StateFlow<OverlayUiState> = _uiState.asStateFlow()
     var onTypingUpdated: (() -> Unit)? = null
-
-    fun updateTextSize(textSize: Float) {
-        _uiState.update { state -> state.copy(inlineTextSize = textSize) }
-    }
-
-    fun updateBackgroundVisibility(showBackground: Boolean) {
-        _uiState.update { state -> state.copy(showBubbleBackground = showBackground) }
-    }
 
     fun updateContent(content: OverlayContent) {
         if (content.type == OverlayContentType.ERROR) {
@@ -108,124 +90,146 @@ class OverlayViewModel : ViewModel() {
         }
     }
 
-    fun updateRect(rect: Rect) {
-        _uiState.update { state ->
-            state.copy(
-                rect = rect,
-                chatEntryWidth = rect.right - rect.left,
-            )
-        }
-    }
-
-    fun enable(
-        currentInput: AccessibilityNodeInfo,
-        currentInputMethod: InputMethod?,
-    ) {
-        // ** Focused on input widget as per new architecture
-        // Removed messageListProcessor and currentMessageListNode as they are no longer needed
-        _uiState.update { state ->
-            state.copy(
-                isRunning = true,
-                currentInput = currentInput,
-                currentInputMethod = currentInputMethod,
-                currentTyping = null,
-            )
-        }
-    }
-
-    fun updateInputMethod(inputMethod: InputMethod?) {
-        _uiState.update { state -> state.copy(currentInputMethod = null) }
-        _uiState.update { state -> state.copy(currentInputMethod = inputMethod) }
-    }
-
     fun disable() {
         _uiState.value.currentInput?.recycle()
         _uiState.update { state ->
             state.copy(
-                currentTyping = null,
-                isRunning = false,
-                content = OverlayContent.Empty,
                 currentInput = null,
                 currentInputMethod = null,
+                currentTyping = null,
                 currentStatus = AppSupportStatus.UNKNOWN,
+                isRunning = false,
+                content = OverlayContent.Empty,
             )
         }
     }
 
-    fun refresh(refreshType: RefreshType, refreshText: Boolean, defaultTextSizeInPx: Float = 0.0f): Boolean {
+    fun refresh(
+        root: AccessibilityNodeInfo?,
+        defaultTextSizeInPx: Float,
+        inputMethod: InputMethod?,
+    ): Boolean {
         synchronized(this) {
             return try {
-                when (refreshType) {
-                    RefreshType.NORMAL -> refreshInputNode(refreshText)
-                    RefreshType.CHAR_LOCATION -> refreshInputNodeWithCharLocation(refreshText)
-                    RefreshType.TEXT_SIZE -> {
-                        refreshInputNodeWithTextSize(defaultTextSizeInPx)
-                        true
+                val prevTyping = _uiState.value.currentTyping
+                var input = _uiState.value.currentInput
+                var textSize = _uiState.value.inlineTextSize
+                var isNewInput = false
+
+                // Step 1: Try existing node via char-location extra data
+                var charResult: Pair<Rect, AppSupportStatus>? = null
+                if (input != null && input.refresh() && input.isFocused) {
+                    charResult = fetchCharLocation(input)
+                    if (charResult == null) {
+                        input.recycle()
+                        input = null
+                    } else if (isTelegramOrPerplexityNonEditText(input)) {
+                        input.recycle()
+                        input = null
+                        charResult = null
                     }
+                } else if (input != null) {
+                    input.recycle()
+                    input = null
                 }
+
+                // Step 2: Find new node if needed
+                if (input == null) {
+                    input = root?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+                    if (input == null) {
+                        disable()
+                        return false
+                    }
+                    isNewInput = true
+                    textSize = fetchTextSize(input, defaultTextSizeInPx)
+                    charResult = fetchCharLocation(input)
+                }
+
+                // Step 3: Compute everything into locals
+                val (rect, status) = charResult ?: run {
+                    val bounds = Rect()
+                    input.getBoundsInScreen(bounds)
+                    bounds.left += (bounds.width() * 0.25).toInt()
+                    bounds.right -= (bounds.width() * 0.25).toInt()
+                    Pair(bounds, AppSupportStatus.HINT_TEXT)
+                }
+
+                val adjustedRect = adjustRectForApp(input, rect)
+                val typing = extractTyping(input, status)
+                val showBubble = status == AppSupportStatus.HINT_TEXT
+
+                // Step 4: ONE state update
+                _uiState.update { state ->
+                    state.copy(
+                        currentInput = input,
+                        isRunning = true,
+                        currentInputMethod = inputMethod,
+                        inlineTextSize = textSize,
+                        rect = adjustedRect,
+                        chatEntryWidth = adjustedRect.right - adjustedRect.left,
+                        currentStatus = status,
+                        currentTyping = typing,
+                        showBubbleBackground = showBubble,
+                    )
+                }
+
+                // Step 5: Side effects outside state update
+                if (typing != prevTyping) {
+                    onTypingUpdated?.invoke()
+                }
+
+                Log.v(
+                    "CoWA",
+                    "refresh: isNewInput=$isNewInput, status=$status, typing='$typing', rect=$adjustedRect, textSize=$textSize, input=${describeCurrentInput()}"
+                )
+
+                return true
             } catch (e: IllegalStateException) {
                 e.printStackTrace()
-                false
+                disable()
+                return false
             }
         }
     }
 
-    private fun refreshInputNode(refreshText: Boolean = false): Boolean {
-        var refreshResult = _uiState.value.currentInput?.refresh() ?: false
-        Log.v(
-            "OverlayViewModel",
-            "refreshInputNode: refresh result = $refreshResult for app ${_uiState.value.currentInput?.packageName}"
+    private fun fetchTextSize(input: AccessibilityNodeInfo, fallback: Float): Float {
+        if (Build.VERSION.SDK_INT < 30) return fallback
+        val refreshResult = input.refreshWithExtraData(
+            AccessibilityNodeInfo.EXTRA_DATA_RENDERING_INFO_KEY,
+            Bundle(),
         )
-        if ((_uiState.value.currentInput?.packageName?.contains("telegram") == true || _uiState.value.currentInput?.packageName?.contains(
-                "perplexity"
-            ) == true) && !(_uiState.value.currentInput?.className?.contains("EditText") == true)
-        ) {
-            refreshResult = false
-        }
-        if (!refreshResult) {
-            reset()
-        } else if (refreshText) {
-            refreshText()
-        }
-        return refreshResult
+        if (!refreshResult || input.extraRenderingInfo == null) return fallback
+        return input.extraRenderingInfo!!.textSizeInPx
     }
 
-    private fun refreshInputNodeWithCharLocation(refreshText: Boolean = true): Boolean {
+    private fun fetchCharLocation(input: AccessibilityNodeInfo): Pair<Rect, AppSupportStatus>? {
         val rect = Rect()
+        val textLength = input.text?.length ?: 0
         val arguments = Bundle().apply {
             putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0)
-            putInt(
-                AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
-                _uiState.value.currentInput?.text?.length ?: 0,
-            )
+            putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH, textLength)
         }
-
-        val refreshResult = _uiState.value.currentInput?.refreshWithExtraData(
+        val refreshResult = input.refreshWithExtraData(
             AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
             arguments,
-        ) ?: false
-
-        if (!refreshResult) {
-            reset()
-            return false
-        }
+        )
+        if (!refreshResult) return null
 
         val rectArray: Array<RectF?>? = if (Build.VERSION.SDK_INT >= 33) {
-            uiState.value.currentInput?.extras?.getParcelableArray(
+            input.extras?.getParcelableArray(
                 AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
                 RectF::class.java,
             )
         } else {
             @Suppress("DEPRECATION")
-            uiState.value.currentInput?.extras?.getParcelableArray(
+            input.extras?.getParcelableArray(
                 AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
             )?.mapNotNull { it as? RectF }?.toTypedArray()
         }
 
-        uiState.value.currentInput?.getBoundsInScreen(rect)
-        val status: AppSupportStatus
+        input.getBoundsInScreen(rect)
+
         if (rectArray != null && rectArray.any { it != null }) {
-            status = AppSupportStatus.TYPING
             var rtl = false
             for (rectF in rectArray) {
                 if (rectF != null) {
@@ -250,88 +254,47 @@ class OverlayViewModel : ViewModel() {
                     break
                 }
             }
+            return Pair(rect, AppSupportStatus.TYPING)
         } else {
             rect.left += (rect.width() * 0.25).toInt()
             rect.right -= (rect.width() * 0.25).toInt()
-            status = AppSupportStatus.HINT_TEXT
-        }
-
-        if (uiState.value.currentInput?.packageName == "com.openai.chatgpt") {
-            if (uiState.value.currentInput?.text?.isNotEmpty() == true) {
-                val child = uiState.value.currentInput?.getChild(0)
-                val childRect = Rect()
-                val inputRect = Rect()
-
-                child?.getBoundsInScreen(childRect)
-                uiState.value.currentInput?.getBoundsInScreen(inputRect)
-                val offsetX = childRect.left - inputRect.left
-                rect.left += offsetX
-                rect.right = max(rect.right - offsetX * 3, rect.left + 1)
-            } else {
-                rect.right -= (rect.width() * 0.25).toInt()
-            }
-        }
-
-        updateStatus(status)
-        updateRect(rect)
-        if (refreshText) {
-            refreshText()
-        }
-        return true
-    }
-
-    private fun refreshInputNodeWithTextSize(defaultTextSizeInPx: Float) {
-        if (Build.VERSION.SDK_INT >= 30) {
-            val refreshResult = (_uiState.value.currentInput?.refreshWithExtraData(
-                AccessibilityNodeInfo.EXTRA_DATA_RENDERING_INFO_KEY,
-                Bundle(),
-            ) ?: false) && _uiState.value.currentInput?.extraRenderingInfo != null
-
-            if (!refreshResult && _uiState.value.currentInput?.packageName != "com.openai.chatgpt" && _uiState.value.currentInput?.packageName != "ai.perplexity.app.android") {
-                reset()
-            } else {
-                updateTextSize(_uiState.value.currentInput?.extraRenderingInfo?.textSizeInPx ?: defaultTextSizeInPx)
-            }
-        } else {
-            updateTextSize(defaultTextSizeInPx)
+            return Pair(rect, AppSupportStatus.HINT_TEXT)
         }
     }
 
-
-    fun updateStatus(newStatus: AppSupportStatus, refreshText: Boolean = true) {
-        _uiState.update { state -> state.copy(currentStatus = newStatus) }
-        if (refreshText) {
-            refreshText()
+    private fun adjustRectForApp(input: AccessibilityNodeInfo, rect: Rect): Rect {
+        if (input.packageName != "com.openai.chatgpt") return rect
+        if (input.text?.isNotEmpty() != true) {
+            rect.right -= (rect.width() * 0.25).toInt()
+            return rect
         }
+        val child = input.getChild(0)
+        val childRect = Rect()
+        val inputRect = Rect()
+        child?.getBoundsInScreen(childRect)
+        input.getBoundsInScreen(inputRect)
+        val offsetX = childRect.left - inputRect.left
+        rect.left += offsetX
+        rect.right = max(rect.right - offsetX * 3, rect.left + 1)
+        return rect
     }
 
-    fun refreshText() {
-        var actualMessage = _uiState.value.currentInput?.text?.toString()?.replace("Compose Message", "") ?: ""
-        Log.v(
-            "CoWA",
-            "refreshText: actualMessage = $actualMessage, currentTyping = ${_uiState.value.currentTyping}, currentStatus = ${_uiState.value.currentStatus}, isShowingHintText = ${_uiState.value.currentInput?.isShowingHintText}"
-        )
-        if (_uiState.value.currentStatus == AppSupportStatus.HINT_TEXT || _uiState.value.currentInput?.isShowingHintText != false) {
-            actualMessage = ""
+    private fun extractTyping(input: AccessibilityNodeInfo, status: AppSupportStatus): String {
+        if (status == AppSupportStatus.HINT_TEXT || input.isShowingHintText == true) {
+            return ""
         }
-        if (actualMessage != _uiState.value.currentTyping) {
-            _uiState.update { state -> state.copy(currentTyping = actualMessage) }
-            onTypingUpdated?.invoke()
-        }
+        return input.text?.toString()?.replace("Compose Message", "") ?: ""
     }
 
-    fun reset() {
-        _uiState.value.currentInput?.recycle()
-        //_uiState.value.currentMessageListNode?.recycle()
-        _uiState.update { state ->
-            state.copy(
-                currentInput = null,
-                currentInputMethod = null,
-                currentTyping = null,
-                currentStatus = AppSupportStatus.UNKNOWN,
-                isRunning = false,
-                content = OverlayContent.Empty,
-            )
-        }
+    private fun isTelegramOrPerplexityNonEditText(input: AccessibilityNodeInfo): Boolean {
+        val pkg = input.packageName ?: return false
+        val cls = input.className ?: return false
+        return (pkg.contains("telegram") || pkg.contains("perplexity")) &&
+                !cls.contains("EditText")
+    }
+
+    private fun describeCurrentInput(): String {
+        val input = _uiState.value.currentInput ?: return "null"
+        return "pkg=${input.packageName}, class=${input.className}, viewId=${input.viewIdResourceName}, text=${input.text}, focused=${input.isFocused}, editable=${input.isEditable}, showingHint=${input.isShowingHintText}"
     }
 }
