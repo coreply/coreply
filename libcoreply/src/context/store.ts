@@ -1,6 +1,5 @@
 import type { CoreplyContext } from ".";
 import type { DropRule } from "../profile";
-import { profileGroups } from "../profile";
 
 /**
  * Central store that manages contexts
@@ -50,12 +49,8 @@ export class ContextStore {
       this.contexts.push(context);
     }
 
-    // ** Implemented drop rule logic
-    // Apply drop rule based on the current profile's drop rule
-    const dropRule = this.getDropRuleForProfile(context.profileId);
-    if (dropRule) {
-      this.applyDropRule(dropRule, context.profileId);
-    }
+    // Apply drop rule from the context's own profile
+    this.applyDropRule(context.dropRule, context.profileId);
   }
 
   getContexts(): CoreplyContext[] {
@@ -70,18 +65,6 @@ export class ContextStore {
     for (const context of this.contexts) {
       context.clearSuggestions();
     }
-  }
-
-  // ** Helper method to get drop rule for a profile
-  private getDropRuleForProfile(profileId: string): DropRule | null {
-    for (const group of profileGroups) {
-      for (const profile of group.profiles) {
-        if (profile.id === profileId) {
-          return profile.dropRule;
-        }
-      }
-    }
-    return null;
   }
 
   // ** Helper method to apply drop rule

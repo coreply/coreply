@@ -14,6 +14,7 @@ Two types of context have two different additional fields:
 */
 
 import type { BaseContext } from "./base";
+import type { DropRule } from "../profile";
 import { SuggestionStorage } from "./suggestion";
 
 export interface ChatTurn {
@@ -179,12 +180,14 @@ function rebuildTurns(msgs: MessageWithSender[]): ChatTurn[] {
 export class ChatContextImpl implements ChatContext {
   type: "chat" = "chat";
   profileId: string;
+  dropRule: DropRule;
   label?: string;
   data: ChatContextData;
   private readonly suggestionStorage = new SuggestionStorage();
 
-  constructor(profileId: string, data: ChatContextData, label?: string) {
+  constructor(profileId: string, dropRule: DropRule, data: ChatContextData, label?: string) {
     this.profileId = profileId;
+    this.dropRule = dropRule;
     this.label = label;
     this.data = data;
   }

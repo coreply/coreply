@@ -3,7 +3,7 @@ import jsonata from "jsonata";
 import Mustache from "mustache";
 import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
 import { ContextStore } from "./context";
-import { profileGroups } from "./profile";
+import { profileGroups, generateGenericProfile } from "./profile";
 import { requestSuggestions } from "./requests";
 import type { LibCoreplyListener } from "./listener";
 import type { Snapshot } from "./context/snapshot";
@@ -92,6 +92,16 @@ export class Coreply {
       return packageName === group.rule;
     });
 
+    // Fallback: if the app is selected but has no predefined extractors,
+    // dynamically generate a generic profile group for it.
+    if (
+      matchingGroups.length === 0 &&
+      this.settings.selectedApps.includes(packageName)
+    ) {
+      const profile = generateGenericProfile(packageName, platform);
+      matchingGroups.push({ rule: packageName, profiles: [profile] });
+    }
+
     if (matchingGroups.length === 0) {
       this.listener.onCollectionModeUpdated("minimal");
       return;
@@ -105,7 +115,10 @@ export class Coreply {
           extractorPromises.push(
             (async () => {
               try {
-                const contextData = await this.runJsonata(snapshot, jsonataExpr);
+                const contextData = await this.runJsonata(
+                  snapshot,
+                  jsonataExpr,
+                );
                 const freq =
                   contextData?.snapshotFrequency === "minimal" ||
                   contextData?.snapshotFrequency === "frequent" ||
@@ -128,12 +141,14 @@ export class Coreply {
                   if (contextData.type === "chat") {
                     context = new ChatContextImpl(
                       profile.id,
+                      profile.dropRule,
                       contextData,
                       contextData.label,
                     );
                   } else if (contextData.type === "screen") {
                     context = new ScreenContextImpl(
                       profile.id,
+                      profile.dropRule,
                       contextData,
                       contextData.label,
                     );
@@ -152,7 +167,7 @@ export class Coreply {
               } catch (error) {
                 console.error(
                   `Error processing extractor for profile ${profile.id}:`,
-                  JSON.stringify(error),
+                  error instanceof Error ? error.message : error,
                 );
                 return false;
               }

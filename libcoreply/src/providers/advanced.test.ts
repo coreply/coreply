@@ -14,14 +14,24 @@ function makeChatContext(
     messages: Array<{ body: string; time?: string; quote?: string }>;
   }>,
 ): ChatContext {
-  return new ChatContextImpl("test-chat", { turns }, "messages");
+  return new ChatContextImpl(
+    "test-chat",
+    { differentProfile: 0, sameProfile: 1 },
+    { turns },
+    "messages",
+  );
 }
 
 function makeScreenContext(
   text: string | undefined,
   children?: ScreenContextData[],
 ): ScreenContext {
-  return new ScreenContextImpl("test-screen", { text, children }, "screen");
+  return new ScreenContextImpl(
+    "test-screen",
+    { differentProfile: 0, sameProfile: 1 },
+    { text, children },
+    "screen",
+  );
 }
 
 describe("buildAdvancedContextMap — v2-compatible fields", () => {

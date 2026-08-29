@@ -11,13 +11,17 @@ const turn = (userSent: boolean, sender: string, ...bodies: string[]) => ({
 });
 
 const makeContext = (profileId: string, ...turns: ReturnType<typeof turn>[]) =>
-  new ChatContextImpl(profileId, {
-    turns: turns.map((t) => ({
-      sender: t.sender,
-      userSent: t.userSent,
-      messages: t.messages,
-    })),
-  });
+  new ChatContextImpl(
+    profileId,
+    { differentProfile: 0, sameProfile: 1 },
+    {
+      turns: turns.map((t) => ({
+        sender: t.sender,
+        userSent: t.userSent,
+        messages: t.messages,
+      })),
+    },
+  );
 
 const flattenedBodies = (context: ChatContextImpl) =>
   context.data.turns.flatMap((turn) =>

@@ -8,8 +8,11 @@
 - profileId: identifies which profile extracted the context, used for context dropping when profile changes
 */
 
+import type { DropRule } from "../profile";
+
 export interface BaseContext {
   profileId: string;
+  dropRule: DropRule;
   label?: string;
   getSuggestion(text: string): string | null;
   updateSuggestion(currentTyping: string, suggestion: string): string | null;
