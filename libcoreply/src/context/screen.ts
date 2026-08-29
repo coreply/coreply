@@ -5,6 +5,7 @@
 */
 
 import type { BaseContext } from "./base";
+import type { DropRule } from "../profile";
 import { SuggestionStorage } from "./suggestion";
 
 export interface ScreenContextData {
@@ -18,17 +19,84 @@ export interface ScreenContext extends BaseContext {
   tryUpdate(incomingContext: ScreenContext): boolean;
 }
 
+// Flatten a nested screen-context tree into a flat list of non-empty text nodes
+// (pre-order traversal), so structural nesting depth does not affect matching.
+function flattenToTexts(data: ScreenContextData): string[] {
+  const texts: string[] = [];
+  const walk = (node: ScreenContextData) => {
+    if (node.text && node.text.trim()) {
+      texts.push(node.text);
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        walk(child);
+      }
+    }
+  };
+  walk(data);
+  return texts;
+}
+
+// Find the longest contiguous matching sequence of text nodes between two arrays.
+// A match is a reliable common part only when it is a meaningful anchor:
+// at least 3 nodes, or 2 nodes where one is longer than 5 chars, or a single
+// node when both arrays consist of a single node.
+function findLongestContiguousMatch(
+  a: string[],
+  b: string[],
+): string[] | null {
+  if (a.length === 0 || b.length === 0) return null;
+
+  let maxMatch: string[] | null = null;
+
+  for (let i = 0; i < a.length; i++) {
+    for (let len = Math.min(a.length - i, b.length); len >= 1; len--) {
+      const candidate = a.slice(i, i + len);
+
+      const isValidAnchor =
+        candidate.length >= 3 ||
+        (candidate.length === 2 &&
+          candidate.some((t) => t.trim().length > 5)) ||
+        (a.length === 1 && b.length === 1);
+
+      if (!isValidAnchor) {
+        continue;
+      }
+
+      for (let j = 0; j <= b.length - len; j++) {
+        const match = b.slice(j, j + len);
+        if (candidate.every((t, k) => t === match[k])) {
+          if (!maxMatch || len > maxMatch.length) {
+            maxMatch = candidate;
+          }
+          break;
+        }
+      }
+      if (maxMatch && maxMatch.length === len) break;
+    }
+  }
+
+  return maxMatch;
+}
+
+function totalTextLength(texts: string[]): number {
+  return texts.reduce((sum, t) => sum + t.length, 0);
+}
+
 // ** Implemented tryUpdate for ScreenContext
-// Checks if incoming data has overlaps in text content and tries to merge
+// Flattens the nested tree to text nodes, detects a reliable common part
+// (anchor) against the existing context, and takes the larger context.
 export class ScreenContextImpl implements ScreenContext {
   type: "screen" = "screen";
   profileId: string;
+  dropRule: DropRule;
   label?: string;
   data: ScreenContextData;
   private readonly suggestionStorage = new SuggestionStorage();
 
-  constructor(profileId: string, data: ScreenContextData, label?: string) {
+  constructor(profileId: string, dropRule: DropRule, data: ScreenContextData, label?: string) {
     this.profileId = profileId;
+    this.dropRule = dropRule;
     this.label = label;
     this.data = data;
   }
@@ -47,41 +115,27 @@ export class ScreenContextImpl implements ScreenContext {
 
   tryUpdate(incomingContext: ScreenContext): boolean {
     const incomingData = incomingContext.data;
-    const incomingText = incomingData.text;
-    const existingText = this.data.text;
 
-    // If no incoming text, cannot update
-    if (!incomingText) {
+    // Flatten the nested trees so matching works regardless of how deep text
+    // is nested in children (the root node often carries no text itself).
+    const existingTexts = flattenToTexts(this.data);
+    const incomingTexts = flattenToTexts(incomingData);
+
+    if (incomingTexts.length === 0) {
       return false;
     }
 
-    // If no existing text, can't update
-    if (!existingText) {
+    // Detect a reliable common part (anchor) between the two contexts.
+    const anchor = findLongestContiguousMatch(existingTexts, incomingTexts);
+    if (!anchor) {
       return false;
     }
 
-    // Check if incoming text contains existing text (overlap)
-    if (incomingText.includes(existingText)) {
-      // Incoming is a superset, update
-      this.data = { ...this.data, ...incomingData };
-      return true;
+    // A common part was detected: this is the same screen view. Take the larger
+    // context so scrolling or partial updates converge to the fuller snapshot.
+    if (totalTextLength(incomingTexts) > totalTextLength(existingTexts)) {
+      this.data = incomingData;
     }
-
-    // Check if existing text contains incoming text (overlap)
-    if (existingText.includes(incomingText)) {
-      // Existing is a superset, no need to update
-      return false;
-    }
-
-    // No overlap, append incoming text to existing
-    this.data = {
-      ...this.data,
-      text: `${existingText}\n${incomingText}`,
-      children: [
-        ...(this.data.children || []),
-        ...(incomingData.children || []),
-      ],
-    };
     return true;
   }
 }
