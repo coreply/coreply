@@ -303,7 +303,7 @@ export default function SettingsScreen() {
                 <View>
                   <View className="bg-background font-display py-3 px-3 border-border border-b flex-row items-center">
                     <Image
-                      source={require("@/assets/images/coreply-icon-foreground.png")}
+                      source={require("@/assets/images/icon-foreground.png")}
                       contentFit="contain"
                       style={{
                         width: 36,

@@ -4,19 +4,19 @@
     "slug": "coreply-app",
     "version": "3.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/coreply-icon-foreground.png",
+    "icon": "./assets/images/icon-foreground.png",
     "scheme": "coreplyapp",
     "userInterfaceStyle": "automatic",
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#F8F7F7",
-        "foregroundImage": "./assets/images/coreply-icon-foreground.png"
+        "foregroundImage": "./assets/images/icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/coreply-icon-foreground.png",
+      "favicon": "./assets/images/icon-foreground.png",
       "bundler": "metro"
     },
     "plugins": [
