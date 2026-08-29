@@ -4,7 +4,7 @@ import { coreplySettingsSchema } from "libcoreply";
 export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("settings"),
-    payload: coreplySettingsSchema.partial(),
+    payload: coreplySettingsSchema.required().partial(),
   }),
   z.object({
     type: z.literal("updateTyping"),
