@@ -20,6 +20,7 @@
 		"@ai-sdk/openai": "^4.0.10",
 		"@ai-sdk/openai-compatible": "^3.0.7",
 		"@ai-sdk/xai": "^4.0.39",
+		"@openrouter/ai-sdk-provider": "^3.0.0",
 		"ai": "^7.0.66",
 		"debounce": "^3.0.0",
 		"jsonata": "^2.2.2",

@@ -11,7 +11,11 @@ function resolveSchemaFromScope(
   schema: JsonSchema,
   scope: string,
 ):
-  | (JsonSchema & { disabledWhenFieldFalse?: string; show?: boolean })
+  | (JsonSchema & {
+      disabledWhenFieldFalse?: string;
+      show?: boolean;
+      enabled?: boolean;
+    })
   | undefined {
   if (scope === "#") {
     return schema;
@@ -40,6 +44,7 @@ function resolveSchemaFromScope(
     ? (current as JsonSchema & {
         disabledWhenFieldFalse?: string;
         show?: boolean;
+        enabled?: boolean;
       })
     : undefined;
 }
@@ -56,6 +61,19 @@ export function applySchemaRules(
         ...element,
         rule: {
           effect: RuleEffect.HIDE,
+          condition: {
+            scope: "#",
+            validate: () => true,
+          },
+        },
+      };
+    }
+
+    if (propertySchema?.enabled === false) {
+      return {
+        ...element,
+        rule: {
+          effect: RuleEffect.DISABLE,
           condition: {
             scope: "#",
             validate: () => true,

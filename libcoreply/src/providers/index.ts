@@ -6,6 +6,7 @@ import { createMiniMax } from "@ai-sdk/minimax";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createXai } from "@ai-sdk/xai";
 import { createGateway } from "ai";
 import { z } from "zod";
@@ -215,6 +216,41 @@ export const providerDefinitions = {
     },
     requestFunc: generateWithAIProvider,
   },
+  openrouter: {
+    name: "OpenRouter",
+    factoryFunc: createOpenRouter,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("OpenRouter API key")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Custom OpenRouter API base URL (optional)"),
+        appName: z.string().default("Coreply").meta({ enabled: false }),
+        appUrl: z.string().default("https://coreply.app").meta({ enabled: false }),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(
+        'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"openrouter": {...}}',
+      ),
+    }),
+    settingsDefaults: {
+      provider: {
+        appName: "Coreply",
+        appUrl: "https://coreply.app",
+      },
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions:
+        '{"openrouter": {"reasoning": {"enabled": false, "effort": "none"}}}',
+    },
+    requestFunc: generateWithAIProvider,
+  },
   azure: {
     name: "Azure",
     factoryFunc: createAzure,
@@ -374,6 +410,36 @@ export const providerDefinitions = {
     },
     requestFunc: generateWithAIProvider,
   },
+  google: {
+    name: "Google (Gemini API)",
+    factoryFunc: createGoogle,
+    settingsSchema: z.object({
+      model: z.string().describe("Model ID to use for text generation"),
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("Google AI API key")
+          .meta({ feature: "password" }),
+        baseURL: z
+          .httpUrl()
+          .optional()
+          .describe("Custom Google AI API base URL (optional)"),
+      }),
+      generateText: createGenerateTextSchema(),
+      providerOptions: createProviderOptionsSchema(
+        'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"google": {...}}',
+      ),
+    }),
+    settingsDefaults: {
+      provider: {},
+      generateText: {
+        ...GenerateTextDefaults,
+      },
+      providerOptions:
+        '{"google": {"thinkingConfig": {"thinkingBudget": 0, "thinkingLevel": "minimal"}}}',
+    },
+    requestFunc: generateWithAIProvider,
+  },
   googleVertex: {
     name: "Google Vertex",
     factoryFunc: createGoogleVertex,
@@ -424,36 +490,6 @@ export const providerDefinitions = {
       },
       providerOptions:
         '{"googleVertex": {"thinkingConfig": {"thinkingBudget": 0}}}',
-    },
-    requestFunc: generateWithAIProvider,
-  },
-  google: {
-    name: "Google (Gemini API)",
-    factoryFunc: createGoogle,
-    settingsSchema: z.object({
-      model: z.string().describe("Model ID to use for text generation"),
-      provider: z.object({
-        apiKey: z
-          .string()
-          .describe("Google AI API key")
-          .meta({ feature: "password" }),
-        baseURL: z
-          .httpUrl()
-          .optional()
-          .describe("Custom Google AI API base URL (optional)"),
-      }),
-      generateText: createGenerateTextSchema(),
-      providerOptions: createProviderOptionsSchema(
-        'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"google": {...}}',
-      ),
-    }),
-    settingsDefaults: {
-      provider: {},
-      generateText: {
-        ...GenerateTextDefaults,
-      },
-      providerOptions:
-        '{"google": {"thinkingConfig": {"thinkingBudget": 0, "thinkingLevel": "minimal"}}}',
     },
     requestFunc: generateWithAIProvider,
   },

@@ -44,7 +44,11 @@ const buildWhatsAppChatExtractor = (packageName: string) => `(
   $rootBounds := $.bounds;
   $hasInput := $count($.**[id = $packageId & ":id/entry"]) > 0;
   $rows := $.**[
-    viewIdResourceName = $packageId & ":id/conversation_text_row"
+    viewIdResourceName = $packageId & ":id/conversation_text_row" and
+    $count(children[
+      (id = $packageId & ":id/message_text" or id = $packageId & ":id/caption") and
+      isVisibleToUser = true
+    ]) > 0
   ];
   $result := ($not($hasInput) or $count($rows) = 0) ? null : (
     $sorted := $sort($rows, function($a, $b) {
@@ -255,41 +259,6 @@ export const profileGroups: ProfileGroup[] = [
                   "messages": [{"body": $message.text}]
                 }
               })];
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
-            );
-            $result
-          )`,
-        ],
-        platform: "android",
-        dropRule: {
-          differentProfile: 0,
-          sameProfile: 1,
-        },
-      },
-    ],
-  },
-  {
-    rule: "com.instagram.barcelona",
-    profiles: [
-      {
-        id: "threads-comment-chat",
-        extractors: [
-          `(
-            $hasInput := $count($.**[className = "android.widget.EditText" and isFocused = true]) > 0;
-            $textNodes := $.**[className = "android.widget.TextView" and text != null and $trim(text) != ""];
-            $messages := $filter($textNodes, function($node) {
-              $not($contains($lowercase($node.id ?? ""), "button")) and
-              $not($contains($lowercase($node.id ?? ""), "edit")) and
-              $not($contains($lowercase($node.id ?? ""), "composer")) and
-              $not($contains($lowercase($node.id ?? ""), "input"))
-            });
-            $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-              $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-              $turns := $sorted.{
-                "sender": "Others",
-                "userSent": false,
-                "messages": [{"body": text}]
-              };
               {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
             );
             $result
@@ -875,6 +844,40 @@ export const profileGroups: ProfileGroup[] = [
   },
   // ** Added profiles for ALL supported Android apps
 ];
+
+// ** Dynamically generates a generic profile for any selected app without predefined extractors.
+// ** A single extractor builds a nested screen-context tree from all visible text; snapshotFrequency
+// ** is "active" when an EditText is focused, otherwise "frequent".
+export function generateGenericProfile(
+  packageName: string,
+  platform: "android" | "web",
+): Profile {
+  const extractor = `(
+    $extract := function($node) {(
+      {"text": $node.text, "children": $map($node.children[$count(children) > 0 or text != null], $extract)[]}
+    )};
+    $tree := $extract($);
+    $hasText := $exists($tree.text) or $count($tree.**[text != null]) > 0;
+    $input := $.**[className = "android.widget.EditText" and isFocused = true][0];
+    $result := $hasText ? {
+      "type": "screen",
+      "label": "screen",
+      "snapshotFrequency": $exists($input) ? "active" : "frequent",
+      "text": $tree.text,
+      "children": $tree.children[]
+    } : null;
+    $result
+  )`;
+  return {
+    id: `generic-${packageName}`,
+    extractors: [extractor],
+    platform: platform,
+    dropRule: {
+      differentProfile: 0,
+      sameProfile: 2,
+    },
+  };
+}
 
 // ** Updated JSONata extractors with input position checks and not-found handling
 // ** Added profiles for WhatsApp Business and Telegram Web
