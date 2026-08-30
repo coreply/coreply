@@ -96,7 +96,7 @@ const parseJsonObjectWithFallback = (
 
 function usePersistedSettings() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [providerId, setProviderId] = useState<string>("openaiCompatible");
+  const [providerId, setProviderId] = useState<string>("coreplyCloud");
   const [initialProviderConfig, setInitialProviderConfig] = useState<
     Record<string, any>
   >({});
@@ -105,7 +105,7 @@ function usePersistedSettings() {
 
   useEffect(() => {
     storage.getItem("providerId").then((storedProviderId) => {
-      const actualProviderId = storedProviderId ?? "openaiCompatible";
+      const actualProviderId = storedProviderId ?? "coreplyCloud";
       Promise.all([
         storage.getItem(`${actualProviderId}.providerConfig`),
         storage.getItem("globalSettings"),

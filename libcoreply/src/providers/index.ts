@@ -13,6 +13,7 @@ import { z } from "zod";
 import { DEFAULT_ADVANCED_BODY, DEFAULT_SYSTEM_PROMPT } from "../settings";
 import { generateWithAdvanced } from "./advanced";
 import { generateWithAIProvider } from "./base";
+import { generateWithCoreplyCloud } from "./coreply-cloud";
 import { generateWithFIM } from "./fim";
 
 const BaseSettingsSchema = z.object({
@@ -145,6 +146,25 @@ const GenerateTextDefaults = {
 };
 
 export const providerDefinitions = {
+  coreplyCloud: {
+    name: "Coreply Cloud",
+    factoryFunc: null,
+    settingsSchema: z.object({
+      provider: z.object({
+        apiKey: z
+          .string()
+          .describe("Coreply Cloud API key")
+          .meta({ feature: "password" }),
+        requestUrl: z.httpUrl().describe("Coreply Cloud request URL"),
+      }),
+    }),
+    settingsDefaults: {
+      provider: {
+        requestUrl: "https://coreply.p.nadles.com/completion/",
+      },
+    },
+    requestFunc: generateWithCoreplyCloud,
+  },
   openai: {
     name: "OpenAI",
     factoryFunc: createOpenAI,
@@ -231,7 +251,10 @@ export const providerDefinitions = {
           .optional()
           .describe("Custom OpenRouter API base URL (optional)"),
         appName: z.string().default("Coreply").meta({ enabled: false }),
-        appUrl: z.string().default("https://coreply.app").meta({ enabled: false }),
+        appUrl: z
+          .string()
+          .default("https://coreply.app")
+          .meta({ enabled: false }),
       }),
       generateText: createGenerateTextSchema(),
       providerOptions: createProviderOptionsSchema(
@@ -597,4 +620,5 @@ export type ProviderDefinition =
 
 export * from "./advanced";
 export * from "./base";
+export * from "./coreply-cloud";
 export * from "./fim";

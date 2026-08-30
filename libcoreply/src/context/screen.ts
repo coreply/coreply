@@ -101,6 +101,16 @@ export class ScreenContextImpl implements ScreenContext {
     this.data = data;
   }
 
+  toJSON() {
+    return {
+      type: this.type,
+      profileId: this.profileId,
+      dropRule: this.dropRule,
+      data: this.data,
+      label: this.label,
+    };
+  }
+
   getSuggestion(text: string): string | null {
     return this.suggestionStorage.getSuggestion(text);
   }
