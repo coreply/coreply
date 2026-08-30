@@ -70,15 +70,6 @@ export class Coreply {
   // ** Implemented snapshotUpdated method to process snapshots and create contexts
   snapshotUpdated(snapshot: Snapshot) {
     const snapshotString = JSON.stringify(snapshot);
-    const chunkSize = 4000;
-    for (let i = 0; i < snapshotString.length; i += chunkSize) {
-      const chunk = snapshotString.slice(i, i + chunkSize);
-      if (i === 0) {
-        console.log("Received snapshot:", chunk);
-      } else {
-        console.log(chunk);
-      }
-    }
     // Find matching profile groups based on platform and packageName/URL
     const platform = snapshot.platform;
     const packageName =
