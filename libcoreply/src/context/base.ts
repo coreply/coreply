@@ -9,13 +9,16 @@
 */
 
 import type { DropRule } from "../profile";
+import { PENDING } from "./suggestion";
 
 export interface BaseContext {
   profileId: string;
   dropRule: DropRule;
   label?: string;
-  getSuggestion(text: string): string | null;
-  updateSuggestion(currentTyping: string, suggestion: string): string | null;
+  getSuggestion(text: string): string | null | typeof PENDING;
+  updateSuggestion(currentTyping: string, suggestion: string): string | null | typeof PENDING;
   clearSuggestions(): void;
+  setSuggestionPending(text: string): void;
+  clearSuggestionPending(text: string): void;
   tryUpdate(data: any): boolean;
 }

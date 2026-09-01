@@ -1,4 +1,4 @@
-import type { CoreplyContext } from ".";
+import type { CoreplyContext, PENDING } from ".";
 import type { DropRule } from "../profile";
 
 /**
@@ -8,22 +8,9 @@ import type { DropRule } from "../profile";
 export class ContextStore {
   private contexts: CoreplyContext[] = [];
 
-  getSuggestion(text: string): string | null {
-    const latestContext = this.contexts.at(-1);
-    return latestContext?.getSuggestion(text) ?? null;
-  }
-
-  updateSuggestion(currentTyping: string, suggestion: string): string | null {
-    const latestContext = this.contexts.at(-1);
-    return latestContext?.updateSuggestion(currentTyping, suggestion) ?? null;
-  }
-
   // ** Context Management methods
 
   addContext(context: CoreplyContext): void {
-    console.log(
-      `Adding context for profileId: ${context.profileId}, type: ${context.type}, label: ${context.label}`,
-    );
     // Try to update existing contexts of the same type and profile
     let updated = false;
     for (let i = 0; i < this.contexts.length; i++) {
@@ -53,8 +40,35 @@ export class ContextStore {
     this.applyDropRule(context.dropRule, context.profileId);
   }
 
+  getSuggestion(text: string): string | null | typeof PENDING {
+    const latestContext = this.contexts.at(-1);
+    return latestContext?.getSuggestion(text) ?? null;
+  }
+
+  updateSuggestion(
+    currentTyping: string,
+    suggestion: string,
+  ): string | null | typeof PENDING {
+    const latestContext = this.contexts.at(-1);
+    return latestContext?.updateSuggestion(currentTyping, suggestion) ?? null;
+  }
+
   getContexts(): CoreplyContext[] {
     return this.contexts;
+  }
+
+  getLatestContext(): CoreplyContext | undefined {
+    return this.contexts.at(-1);
+  }
+
+  setSuggestionPending(text: string): void {
+    const latestContext = this.contexts.at(-1);
+    latestContext?.setSuggestionPending(text);
+  }
+
+  clearSuggestionPending(text: string): void {
+    const latestContext = this.contexts.at(-1);
+    latestContext?.clearSuggestionPending(text);
   }
 
   clearContexts(): void {

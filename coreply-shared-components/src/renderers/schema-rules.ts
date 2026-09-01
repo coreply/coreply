@@ -91,7 +91,6 @@ export function applySchemaRules(
           condition: {
             scope: `#/properties/${rule}`,
             validate: (context) => {
-              console.log(context);
               return context.data === false;
             },
           },

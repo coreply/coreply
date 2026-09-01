@@ -1,11 +1,13 @@
 import { PUNCTUATIONS } from "../constants";
 
+export const PENDING = Symbol("PENDING");
+
 /**
  * Handles suggestion caching and retrieval based on typing text
  * Uses a history map to store suggestions keyed by normalized text
  */
 export class SuggestionStorage {
-  private readonly history = new Map<string, string>();
+  private readonly history = new Map<string, string | typeof PENDING>();
   private readonly sentenceSegmenter = new Intl.Segmenter(undefined, {
     granularity: "sentence",
   });
@@ -15,6 +17,18 @@ export class SuggestionStorage {
 
   clear() {
     this.history.clear();
+  }
+
+  setSuggestionPending(text: string): void {
+    const key = this.getKeyFromText(text);
+    this.history.set(key, PENDING);
+  }
+
+  clearSuggestionPending(text: string): void {
+    const key = this.getKeyFromText(text);
+    if (this.history.get(key) === PENDING) {
+      this.history.delete(key);
+    }
   }
 
   private splitIntoSuggestionChunks(text: string): string[] {
@@ -105,15 +119,19 @@ export class SuggestionStorage {
     return text;
   }
 
-  getSuggestion(text: string): string | null {
+  getSuggestion(text: string): string | null | typeof PENDING {
     if (text.trim() === "" && this.history.has("")) {
-      return this.history.get("") ?? null;
+      const stored = this.history.get("");
+      return stored ?? null;
     }
     for (let index = 0; index <= text.length; index += 1) {
       const target = this.getKeyFromText(text.slice(0, index));
       const stored = this.history.get(target);
       if (!stored) {
         continue;
+      }
+      if (stored === PENDING) {
+        return PENDING;
       }
       const starting = text.slice(index);
       if (
@@ -127,7 +145,10 @@ export class SuggestionStorage {
   }
 
   // ** Updated to use just current typing text instead of full TypingInfo
-  updateSuggestion(currentTyping: string, suggestion: string): string | null {
+  updateSuggestion(
+    currentTyping: string,
+    suggestion: string,
+  ): string | null | typeof PENDING {
     const normalizedSuggestion = this.trimMessagePrefix(
       this.normalizeWhitespace(suggestion),
     ).toLowerCase();
@@ -140,20 +161,21 @@ export class SuggestionStorage {
     const frontTrimmedSuggestion = this.trimMessagePrefix(
       this.normalizeWhitespace(suggestion),
     ).slice(
-      this.trimMessagePrefix(this.normalizeWhitespace(currentTyping))
-        .length,
+      this.trimMessagePrefix(this.normalizeWhitespace(currentTyping)).length,
     );
     const parts = this.splitIntoSuggestionChunks(frontTrimmedSuggestion);
     for (let index = 0; index < parts.length - 1; index += 1) {
       const key = this.getKeyFromText(
         `${currentTyping}${parts.slice(0, index + 1).join("")}`,
       );
-      if (!this.history.has(key)) {
+      const existing = this.history.get(key);
+      if (existing === undefined || existing === PENDING) {
         this.history.set(key, parts[index + 1]);
       }
     }
     const rootKey = this.getKeyFromText(currentTyping);
-    if (!this.history.has(rootKey)) {
+    const existingRoot = this.history.get(rootKey);
+    if (existingRoot === undefined || existingRoot === PENDING) {
       this.history.set(rootKey, parts[0] ?? "");
     }
     return this.getSuggestion(currentTyping);

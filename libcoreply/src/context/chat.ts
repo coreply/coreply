@@ -15,7 +15,7 @@ Two types of context have two different additional fields:
 
 import type { BaseContext } from "./base";
 import type { DropRule } from "../profile";
-import { SuggestionStorage } from "./suggestion";
+import { PENDING, SuggestionStorage } from "./suggestion";
 
 export interface ChatTurn {
   sender?: string;
@@ -185,7 +185,12 @@ export class ChatContextImpl implements ChatContext {
   data: ChatContextData;
   private readonly suggestionStorage = new SuggestionStorage();
 
-  constructor(profileId: string, dropRule: DropRule, data: ChatContextData, label?: string) {
+  constructor(
+    profileId: string,
+    dropRule: DropRule,
+    data: ChatContextData,
+    label?: string,
+  ) {
     this.profileId = profileId;
     this.dropRule = dropRule;
     this.label = label;
@@ -202,16 +207,27 @@ export class ChatContextImpl implements ChatContext {
     };
   }
 
-  getSuggestion(text: string): string | null {
+  getSuggestion(text: string): string | null | typeof PENDING {
     return this.suggestionStorage.getSuggestion(text);
   }
 
-  updateSuggestion(currentTyping: string, suggestion: string): string | null {
+  updateSuggestion(
+    currentTyping: string,
+    suggestion: string,
+  ): string | null | typeof PENDING {
     return this.suggestionStorage.updateSuggestion(currentTyping, suggestion);
   }
 
   clearSuggestions(): void {
     this.suggestionStorage.clear();
+  }
+
+  setSuggestionPending(text: string): void {
+    this.suggestionStorage.setSuggestionPending(text);
+  }
+
+  clearSuggestionPending(text: string): void {
+    this.suggestionStorage.clearSuggestionPending(text);
   }
 
   tryUpdate(incomingContext: ChatContext): boolean {

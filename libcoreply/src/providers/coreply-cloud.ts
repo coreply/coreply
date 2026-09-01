@@ -11,8 +11,8 @@ export async function generateWithCoreplyCloud(
   const response = await fetch(settings.provider.requestUrl, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${settings.provider.apiKey}`,
+      "Accept-Encoding": "identity",
     },
     body: JSON.stringify({
       action: "completion",
@@ -22,10 +22,7 @@ export async function generateWithCoreplyCloud(
     }),
   });
 
-  const json = (await response.json()) as {
-    completion?: string;
-    error?: string;
-  };
+  const json = await response.json();
 
   if (!response.ok) {
     throw new Error(

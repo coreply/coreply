@@ -2,7 +2,7 @@ import debounce, { type DebouncedFunction } from "debounce";
 import jsonata from "jsonata";
 import Mustache from "mustache";
 import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
-import { ContextStore } from "./context";
+import { ContextStore, PENDING } from "./context";
 import { profileGroups, generateGenericProfile } from "./profile";
 import { requestSuggestions } from "./requests";
 import type { LibCoreplyListener } from "./listener";
@@ -69,7 +69,6 @@ export class Coreply {
 
   // ** Implemented snapshotUpdated method to process snapshots and create contexts
   snapshotUpdated(snapshot: Snapshot) {
-    const snapshotString = JSON.stringify(snapshot);
     // Find matching profile groups based on platform and packageName/URL
     const platform = snapshot.platform;
     const packageName =
@@ -118,7 +117,6 @@ export class Coreply {
                     : "minimal";
 
                 this.listener.onCollectionModeUpdated(freq);
-                console.log(freq);
 
                 if (!contextData) {
                   return false;
@@ -205,6 +203,15 @@ export class Coreply {
       return;
     }
     const cached = this.store.getSuggestion(currentTyping);
+    console.log(
+      "Emit suggestion call for typing:",
+      currentTyping,
+      "Cached suggestion:",
+      cached,
+    );
+    if (cached === PENDING) {
+      return;
+    }
     if (cached !== null) {
       this.listener.onSuggestionUpdated(`${currentTyping}${cached}`);
       return;
@@ -238,8 +245,8 @@ export class Coreply {
   }
 
   private async fetchSuggestion(typing: string, store: ContextStore) {
-    // ** Replaced typingInfo with typing string and store parameters
     try {
+      store.setSuggestionPending(typing);
       const suggestion = await requestSuggestions(
         store.getContexts(),
         typing,
@@ -250,9 +257,8 @@ export class Coreply {
       const finalSuggestion = normalized.startsWith(" ")
         ? ` ${normalized.trim()}`
         : normalized.trimEnd();
-      // ** Changed to use store parameter instead of this.store
       const cached = store.updateSuggestion(typing, finalSuggestion);
-      if (cached !== null) {
+      if (cached !== null && cached !== PENDING) {
         this.listener.onSuggestionUpdated(`${typing}${cached}`);
       }
     } catch (error) {
@@ -260,6 +266,7 @@ export class Coreply {
       this.listener.onError(
         error instanceof Error ? error : new Error(String(error)),
       );
+      store.clearSuggestionPending(typing);
     }
   }
 }

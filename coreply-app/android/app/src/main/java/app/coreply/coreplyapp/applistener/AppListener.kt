@@ -26,6 +26,8 @@ import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -63,11 +65,19 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private class LocalWebViewClient(private val assetLoader: WebViewAssetLoader) :
     WebViewClientCompat() {
+
     override fun shouldInterceptRequest(
         view: WebView?,
         request: WebResourceRequest
     ): WebResourceResponse? {
         return assetLoader.shouldInterceptRequest(request.url)
+    }
+}
+
+private class LocalWebChromeClient : WebChromeClient() {
+    override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+        Log.v("CoWA", "Received console message ${consoleMessage?.message()}")
+        return true
     }
 }
 
@@ -112,7 +122,6 @@ open class AppListener : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        Log.v("CoWA", "there is an accessibility event: $event")
         if (event?.packageName?.startsWith("app.coreply") == true) {
             return
         }
@@ -160,7 +169,7 @@ open class AppListener : AccessibilityService() {
     private fun updateServiceInfoForCollectionMode() {
         Log.d(LOG_TAG, "Updating service info for collection mode: $collectionMode")
         val info = serviceInfo
-        info.notificationTimeout = if (collectionMode == "minimal") 2000 else 0
+        info.notificationTimeout = if (collectionMode == "minimal") 1000 else 0
         info.eventTypes = when (collectionMode) {
             "minimal" ->
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
@@ -212,6 +221,7 @@ open class AppListener : AccessibilityService() {
             .build()
         webView = WebView(appContext)
         webView.webViewClient = LocalWebViewClient(assetLoader)
+        webView.webChromeClient = LocalWebChromeClient()
         webView.settings.javaScriptEnabled = true
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             WebViewCompat.addWebMessageListener(

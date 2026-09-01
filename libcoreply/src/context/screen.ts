@@ -6,7 +6,7 @@
 
 import type { BaseContext } from "./base";
 import type { DropRule } from "../profile";
-import { SuggestionStorage } from "./suggestion";
+import { PENDING, SuggestionStorage } from "./suggestion";
 
 export interface ScreenContextData {
   text?: string;
@@ -41,10 +41,7 @@ function flattenToTexts(data: ScreenContextData): string[] {
 // A match is a reliable common part only when it is a meaningful anchor:
 // at least 3 nodes, or 2 nodes where one is longer than 5 chars, or a single
 // node when both arrays consist of a single node.
-function findLongestContiguousMatch(
-  a: string[],
-  b: string[],
-): string[] | null {
+function findLongestContiguousMatch(a: string[], b: string[]): string[] | null {
   if (a.length === 0 || b.length === 0) return null;
 
   let maxMatch: string[] | null = null;
@@ -94,7 +91,12 @@ export class ScreenContextImpl implements ScreenContext {
   data: ScreenContextData;
   private readonly suggestionStorage = new SuggestionStorage();
 
-  constructor(profileId: string, dropRule: DropRule, data: ScreenContextData, label?: string) {
+  constructor(
+    profileId: string,
+    dropRule: DropRule,
+    data: ScreenContextData,
+    label?: string,
+  ) {
     this.profileId = profileId;
     this.dropRule = dropRule;
     this.label = label;
@@ -111,16 +113,27 @@ export class ScreenContextImpl implements ScreenContext {
     };
   }
 
-  getSuggestion(text: string): string | null {
+  getSuggestion(text: string): string | null | typeof PENDING {
     return this.suggestionStorage.getSuggestion(text);
   }
 
-  updateSuggestion(currentTyping: string, suggestion: string): string | null {
+  updateSuggestion(
+    currentTyping: string,
+    suggestion: string,
+  ): string | null | typeof PENDING {
     return this.suggestionStorage.updateSuggestion(currentTyping, suggestion);
   }
 
   clearSuggestions(): void {
     this.suggestionStorage.clear();
+  }
+
+  setSuggestionPending(text: string): void {
+    this.suggestionStorage.setSuggestionPending(text);
+  }
+
+  clearSuggestionPending(text: string): void {
+    this.suggestionStorage.clearSuggestionPending(text);
   }
 
   tryUpdate(incomingContext: ScreenContext): boolean {

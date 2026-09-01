@@ -19,7 +19,7 @@ data class SettingsUiState(
     val customApiKey: String = "",
     val customModelName: String = "gpt-4.1-mini",
     val customSystemPrompt: String = "",
-    val temperature: Float = 0.3f,
+    val temperature: Float = 1.0f,
     val suggestionPresentationType: SuggestionPresentationType = SuggestionPresentationType.BOTH,
     val showErrors: Boolean = false,
     val topP: Float = 0.5f,
@@ -33,9 +33,9 @@ data class SettingsUiState(
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-    
+
     private val preferencesManager = PreferencesManager.getInstance(application)
-    
+
     var uiState by mutableStateOf(SettingsUiState())
         private set
 
@@ -46,10 +46,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             updateUiStateFromPreferences()
         }
     }
-    
+
     fun updateUiStateFromPreferences() {
         uiState = SettingsUiState(
-            masterSwitchEnabled = preferencesManager.masterSwitchState.value && AccessibilityStatus.isAccessibilityEnabled(getApplication()),
+            masterSwitchEnabled = preferencesManager.masterSwitchState.value && AccessibilityStatus.isAccessibilityEnabled(
+                getApplication()
+            ),
             apiType = preferencesManager.apiTypeState.value,
             customApiUrl = preferencesManager.customApiUrlState.value,
             customApiKey = preferencesManager.customApiKeyState.value,
@@ -68,7 +70,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             suggestionContentTemplate = preferencesManager.suggestionContentTemplateState.value
         )
     }
-    
+
     fun updateMasterSwitchState(context: Context) {
         val isEnabled = AccessibilityStatus.isAccessibilityEnabled(context)
         uiState = uiState.copy(masterSwitchEnabled = isEnabled && preferencesManager.masterSwitchState.value)
@@ -83,49 +85,49 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun updateApiType(type: String) {
         uiState = uiState.copy(apiType = type)
-        viewModelScope.launch { 
+        viewModelScope.launch {
             preferencesManager.updateApiType(type)
         }
     }
-    
+
     fun updateCustomApiUrl(url: String) {
         uiState = uiState.copy(customApiUrl = url)
-        viewModelScope.launch { 
+        viewModelScope.launch {
             preferencesManager.updateCustomApiUrl(url)
         }
     }
-    
+
     fun updateCustomApiKey(key: String) {
         uiState = uiState.copy(customApiKey = key)
-        viewModelScope.launch { 
+        viewModelScope.launch {
             preferencesManager.updateCustomApiKey(key)
         }
     }
-    
+
     fun updateCustomModelName(model: String) {
         uiState = uiState.copy(customModelName = model)
-        viewModelScope.launch { 
+        viewModelScope.launch {
             preferencesManager.updateCustomModelName(model)
         }
     }
-    
+
     fun updateCustomSystemPrompt(prompt: String) {
         uiState = uiState.copy(customSystemPrompt = prompt)
-        viewModelScope.launch { 
+        viewModelScope.launch {
             preferencesManager.updateCustomSystemPrompt(prompt)
         }
     }
-    
+
     fun updateTemperature(temperature: Float) {
         uiState = uiState.copy(temperature = temperature)
-        viewModelScope.launch { 
+        viewModelScope.launch {
             preferencesManager.updateTemperature(temperature)
         }
     }
-    
+
     fun updateTopP(topP: Float) {
         uiState = uiState.copy(topP = topP)
-        viewModelScope.launch { 
+        viewModelScope.launch {
             preferencesManager.updateTopP(topP)
         }
     }

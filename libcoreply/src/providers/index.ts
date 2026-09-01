@@ -87,11 +87,6 @@ const BaseSettingsSchema = z.object({
 
 const BaseSettingsDefaults = {
   maxOutputTokens: 50,
-  temperature: 1.0,
-  topP: 1.0,
-  topK: 100,
-  presencePenalty: 0,
-  frequencyPenalty: 0,
 };
 
 function createProviderOptionsFieldSchema(description: string) {

@@ -108,6 +108,7 @@ const InputControl = ({
       }}
       className={[
         "shadow-none",
+        isPassword ? "pr-9" : undefined,
         isMultiline && (!isPassword || passwordVisible)
           ? "h-64 min-h-64 py-3"
           : undefined,

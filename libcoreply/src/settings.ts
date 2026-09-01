@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const DEFAULT_SYSTEM_PROMPT =
-  "You are an AI texting assistant. You will be given a list of text messages between the user (indicated by 'Message I sent:'), and other people (indicated by their names or simply 'Message I received:'). You may also receive a screenshot of the conversation. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start or end with a certain prefix (both could be parts of a longer word) . The user may quote a specific message. In this case, make sure your suggestions are about the quoted message.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks";
+  "You are an AI texting assistant. You will be given a list of text messages between the user and other people. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start with a certain prefix (could be part of a longer word). Make sure your output is LONGER than the user requested prefix and what the user is typing.\nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks";
 
 export const DEFAULT_ADVANCED_BODY = `{
     "model": "gpt-4o-mini",

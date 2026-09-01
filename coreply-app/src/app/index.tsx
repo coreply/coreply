@@ -325,7 +325,7 @@ export default function SettingsScreen() {
                             ? "Coreply suggestions are enabled in this extension"
                             : "Tap the toggle to start Coreply in this extension"
                           : accessibilityEnabled
-                            ? "Accessibility access is enabled"
+                            ? "Accessibility service is enabled"
                             : "Tap the toggle to start Coreply"}
                       </Text>
                     </View>
