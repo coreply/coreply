@@ -25,9 +25,18 @@ export class SuggestionStorage {
   }
 
   clearSuggestionPending(text: string): void {
-    const key = this.getKeyFromText(text);
-    if (this.history.get(key) === PENDING) {
-      this.history.delete(key);
+    if (text === "") {
+      if (this.history.get("") === PENDING) {
+        this.history.delete("");
+      }
+      return;
+    }
+
+    for (let index = 1; index <= text.length; index += 1) {
+      const key = this.getKeyFromText(text.slice(0, index));
+      if (this.history.get(key) === PENDING) {
+        this.history.delete(key);
+      }
     }
   }
 
@@ -156,6 +165,7 @@ export class SuggestionStorage {
       this.normalizeWhitespace(currentTyping),
     ).toLowerCase();
     if (!normalizedSuggestion.startsWith(normalizedTyping)) {
+      this.clearSuggestionPending(currentTyping);
       return null;
     }
     const frontTrimmedSuggestion = this.trimMessagePrefix(
@@ -178,6 +188,13 @@ export class SuggestionStorage {
     if (existingRoot === undefined || existingRoot === PENDING) {
       this.history.set(rootKey, parts[0] ?? "");
     }
-    return this.getSuggestion(currentTyping);
+
+    const result = this.getSuggestion(currentTyping);
+    if (result === PENDING) {
+      this.clearSuggestionPending(currentTyping);
+      const cleanedResult = this.getSuggestion(currentTyping);
+      return cleanedResult === PENDING ? null : cleanedResult;
+    }
+    return result;
   }
 }
