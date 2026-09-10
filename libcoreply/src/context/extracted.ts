@@ -76,8 +76,7 @@ const normalizeScreenContextData = (value: unknown): ScreenContextData | null =>
   if (
     text === undefined &&
     children.length === 0 &&
-    explicitChildrenArray === null ||
-    explicitChildrenArray.length > 0
+    (explicitChildrenArray === null || explicitChildrenArray.length > 0)
   ) {
     return null;
   }
