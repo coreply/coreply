@@ -8,7 +8,6 @@ import { requestSuggestions } from "./requests";
 import type { LibCoreplyListener } from "./listener";
 import type { Snapshot } from "./context/snapshot";
 import { ChatContextImpl } from "./context/chat";
-import { normalizeExtractedContextData } from "./context/extracted";
 import { ScreenContextImpl } from "./context/screen";
 
 Mustache.escape = (value: string) => value;
@@ -110,18 +109,16 @@ export class Coreply {
                   snapshot,
                   jsonataExpr,
                 );
-                const normalizedContextData =
-                  normalizeExtractedContextData(contextData);
                 const freq =
-                  normalizedContextData?.snapshotFrequency === "minimal" ||
-                  normalizedContextData?.snapshotFrequency === "frequent" ||
-                  normalizedContextData?.snapshotFrequency === "active"
-                    ? normalizedContextData.snapshotFrequency
+                  contextData?.snapshotFrequency === "minimal" ||
+                  contextData?.snapshotFrequency === "frequent" ||
+                  contextData?.snapshotFrequency === "active"
+                    ? contextData.snapshotFrequency
                     : "minimal";
 
                 this.listener.onCollectionModeUpdated(freq);
 
-                if (!normalizedContextData) {
+                if (!contextData) {
                   return false;
                 }
 
@@ -130,19 +127,19 @@ export class Coreply {
                   profile.platform === "android" ||
                   profile.platform === "web"
                 ) {
-                  if (normalizedContextData.type === "chat") {
+                  if (contextData.type === "chat") {
                     context = new ChatContextImpl(
                       profile.id,
                       profile.dropRule,
-                      normalizedContextData,
-                      normalizedContextData.label,
+                      contextData,
+                      contextData.label,
                     );
-                  } else if (normalizedContextData.type === "screen") {
+                  } else if (contextData.type === "screen") {
                     context = new ScreenContextImpl(
                       profile.id,
                       profile.dropRule,
-                      normalizedContextData,
-                      normalizedContextData.label,
+                      contextData,
+                      contextData.label,
                     );
                   }
                 }

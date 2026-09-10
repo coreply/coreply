@@ -32,6 +32,25 @@ const node = (
 });
 
 describe("profile extractors", () => {
+  it("uses array-coercing JSONata patterns for chat turns and screen children", () => {
+    const extractors = profileGroups.flatMap((group) =>
+      group.profiles.flatMap((profile) => profile.extractors),
+    );
+
+    for (const extractor of extractors) {
+      expect(extractor).not.toContain("$sorted.{");
+    }
+
+    expect(extractors.some((extractor) => extractor.includes("$sorted[].{"))).toBe(
+      true,
+    );
+    expect(
+      extractors.some((extractor) =>
+        extractor.includes('"children": $append([], $tree.children)'),
+      ),
+    ).toBe(true);
+  });
+
   it("keeps telegram chat turns iterable when only one bubble matches", async () => {
     const telegramExtractor = profileGroups
       .flatMap((group) => group.profiles)
