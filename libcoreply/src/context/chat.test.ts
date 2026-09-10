@@ -160,4 +160,44 @@ describe("ChatContextImpl.tryUpdate", () => {
       "thanks",
     ]);
   });
+
+  it("clears cached suggestions when exactly one user message is appended", () => {
+    const existing = makeContext(
+      "profile",
+      turn(false, "them", "Need help"),
+      turn(true, "me", "Draft reply"),
+    );
+    existing.updateSuggestion("Draft reply", "Draft reply confirmed");
+
+    const incoming = makeContext(
+      "profile",
+      turn(false, "them", "Need help"),
+      turn(true, "me", "Draft reply"),
+      turn(true, "me", "Sent now"),
+    );
+
+    expect(existing.tryUpdate(incoming)).toBe(true);
+    expect(existing.getSuggestion("Draft reply")).toBeNull();
+    expect(flattenedBodies(existing)).toEqual([
+      "Need help",
+      "Draft reply",
+      "Sent now",
+    ]);
+  });
+
+  it("returns false instead of throwing on malformed incoming data", () => {
+    const existing = makeContext("profile", turn(true, "me", "hello"));
+    const malformed = {
+      data: {
+        turns: [
+          {
+            userSent: true,
+          },
+        ],
+      },
+    } as unknown as ChatContextImpl;
+
+    expect(existing.tryUpdate(malformed)).toBe(false);
+    expect(flattenedBodies(existing)).toEqual(["hello"]);
+  });
 });

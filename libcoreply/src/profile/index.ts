@@ -50,37 +50,44 @@ const buildWhatsAppChatExtractor = (packageName: string) => `(
       isVisibleToUser = true
     ]) > 0
   ];
-  $result := ($not($hasInput) or $count($rows) = 0) ? null : (
-    $sorted := $sort($rows, function($a, $b) {
-      $a.bounds.top > $b.bounds.top or
-      ($a.bounds.top = $b.bounds.top and $a.bounds.left > $b.bounds.left)
-    });
-    $turns := [$map($sorted, function($row) {(
-      $messageNode := $row.children[
-        (id = $packageId & ":id/message_text" or id = $packageId & ":id/caption") and
-        isVisibleToUser = true
-      ][0];
-      $quoteNode := $row.**[id = $packageId & ":id/quoted_text" and isVisibleToUser = true][0];
-      $timeNode := $row.**[id = $packageId & ":id/date"][0];
-      $nameNode := $row.**[id = $packageId & ":id/name_in_group_tv" and isVisibleToUser = true][0];
-       $userSent := $exists($row.**[id = $packageId & ":id/status"][0]) or
-         (($messageNode.bounds.left + $messageNode.bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2);
-      {
-        "sender": $userSent ? "Me" : ($exists($nameNode.text) ? $nameNode.text : "Others"),
-        "userSent": $userSent,
-        "messages": [{
-          "body": $messageNode.text,
-          "time": $exists($timeNode.text) ? $timeNode.text : "",
-          "quote": $exists($quoteNode.text) ? $quoteNode.text : ""
-        }]
-      }
-    )})];
-    {
+  $result := $not($hasInput) ? null : (
+    $count($rows) = 0 ? {
       "type": "chat",
       "label": "messages",
       "snapshotFrequency": "active",
-      "turns": $turns
-    }
+      "turns": []
+    } : (
+      $sorted := $sort($rows, function($a, $b) {
+        $a.bounds.top > $b.bounds.top or
+        ($a.bounds.top = $b.bounds.top and $a.bounds.left > $b.bounds.left)
+      });
+      $turns := [$map($sorted, function($row) {(
+        $messageNode := $row.children[
+          (id = $packageId & ":id/message_text" or id = $packageId & ":id/caption") and
+          isVisibleToUser = true
+        ][0];
+        $quoteNode := $row.**[id = $packageId & ":id/quoted_text" and isVisibleToUser = true][0];
+        $timeNode := $row.**[id = $packageId & ":id/date"][0];
+        $nameNode := $row.**[id = $packageId & ":id/name_in_group_tv" and isVisibleToUser = true][0];
+         $userSent := $exists($row.**[id = $packageId & ":id/status"][0]) or
+           (($messageNode.bounds.left + $messageNode.bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2);
+        {
+          "sender": $userSent ? "Me" : ($exists($nameNode.text) ? $nameNode.text : "Others"),
+          "userSent": $userSent,
+          "messages": [{
+            "body": $messageNode.text,
+            "time": $exists($timeNode.text) ? $timeNode.text : "",
+            "quote": $exists($quoteNode.text) ? $quoteNode.text : ""
+          }]
+        }
+      )})];
+      {
+        "type": "chat",
+        "label": "messages",
+        "snapshotFrequency": "active",
+        "turns": $turns
+      }
+    )
   );
   $result
 )`;
@@ -207,14 +214,16 @@ export const profileGroups: ProfileGroup[] = [
             $rootBounds := $.bounds;
             $hasInput := $count($.**[id = "jp.naver.line.android:id/chat_ui_message_edit"] ) > 0;
              $messages := $.**[id = "jp.naver.line.android:id/chat_ui_message_text"];
-             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                 "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                 "messages": [{"body": text}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                   "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                   "messages": [{"body": text}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -250,16 +259,18 @@ export const profileGroups: ProfileGroup[] = [
               $trim(text) != ""
             ];
             $messages := $append($directMessages, $metaMessages);
-            $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-              $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-              $turns := [$map($sorted, function($message) {
-                {
-                  "sender": (($message.bounds.left + $message.bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                  "userSent": (($message.bounds.left + $message.bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                  "messages": [{"body": $message.text}]
-                }
-              })];
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+            $result := $not($hasInput) ? null : (
+              $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                $turns := [$map($sorted, function($message) {
+                  {
+                    "sender": (($message.bounds.left + $message.bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                    "userSent": (($message.bounds.left + $message.bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                    "messages": [{"body": $message.text}]
+                  }
+                })];
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -282,14 +293,16 @@ export const profileGroups: ProfileGroup[] = [
             $rootBounds := $.bounds;
             $hasInput := $count($.**[id = "org.thoughtcrime.securesms:id/embedded_text_editor"]) > 0;
              $messages := $.**[id = "org.thoughtcrime.securesms:id/conversation_item_body"];
-             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                 "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                 "messages": [{"body": text}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                   "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                   "messages": [{"body": text}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -314,14 +327,16 @@ export const profileGroups: ProfileGroup[] = [
              $messageNodes := $.**[id = "com.discord:id/accessories_view"].(
                $count(children) > 0 ? children[0] : $
              );
-             $result := ($not($hasInput) or $count($messageNodes) = 0) ? null : (
-               $sorted := $sort($messageNodes, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                 "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                 "messages": [{"body": text ?? ""}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messageNodes) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messageNodes, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                   "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                   "messages": [{"body": text ?? ""}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+               )
              );
              $result
            )`,
@@ -344,14 +359,16 @@ export const profileGroups: ProfileGroup[] = [
             $rootBounds := $.bounds;
             $hasInput := $count($.**[id = "co.hinge.app:id/messageComposition"]) > 0;
              $messages := $.**[id = "co.hinge.app:id/chatBubble"];
-             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                 "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                 "messages": [{"body": text}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                   "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                   "messages": [{"body": text}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -374,14 +391,16 @@ export const profileGroups: ProfileGroup[] = [
             $rootBounds := $.bounds;
             $hasInput := $count($.**[id = "com.tinder:id/textMessageInput"]) > 0;
              $messages := $.**[id = "com.tinder:id/chatTextMessageContent"];
-             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": (((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2)) ? "Me" : "Others",
-                 "userSent": (((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2)),
-                 "messages": [{"body": text}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": (((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2)) ? "Me" : "Others",
+                   "userSent": (((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2)),
+                   "messages": [{"body": text}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -419,14 +438,16 @@ export const profileGroups: ProfileGroup[] = [
             $rootBounds := $.bounds;
             $hasInput := $count($.**[id = "com.vr.heymandi:id/messageInput"]) > 0;
              $messages := $.**[id = "com.vr.heymandi:id/messageText"];
-             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                 "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                 "messages": [{"body": text}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                   "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                   "messages": [{"body": text}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -527,14 +548,16 @@ export const profileGroups: ProfileGroup[] = [
                 $not(id = "post_footer.reply_count")
               ]
             );
-            $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-              $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-              $turns := $sorted[].{
-                "sender": "Others",
-                "userSent": false,
-                "messages": [{"body": text}]
-              };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+            $result := $not($hasInput) ? null : (
+              $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                $turns := $sorted[].{
+                  "sender": "Others",
+                  "userSent": false,
+                  "messages": [{"body": text}]
+                };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -557,14 +580,16 @@ export const profileGroups: ProfileGroup[] = [
             $rootBounds := $.bounds;
             $hasInput := $count($.**[id = "com.google.android.apps.messaging:id/compose_message_text"]) > 0;
              $messages := $.**[viewIdResourceName = "message_text"];
-             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                 "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                 "messages": [{"body": text}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                   "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                   "messages": [{"body": text}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -643,14 +668,16 @@ export const profileGroups: ProfileGroup[] = [
           `(
             $hasInput := $count($.**[id = "com.snapchat.android:id/chat_input_text_field"]) > 0;
             $messages := $.**[className = "javaClass" and text != null and text != ""];
-            $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-              $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-              $turns := $sorted[].{
-                "sender": "Others",
-                "userSent": false,
-                "messages": [{"body": text}]
-              };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+            $result := $not($hasInput) ? null : (
+              $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                $turns := $sorted[].{
+                  "sender": "Others",
+                  "userSent": false,
+                  "messages": [{"body": text}]
+                };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -673,14 +700,16 @@ export const profileGroups: ProfileGroup[] = [
             $rootBounds := $.bounds;
             $hasInput := $count($.**[id = "com.microsoft.teams:id/message_area_edit_text"]) > 0;
              $messages := $.**[id = "com.microsoft.teams:id/rich_text_layout"];
-             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                 "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                 "messages": [{"body": contentDescription ?? ""}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                   "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                   "messages": [{"body": contentDescription ?? ""}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,
@@ -703,14 +732,16 @@ export const profileGroups: ProfileGroup[] = [
             $rootBounds := $.bounds;
             $hasInput := $count($.**[id = "com.viber.voip:id/send_text"]) > 0;
              $messages := $.**[id = "com.viber.voip:id/textMessageView"];
-             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
-               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted[].{
-                 "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
-                 "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
-                 "messages": [{"body": text}]
-               };
-              {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+             $result := $not($hasInput) ? null : (
+               $count($messages) = 0 ? {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": []} : (
+                 $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
+                 $turns := $sorted[].{
+                   "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
+                   "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
+                   "messages": [{"body": text}]
+                 };
+                {"type": "chat", "label": "messages", "snapshotFrequency": "active", "turns": $turns}
+              )
             );
             $result
           )`,

@@ -82,6 +82,66 @@ describe("profile extractors", () => {
     expect(result?.turns[0]?.messages).toEqual([{ body: "hello there" }]);
   });
 
+  it("treats a recognized line composer with no messages as an active empty chat", async () => {
+    const lineExtractor = profileGroups
+      .flatMap((group) => group.profiles)
+      .find((profile) => profile.id === "line-chat")?.extractors[0];
+
+    const snapshot = node(
+      {
+        packageName: "jp.naver.line.android",
+      },
+      [
+        node({
+          id: "jp.naver.line.android:id/chat_ui_message_edit",
+          packageName: "jp.naver.line.android",
+          className: "android.widget.EditText",
+          isFocused: true,
+          bounds: bounds(0, 150, 100, 190),
+        }),
+      ],
+    );
+
+    const result = await jsonata(lineExtractor ?? "").evaluate(snapshot);
+
+    expect(result).toEqual({
+      type: "chat",
+      label: "messages",
+      snapshotFrequency: "active",
+      turns: [],
+    });
+  });
+
+  it("treats a recognized whatsapp composer with no messages as an active empty chat", async () => {
+    const whatsappExtractor = profileGroups
+      .flatMap((group) => group.profiles)
+      .find((profile) => profile.id === "whatsapp-chat")?.extractors[0];
+
+    const snapshot = node(
+      {
+        packageName: "com.whatsapp",
+      },
+      [
+        node({
+          id: "com.whatsapp:id/entry",
+          packageName: "com.whatsapp",
+          className: "android.widget.EditText",
+          isFocused: true,
+          bounds: bounds(0, 150, 100, 190),
+        }),
+      ],
+    );
+
+    const result = await jsonata(whatsappExtractor ?? "").evaluate(snapshot);
+
+    expect(result).toEqual({
+      type: "chat",
+      label: "messages",
+      snapshotFrequency: "active",
+      turns: [],
+    });
+  });
+
   it("keeps generic screen children iterable when only one child matches", async () => {
     const extractor = generateGenericProfile(
       "com.example.app",
