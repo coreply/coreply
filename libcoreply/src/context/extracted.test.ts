@@ -86,4 +86,13 @@ describe("normalizeExtractedContextData", () => {
       }),
     ).toBeNull();
   });
+
+  it("drops screen nodes whose explicit children array normalizes to nothing", () => {
+    expect(
+      normalizeExtractedContextData({
+        type: "screen",
+        children: [{}],
+      }),
+    ).toBeNull();
+  });
 });

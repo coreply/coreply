@@ -65,7 +65,9 @@ const normalizeScreenContextData = (value: unknown): ScreenContextData | null =>
     return null;
   }
 
-  const hasExplicitChildrenArray = Array.isArray(value.children);
+  const explicitChildrenArray = Array.isArray(value.children)
+    ? value.children
+    : null;
   const children = asArray(value.children)
     .map(normalizeScreenContextData)
     .filter((child): child is ScreenContextData => child !== null);
@@ -74,7 +76,8 @@ const normalizeScreenContextData = (value: unknown): ScreenContextData | null =>
   if (
     text === undefined &&
     children.length === 0 &&
-    !hasExplicitChildrenArray
+    explicitChildrenArray === null ||
+    explicitChildrenArray.length > 0
   ) {
     return null;
   }
