@@ -389,7 +389,7 @@ export const profileGroups: ProfileGroup[] = [
             $profilePage := $.**[id = "com.tinder:id/user_rec_sparks_profile"][];
             $isProfilePage := $count($profilePage) = 1;
             $extractNestedText := function($node) {(
-               {"text": $node.text, "children": [$map($node.children[$count(children) > 0 or text != null], $extractNestedText)]}
+               {"text": $node.text, "children": $append([], $map($node.children[$count(children) > 0 or text != null], $extractNestedText))}
             )};
             $screenText := $extractNestedText($profilePage[0]);
              $result := $isProfilePage ? (
@@ -854,7 +854,7 @@ export function generateGenericProfile(
 ): Profile {
   const extractor = `(
     $extract := function($node) {(
-      {"text": $node.text, "children": [$map($node.children[$count(children) > 0 or text != null], $extract)]}
+      {"text": $node.text, "children": $append([], $map($node.children[$count(children) > 0 or text != null], $extract))}
     )};
     $tree := $extract($);
     $hasText := $exists($tree.text) or $count($tree.**[text != null]) > 0;
@@ -864,7 +864,7 @@ export function generateGenericProfile(
       "label": "screen",
       "snapshotFrequency": $exists($input) ? "active" : "frequent",
       "text": $tree.text,
-      "children": [$tree.children]
+      "children": $append([], $tree.children)
     } : null;
     $result
   )`;
