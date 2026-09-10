@@ -87,13 +87,10 @@ export function normalizeExtractedContextData(
     return null;
   }
 
+  const snapshotFrequency = normalizeSnapshotFrequency(value.snapshotFrequency);
   const base = {
     ...(typeof value.label === "string" ? { label: value.label } : {}),
-    ...(normalizeSnapshotFrequency(value.snapshotFrequency)
-      ? {
-          snapshotFrequency: normalizeSnapshotFrequency(value.snapshotFrequency),
-        }
-      : {}),
+    ...(snapshotFrequency ? { snapshotFrequency } : {}),
   };
 
   if (value.type === "chat") {
