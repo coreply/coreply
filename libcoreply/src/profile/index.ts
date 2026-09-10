@@ -120,7 +120,7 @@ export const profileGroups: ProfileGroup[] = [
             ];
              $result := ($not($hasTrigger) or $count($bubbles) = 0) ? null : (
                $sorted := $sort($bubbles, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{
@@ -179,7 +179,7 @@ export const profileGroups: ProfileGroup[] = [
              ];
              $result := ($not($hasTrigger) or $count($bubbles) = 0) ? null : (
                $sorted := $sort($bubbles, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -209,7 +209,7 @@ export const profileGroups: ProfileGroup[] = [
              $messages := $.**[id = "jp.naver.line.android:id/chat_ui_message_text"];
              $result := ($not($hasInput) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -284,7 +284,7 @@ export const profileGroups: ProfileGroup[] = [
              $messages := $.**[id = "org.thoughtcrime.securesms:id/conversation_item_body"];
              $result := ($not($hasInput) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -316,7 +316,7 @@ export const profileGroups: ProfileGroup[] = [
              );
              $result := ($not($hasInput) or $count($messageNodes) = 0) ? null : (
                $sorted := $sort($messageNodes, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text ?? ""}]
@@ -346,7 +346,7 @@ export const profileGroups: ProfileGroup[] = [
              $messages := $.**[id = "co.hinge.app:id/chatBubble"];
              $result := ($not($hasInput) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -389,7 +389,7 @@ export const profileGroups: ProfileGroup[] = [
             $profilePage := $.**[id = "com.tinder:id/user_rec_sparks_profile"][];
             $isProfilePage := $count($profilePage) = 1;
             $extractNestedText := function($node) {(
-               {"text": $node.text, "children": $map($node.children[$count(children) > 0 or text != null], $extractNestedText)[]}
+               {"text": $node.text, "children": [$map($node.children[$count(children) > 0 or text != null], $extractNestedText)]}
             )};
             $screenText := $extractNestedText($profilePage[0]);
              $result := $isProfilePage ? (
@@ -421,7 +421,7 @@ export const profileGroups: ProfileGroup[] = [
              $messages := $.**[id = "com.vr.heymandi:id/messageText"];
              $result := ($not($hasInput) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -455,7 +455,7 @@ export const profileGroups: ProfileGroup[] = [
             $messages := $closest ? $closest.**[id != null and $contains(id, "android:id/message_text")] : [];
             $result := ($not($input) or $not($closest) or $count($messages) = 0) ? null : (
               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-              $turns := $sorted.{
+              $turns := $sorted[].{
                 "sender": "Others",
                 "userSent": false,
                 "messages": [{"body": text ?? ""}]
@@ -488,7 +488,7 @@ export const profileGroups: ProfileGroup[] = [
              $bubbles := $.**[className = "android.view.ViewGroup" and text != null and text != ""];
              $result := ($not($hasTrigger) or $count($bubbles) = 0) ? null : (
                $sorted := $sort($bubbles, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -529,7 +529,7 @@ export const profileGroups: ProfileGroup[] = [
             );
             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-              $turns := $sorted.{
+              $turns := $sorted[].{
                 "sender": "Others",
                 "userSent": false,
                 "messages": [{"body": text}]
@@ -559,7 +559,7 @@ export const profileGroups: ProfileGroup[] = [
              $messages := $.**[viewIdResourceName = "message_text"];
              $result := ($not($hasInput) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -645,7 +645,7 @@ export const profileGroups: ProfileGroup[] = [
             $messages := $.**[className = "javaClass" and text != null and text != ""];
             $result := ($not($hasInput) or $count($messages) = 0) ? null : (
               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-              $turns := $sorted.{
+              $turns := $sorted[].{
                 "sender": "Others",
                 "userSent": false,
                 "messages": [{"body": text}]
@@ -675,7 +675,7 @@ export const profileGroups: ProfileGroup[] = [
              $messages := $.**[id = "com.microsoft.teams:id/rich_text_layout"];
              $result := ($not($hasInput) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": contentDescription ?? ""}]
@@ -705,7 +705,7 @@ export const profileGroups: ProfileGroup[] = [
              $messages := $.**[id = "com.viber.voip:id/textMessageView"];
              $result := ($not($hasInput) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -737,7 +737,7 @@ export const profileGroups: ProfileGroup[] = [
              $messages := $.**[viewIdResourceName = "messageBubbleTextContent"];
              $result := ($not($hasTrigger) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -768,7 +768,7 @@ export const profileGroups: ProfileGroup[] = [
             $messages := $input ? $.**[text != null and $trim(text) != "" and $not(isShowingHintText) and $not(isFocused) and bounds.top <= $input.bounds.top] : [];
             $result := ($not($hasTrigger) or $count($messages) = 0) ? null : (
               $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-              $turns := $sorted.{
+              $turns := $sorted[].{
                 "sender": "OnScreen",
                 "userSent": false,
                 "messages": [{"body": text}]
@@ -824,7 +824,7 @@ export const profileGroups: ProfileGroup[] = [
             });
              $result := ($not($hasInput) or $not($thread) or $count($messages) = 0) ? null : (
                $sorted := $sort($messages, function($a, $b) { $a.bounds.top > $b.bounds.top });
-               $turns := $sorted.{
+               $turns := $sorted[].{
                  "sender": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2) ? "Me" : "Others",
                  "userSent": ((bounds.left + bounds.right) / 2) > (($rootBounds.left + $rootBounds.right) / 2),
                  "messages": [{"body": text}]
@@ -854,7 +854,7 @@ export function generateGenericProfile(
 ): Profile {
   const extractor = `(
     $extract := function($node) {(
-      {"text": $node.text, "children": $map($node.children[$count(children) > 0 or text != null], $extract)[]}
+      {"text": $node.text, "children": [$map($node.children[$count(children) > 0 or text != null], $extract)]}
     )};
     $tree := $extract($);
     $hasText := $exists($tree.text) or $count($tree.**[text != null]) > 0;
@@ -864,7 +864,7 @@ export function generateGenericProfile(
       "label": "screen",
       "snapshotFrequency": $exists($input) ? "active" : "frequent",
       "text": $tree.text,
-      "children": $tree.children[]
+      "children": [$tree.children]
     } : null;
     $result
   )`;
