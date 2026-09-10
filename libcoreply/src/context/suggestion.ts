@@ -128,7 +128,7 @@ export class SuggestionStorage {
 
     if (text.trim() === "" && this.history.has("")) {
       const stored = this.history.get("");
-      return stored === PENDING ? PENDING : stored ?? null;
+      return stored ?? null;
     }
 
     for (let index = 0; index <= text.length; index += 1) {
