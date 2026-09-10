@@ -137,28 +137,36 @@ export class ScreenContextImpl implements ScreenContext {
   }
 
   tryUpdate(incomingContext: ScreenContext): boolean {
-    const incomingData = incomingContext.data;
+    try {
+      const incomingData = incomingContext.data;
 
-    // Flatten the nested trees so matching works regardless of how deep text
-    // is nested in children (the root node often carries no text itself).
-    const existingTexts = flattenToTexts(this.data);
-    const incomingTexts = flattenToTexts(incomingData);
+      // Flatten the nested trees so matching works regardless of how deep text
+      // is nested in children (the root node often carries no text itself).
+      const existingTexts = flattenToTexts(this.data);
+      const incomingTexts = flattenToTexts(incomingData);
 
-    if (incomingTexts.length === 0) {
+      if (incomingTexts.length === 0) {
+        return false;
+      }
+
+      // Detect a reliable common part (anchor) between the two contexts.
+      const anchor = findLongestContiguousMatch(existingTexts, incomingTexts);
+      if (!anchor) {
+        return false;
+      }
+
+      // A common part was detected: this is the same screen view. Take the larger
+      // context so scrolling or partial updates converge to the fuller snapshot.
+      if (totalTextLength(incomingTexts) > totalTextLength(existingTexts)) {
+        this.data = incomingData;
+      }
+      return true;
+    } catch (error) {
+      console.error(
+        `Error updating screen context for profile ${this.profileId}:`,
+        error instanceof Error ? error.message : error,
+      );
       return false;
     }
-
-    // Detect a reliable common part (anchor) between the two contexts.
-    const anchor = findLongestContiguousMatch(existingTexts, incomingTexts);
-    if (!anchor) {
-      return false;
-    }
-
-    // A common part was detected: this is the same screen view. Take the larger
-    // context so scrolling or partial updates converge to the fuller snapshot.
-    if (totalTextLength(incomingTexts) > totalTextLength(existingTexts)) {
-      this.data = incomingData;
-    }
-    return true;
   }
 }
