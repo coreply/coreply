@@ -77,4 +77,13 @@ describe("normalizeExtractedContextData", () => {
       children: [],
     });
   });
+
+  it("drops invalid empty-object screen children payloads", () => {
+    expect(
+      normalizeExtractedContextData({
+        type: "screen",
+        children: {},
+      }),
+    ).toBeNull();
+  });
 });
