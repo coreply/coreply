@@ -266,7 +266,10 @@ export class Coreply {
       this.listener.onError(
         error instanceof Error ? error : new Error(String(error)),
       );
-      store.clearSuggestionPending(typing);
+    } finally {
+      if (store.getSuggestion(typing) === PENDING) {
+        store.clearSuggestionPending(typing);
+      }
     }
   }
 }

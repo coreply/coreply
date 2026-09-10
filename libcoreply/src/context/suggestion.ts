@@ -25,18 +25,9 @@ export class SuggestionStorage {
   }
 
   clearSuggestionPending(text: string): void {
-    if (text === "") {
-      if (this.history.get("") === PENDING) {
-        this.history.delete("");
-      }
-      return;
-    }
-
-    for (let index = 1; index <= text.length; index += 1) {
-      const key = this.getKeyFromText(text.slice(0, index));
-      if (this.history.get(key) === PENDING) {
-        this.history.delete(key);
-      }
+    const key = this.getKeyFromText(text);
+    if (this.history.get(key) === PENDING) {
+      this.history.delete(key);
     }
   }
 
@@ -129,18 +120,22 @@ export class SuggestionStorage {
   }
 
   getSuggestion(text: string): string | null | typeof PENDING {
+    const exactKey = this.getKeyFromText(text);
+    const exactStored = this.history.get(exactKey);
+    if (exactStored === PENDING) {
+      return PENDING;
+    }
+
     if (text.trim() === "" && this.history.has("")) {
       const stored = this.history.get("");
-      return stored ?? null;
+      return stored === PENDING ? PENDING : stored ?? null;
     }
+
     for (let index = 0; index <= text.length; index += 1) {
       const target = this.getKeyFromText(text.slice(0, index));
       const stored = this.history.get(target);
-      if (!stored) {
+      if (!stored || stored === PENDING) {
         continue;
-      }
-      if (stored === PENDING) {
-        return PENDING;
       }
       const starting = text.slice(index);
       if (
@@ -165,7 +160,6 @@ export class SuggestionStorage {
       this.normalizeWhitespace(currentTyping),
     ).toLowerCase();
     if (!normalizedSuggestion.startsWith(normalizedTyping)) {
-      this.clearSuggestionPending(currentTyping);
       return null;
     }
     const frontTrimmedSuggestion = this.trimMessagePrefix(
@@ -188,13 +182,6 @@ export class SuggestionStorage {
     if (existingRoot === undefined || existingRoot === PENDING) {
       this.history.set(rootKey, parts[0] ?? "");
     }
-
-    const result = this.getSuggestion(currentTyping);
-    if (result === PENDING) {
-      this.clearSuggestionPending(currentTyping);
-      const cleanedResult = this.getSuggestion(currentTyping);
-      return cleanedResult === PENDING ? null : cleanedResult;
-    }
-    return result;
+    return this.getSuggestion(currentTyping);
   }
 }
