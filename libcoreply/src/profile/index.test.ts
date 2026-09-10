@@ -48,7 +48,6 @@ describe("profile extractors", () => {
     expect(extractors.some((extractor) => extractor.includes("$sorted[].{"))).toBe(
       true,
     );
-    expect(
     expect(genericExtractor).toContain('"children": $append([], $tree.children)');
   });
 
