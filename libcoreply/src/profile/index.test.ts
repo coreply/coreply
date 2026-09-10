@@ -36,6 +36,10 @@ describe("profile extractors", () => {
     const extractors = profileGroups.flatMap((group) =>
       group.profiles.flatMap((profile) => profile.extractors),
     );
+    const genericExtractor = generateGenericProfile(
+      "com.example.app",
+      "android",
+    ).extractors[0];
 
     for (const extractor of extractors) {
       expect(extractor).not.toContain("$sorted.{");
@@ -45,10 +49,7 @@ describe("profile extractors", () => {
       true,
     );
     expect(
-      extractors.some((extractor) =>
-        extractor.includes('"children": $append([], $tree.children)'),
-      ),
-    ).toBe(true);
+    expect(genericExtractor).toContain('"children": $append([], $tree.children)');
   });
 
   it("keeps telegram chat turns iterable when only one bubble matches", async () => {
