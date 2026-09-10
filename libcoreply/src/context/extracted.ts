@@ -65,12 +65,13 @@ const normalizeScreenContextData = (value: unknown): ScreenContextData | null =>
     return null;
   }
 
+  const hasChildrenField = "children" in value;
   const children = asArray(value.children)
     .map(normalizeScreenContextData)
     .filter((child): child is ScreenContextData => child !== null);
   const text = typeof value.text === "string" ? value.text : undefined;
 
-  if (text === undefined && children.length === 0) {
+  if (text === undefined && children.length === 0 && !hasChildrenField) {
     return null;
   }
 

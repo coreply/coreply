@@ -63,4 +63,18 @@ describe("normalizeExtractedContextData", () => {
       ],
     });
   });
+
+  it("preserves explicit empty screen children arrays", () => {
+    const result = normalizeExtractedContextData({
+      type: "screen",
+      label: "screen",
+      children: [],
+    });
+
+    expect(result).toEqual({
+      type: "screen",
+      label: "screen",
+      children: [],
+    });
+  });
 });
