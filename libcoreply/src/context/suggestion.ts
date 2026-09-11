@@ -124,6 +124,7 @@ export class SuggestionStorage {
       const stored = this.history.get("");
       return stored ?? null;
     }
+
     for (let index = 0; index <= text.length; index += 1) {
       const target = this.getKeyFromText(text.slice(0, index));
       const stored = this.history.get(target);
@@ -131,7 +132,10 @@ export class SuggestionStorage {
         continue;
       }
       if (stored === PENDING) {
-        return PENDING;
+        if (index === text.length) {
+          return PENDING;
+        }
+        continue;
       }
       const starting = text.slice(index);
       if (
