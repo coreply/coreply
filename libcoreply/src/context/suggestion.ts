@@ -120,12 +120,6 @@ export class SuggestionStorage {
   }
 
   getSuggestion(text: string): string | null | typeof PENDING {
-    const exactKey = this.getKeyFromText(text);
-    const exactStored = this.history.get(exactKey);
-    if (exactStored === PENDING) {
-      return PENDING;
-    }
-
     if (text.trim() === "" && this.history.has("")) {
       const stored = this.history.get("");
       return stored ?? null;
@@ -134,7 +128,13 @@ export class SuggestionStorage {
     for (let index = 0; index <= text.length; index += 1) {
       const target = this.getKeyFromText(text.slice(0, index));
       const stored = this.history.get(target);
-      if (!stored || stored === PENDING) {
+      if (!stored) {
+        continue;
+      }
+      if (stored === PENDING) {
+        if (index === text.length) {
+          return PENDING;
+        }
         continue;
       }
       const starting = text.slice(index);

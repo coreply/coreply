@@ -267,9 +267,7 @@ export class Coreply {
         error instanceof Error ? error : new Error(String(error)),
       );
     } finally {
-      if (store.getSuggestion(typing) === PENDING) {
-        store.clearSuggestionPending(typing);
-      }
+      store.clearSuggestionPending(typing);
     }
   }
 }
