@@ -1,5 +1,6 @@
 import { Coreply } from "libcoreply";
 import {
+  suggestionFetchLogSchema,
   type WrapperOutboundMessage,
   wrapperInboundMessageSchema,
 } from "./schemas";
@@ -50,6 +51,12 @@ if (coreplyBridgeObject) {
         payload: {
           collectionMode,
         },
+      });
+    },
+    onLog(log) {
+      postToNative({
+        type: "log",
+        payload: suggestionFetchLogSchema.parse(log),
       });
     },
   });
