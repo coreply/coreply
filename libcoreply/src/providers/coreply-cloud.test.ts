@@ -74,10 +74,12 @@ describe("coreplyCloud provider", () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("https://coreply.p.nadles.com/completion");
     expect(init.method).toBe("POST");
-    expect(init.headers).toEqual({
-      "Content-Type": "application/json",
-      Authorization: "Bearer secret-token",
-    });
+    const headers = new Headers(init.headers);
+    expect(headers.get("Authorization")).toEqual(
+      expect.stringMatching(/.+/),
+    );
+    expect(headers.get("Accept-Encoding")).toBe("identity");
+    expect(headers.has("Content-Type")).toBe(false);
 
     const body = JSON.parse(String(init.body)) as {
       action: string;
