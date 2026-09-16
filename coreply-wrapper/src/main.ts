@@ -54,10 +54,14 @@ if (coreplyBridgeObject) {
       });
     },
     onLog(log) {
-      postToNative({
-        type: "log",
-        payload: suggestionFetchLogSchema.parse(log),
-      });
+      try {
+        postToNative({
+          type: "log",
+          payload: suggestionFetchLogSchema.parse(log),
+        });
+      } catch (error) {
+        console.error("Failed to validate suggestion fetch log:", error);
+      }
     },
   });
   coreplyBridgeObject.onmessage = (event) => {
