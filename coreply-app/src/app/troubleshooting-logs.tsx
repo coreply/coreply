@@ -13,7 +13,7 @@ import { ThemedView } from "@/components/themed-view";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { loadSuggestionFetchLogs } from "@/constants/troubleshooting-logs";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
-import type { SuggestionFetchLog } from "../../../coreply-wrapper/src/schemas";
+import type { SuggestionFetchLog } from "coreply-wrapper/schemas";
 
 export default function TroubleshootingLogsScreen() {
   const [fontsLoaded] = useFonts({
@@ -85,9 +85,36 @@ export default function TroubleshootingLogsScreen() {
                     <Text className="text-base font-semibold text-foreground">
                       {log.completedAt}
                     </Text>
-                    <Text className="font-sans text-sm text-foreground">
-                      {JSON.stringify(log, null, 2)}
-                    </Text>
+                    <View style={styles.logSection}>
+                      <Text className="font-sans text-sm text-foreground">
+                        Provider: {log.providerId}
+                      </Text>
+                      <Text className="font-sans text-sm text-foreground">
+                        Typing: {log.currentTyping || "(empty)"}
+                      </Text>
+                      <Text className="font-sans text-sm text-foreground">
+                        Started: {log.startedAt}
+                      </Text>
+                      <Text className="font-sans text-sm text-foreground">
+                        Duration: {log.durationMs}ms
+                      </Text>
+                    </View>
+                    <View style={styles.logSection}>
+                      <Text className="text-sm font-semibold text-foreground">
+                        Result
+                      </Text>
+                      <Text style={styles.codeBlock}>
+                        {JSON.stringify(log.result, null, 2)}
+                      </Text>
+                    </View>
+                    <View style={styles.logSection}>
+                      <Text className="text-sm font-semibold text-foreground">
+                        Contexts
+                      </Text>
+                      <Text style={styles.codeBlock}>
+                        {JSON.stringify(log.contexts, null, 2)}
+                      </Text>
+                    </View>
                   </View>
                 ))
               )}
@@ -122,5 +149,12 @@ const styles = StyleSheet.create({
   },
   logCard: {
     gap: Spacing.two,
+  },
+  logSection: {
+    gap: Spacing.one,
+  },
+  codeBlock: {
+    fontFamily: "monospace",
+    fontSize: 12,
   },
 });

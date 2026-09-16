@@ -70,7 +70,7 @@ export class Coreply {
     try {
       this.listener.onLog(log);
     } catch (error) {
-      console.log("Error emitting log:", error);
+      console.error("Error emitting log:", error);
     }
   }
 
