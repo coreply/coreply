@@ -283,7 +283,7 @@ export class Coreply {
   private async fetchSuggestion(typing: string, store: ContextStore) {
     const startedAt = new Date().toISOString();
     const startTime = Date.now();
-    const contexts = store.getContexts();
+    const contexts = [...store.getContexts()];
     const serializedContexts = this.serializeContexts(contexts);
 
     try {

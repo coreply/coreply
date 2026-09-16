@@ -15,8 +15,6 @@ import { loadSuggestionFetchLogs } from "@/constants/troubleshooting-logs";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import type { SuggestionFetchLog } from "../../../coreply-wrapper/src/schemas";
 
-import "../../global.css";
-
 export default function TroubleshootingLogsScreen() {
   const [fontsLoaded] = useFonts({
     Outfit_400Regular,
