@@ -393,6 +393,7 @@ export default defineContentScript({
 
     const coreply = new Coreply({
       onInit() {},
+      onCollectionModeUpdated() {},
       onSuggestionUpdated(fullSuggestion) {
         if (!currentTyping || !fullSuggestion.startsWith(currentTyping)) {
           clearOverlay();
@@ -415,6 +416,7 @@ export default defineContentScript({
       onError() {
         clearOverlay();
       },
+      onLog() {},
     });
 
     let watchedProviderConfigKey = "";

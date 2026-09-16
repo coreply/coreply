@@ -401,6 +401,31 @@ export default function SettingsScreen() {
                       ) : null}
                     </View>
                   </View>
+                  <View className="border-t border-border pt-3">
+                    <Text className="mb-2 text-lg px-3 font-semibold">
+                      Troubleshooting
+                    </Text>
+                    <View className="px-3 pb-3">
+                      <Button
+                        variant="ghost"
+                        className="h-auto min-h-16 w-full flex-row items-center justify-between rounded-none border border-border bg-form px-3 py-3 shadow-none"
+                        onPress={() => router.push("/troubleshooting-logs")}
+                      >
+                        <View className="h-auto flex-1 gap-1">
+                          <Text className="text-left text-base text-foreground font-medium">
+                            View Logs
+                          </Text>
+                          <Text className="text-left text-sm text-muted-foreground font-sans">
+                            Review recent suggestion fetch details.
+                          </Text>
+                        </View>
+                        <Icon
+                          as={ChevronRight}
+                          className="ml-3 size-5 text-muted-foreground"
+                        />
+                      </Button>
+                    </View>
+                  </View>
                 </View>
               </ScrollView>
             )}
