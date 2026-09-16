@@ -1,5 +1,9 @@
 import { createAsyncStorage } from "./storage";
-import type { SuggestionFetchLog } from "../../../coreply-wrapper/src/schemas";
+import {
+  suggestionFetchLogSchema,
+  type SuggestionFetchLog,
+} from "../../../coreply-wrapper/src/schemas";
+import { z } from "zod";
 
 export const TROUBLESHOOTING_STORAGE_NAMESPACE = "coreply.troubleshooting";
 export const SUGGESTION_FETCH_LOGS_STORAGE_KEY = "suggestionFetchLogs";
@@ -15,7 +19,7 @@ export async function loadSuggestionFetchLogs() {
 
   try {
     const parsed = JSON.parse(value) as unknown;
-    return Array.isArray(parsed) ? (parsed as SuggestionFetchLog[]) : [];
+    return z.array(suggestionFetchLogSchema).parse(parsed);
   } catch {
     return [] as SuggestionFetchLog[];
   }

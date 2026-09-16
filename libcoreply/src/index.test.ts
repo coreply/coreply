@@ -66,4 +66,43 @@ describe("Coreply suggestion fetch logging", () => {
     });
     expect(logs[0].durationMs).toBeGreaterThanOrEqual(0);
   });
+
+  it("emits one error log for a failed suggestion fetch", async () => {
+    const requestFunc = vi.fn().mockRejectedValue(new Error("boom"));
+    (providerDefinitions as Record<string, unknown>)[TEST_PROVIDER_ID] = {
+      requestFunc,
+    };
+
+    const logs: SuggestionFetchLog[] = [];
+    const errors: Error[] = [];
+    const settings = createDefaultGlobalSettings();
+    settings.fetchControl.debounceMs = 0;
+
+    const coreply = new Coreply(createListener(logs, errors));
+    coreply.updateSettings({
+      globalSettings: settings,
+      providerId: TEST_PROVIDER_ID,
+      providerConfig: {},
+      selectedApps: [],
+    });
+
+    coreply.updateTyping("Hi");
+
+    await vi.waitFor(() => {
+      expect(logs).toHaveLength(1);
+      expect(errors).toHaveLength(1);
+    });
+
+    expect(requestFunc).toHaveBeenCalledTimes(1);
+    expect(logs[0]).toMatchObject({
+      type: "suggestionFetch",
+      providerId: TEST_PROVIDER_ID,
+      currentTyping: "Hi",
+      contexts: [],
+      result: {
+        type: "error",
+        message: "boom",
+      },
+    });
+  });
 });

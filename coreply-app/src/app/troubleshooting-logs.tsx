@@ -78,7 +78,7 @@ export default function TroubleshootingLogsScreen() {
               ) : (
                 logs.map((log, index) => (
                   <View
-                    key={`${log.completedAt}-${index}`}
+                    key={`${log.startedAt}-${log.completedAt}-${log.providerId}-${index}`}
                     className="border border-border bg-form px-4 py-4"
                     style={styles.logCard}
                   >
