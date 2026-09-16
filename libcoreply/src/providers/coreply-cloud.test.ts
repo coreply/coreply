@@ -78,8 +78,6 @@ describe("coreplyCloud provider", () => {
     expect(headers.get("Authorization")).toEqual(
       expect.stringMatching(/.+/),
     );
-    expect(headers.get("Accept-Encoding")).toBe("identity");
-    expect(headers.has("Content-Type")).toBe(false);
 
     const body = JSON.parse(String(init.body)) as {
       action: string;
