@@ -2,7 +2,7 @@ import { createAsyncStorage } from "./storage";
 import {
   suggestionFetchLogSchema,
   type SuggestionFetchLog,
-} from "coreply-wrapper/schemas";
+} from "libcoreply";
 import { z } from "zod";
 
 export const TROUBLESHOOTING_STORAGE_NAMESPACE = "coreply.troubleshooting";

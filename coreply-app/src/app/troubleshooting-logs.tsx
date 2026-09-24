@@ -11,7 +11,7 @@ import {
   loadSuggestionFetchLogs,
 } from "@/constants/troubleshooting-logs";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
-import type { SuggestionFetchLog } from "coreply-wrapper/schemas";
+import type { SuggestionFetchLog } from "libcoreply";
 
 export default function TroubleshootingLogsScreen() {
   const [logs, setLogs] = useState<SuggestionFetchLog[]>([]);

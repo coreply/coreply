@@ -14,7 +14,6 @@
     "chrome-types": "^0.1.431",
     "clsx": "^2.1.1",
     "coreply-shared-components": "workspace:*",
-    "coreply-wrapper": "workspace:*",
     "expo": "~56.0.8",
     "expo-brownfield": "~56.0.21",
     "expo-constants": "~56.0.16",

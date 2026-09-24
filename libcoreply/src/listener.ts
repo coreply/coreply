@@ -1,20 +1,25 @@
-export type SuggestionFetchLog = {
-  type: "suggestionFetch";
-  providerId: string;
-  currentTyping: string;
-  timestamp: string;
-  durationMs: number;
-  isGood: boolean;
-  result:
-    | {
-        type: "success";
-        suggestion: string;
-      }
-    | {
-        type: "error";
-        message: string;
-      };
-};
+import { z } from "zod";
+
+export const suggestionFetchLogSchema = z.object({
+  type: z.literal("suggestionFetch"),
+  providerId: z.string(),
+  currentTyping: z.string(),
+  timestamp: z.string(),
+  durationMs: z.number().int().nonnegative(),
+  isGood: z.boolean(),
+  result: z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal("success"),
+      suggestion: z.string(),
+    }),
+    z.object({
+      type: z.literal("error"),
+      message: z.string(),
+    }),
+  ]),
+});
+
+export type SuggestionFetchLog = z.infer<typeof suggestionFetchLogSchema>;
 
 export interface LibCoreplyListener {
   onCollectionModeUpdated: (
