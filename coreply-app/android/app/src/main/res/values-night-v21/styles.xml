@@ -1,11 +1,10 @@
 <resources>
-
     <style name="AppThemeNoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">#F8F7F7</item>
         <item name="colorPrimaryDark">#F8F7F7</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>
