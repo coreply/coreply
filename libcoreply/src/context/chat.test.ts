@@ -160,4 +160,39 @@ describe("ChatContextImpl.tryUpdate", () => {
       "thanks",
     ]);
   });
+
+  it("clears cached suggestions when merge ends with a new user message", () => {
+    const existing = makeContext(
+      "profile",
+      turn(false, "them", "A", "B", "C"),
+    );
+    existing.updateSuggestion("C", "C confirmed");
+
+    const incoming = makeContext(
+      "profile",
+      turn(false, "them", "0"),
+      turn(false, "them", "A", "B", "C"),
+      turn(true, "me", "D"),
+    );
+
+    expect(existing.tryUpdate(incoming)).toBe(true);
+    expect(existing.getSuggestion("C")).toBeNull();
+    expect(flattenedBodies(existing)).toEqual(["0", "A", "B", "C", "D"]);
+  });
+
+  it("returns false instead of throwing on malformed incoming data", () => {
+    const existing = makeContext("profile", turn(true, "me", "hello"));
+    const malformed = {
+      data: {
+        turns: [
+          {
+            userSent: true,
+          },
+        ],
+      },
+    } as unknown as ChatContextImpl;
+
+    expect(existing.tryUpdate(malformed)).toBe(false);
+    expect(flattenedBodies(existing)).toEqual(["hello"]);
+  });
 });

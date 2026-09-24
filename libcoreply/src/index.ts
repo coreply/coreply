@@ -297,6 +297,7 @@ export class Coreply {
         });
       }
       this.listener.onError(resolvedError);
+    } finally {
       store.clearSuggestionPending(typing);
     }
   }
