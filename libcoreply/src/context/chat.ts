@@ -63,6 +63,13 @@ function flattenToMessages(turns: ChatTurn[]): MessageWithSender[] {
   );
 }
 
+function messagesMatch(left: MessageWithSender, right: MessageWithSender): boolean {
+  if (left.body !== right.body) return false;
+  if (left.time && right.time && left.time !== right.time) return false;
+  if (left.sender && right.sender && left.sender !== right.sender) return false;
+  return left.userSent === right.userSent;
+}
+
 // Find the longest contiguous matching sequence between two message arrays
 function findLongestContiguousMatch(
   a: MessageWithSender[],
@@ -116,14 +123,24 @@ function sequencesMatch(
 ): boolean {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) {
-    if (a[i].body !== b[i].body) return false;
-    // If body matches but time is present in both, check time too
-    if (a[i].time && b[i].time && a[i].time !== b[i].time) return false;
-    // If body matches but sender is present in both, check sender too
-    if (a[i].sender && b[i].sender && a[i].sender !== b[i].sender) return false;
-    if (a[i].userSent !== b[i].userSent) return false;
+    if (!messagesMatch(a[i], b[i])) return false;
   }
   return true;
+}
+
+function shouldClearSuggestionsAfterMerge(
+  existingMsgs: MessageWithSender[],
+  mergedMsgs: MessageWithSender[],
+): boolean {
+  const lastExisting = existingMsgs.at(-1);
+  const secondLastMerged = mergedMsgs.at(-2);
+  const lastMerged = mergedMsgs.at(-1);
+
+  if (!lastExisting || !secondLastMerged || !lastMerged?.userSent) {
+    return false;
+  }
+
+  return messagesMatch(lastExisting, secondLastMerged);
 }
 
 // Split array at first occurrence of sequence, returning before and after parts
@@ -231,55 +248,70 @@ export class ChatContextImpl implements ChatContext {
   }
 
   tryUpdate(incomingContext: ChatContext): boolean {
-    const incomingData = incomingContext.data;
-    const incomingTurns = incomingData.turns;
-    const existingTurns = this.data.turns;
+    try {
+      const incomingData = incomingContext.data;
+      const incomingTurns = incomingData.turns;
+      const existingTurns = this.data.turns;
 
-    if (incomingTurns.length === 0) {
+      if (incomingTurns.length === 0) {
+        return false;
+      }
+
+      // Flatten to MessageWithSender for easier comparison
+      const existingMsgs = flattenToMessages(existingTurns);
+      const incomingMsgs = flattenToMessages(incomingTurns);
+      // Find longest contiguous matching sequence (anchor)
+      const anchor = findLongestContiguousMatch(existingMsgs, incomingMsgs);
+      if (!anchor) {
+        return false;
+      }
+
+      // Split both at anchor
+      const { before: existingBefore, after: existingAfter } = splitAtSequence(
+        existingMsgs,
+        anchor,
+      );
+      const { before: incomingBefore, after: incomingAfter } = splitAtSequence(
+        incomingMsgs,
+        anchor,
+      );
+
+      // Take longer prefix and suffix
+      const before =
+        existingBefore.length >= incomingBefore.length
+          ? existingBefore
+          : incomingBefore;
+      const after =
+        existingAfter.length >= incomingAfter.length
+          ? existingAfter
+          : incomingAfter;
+
+      // Merge and rebuild turns
+      const mergedMsgs = [...before, ...anchor, ...after];
+      const mergedTurns = rebuildTurns(mergedMsgs);
+      const shouldClearSuggestions = shouldClearSuggestionsAfterMerge(
+        existingMsgs,
+        mergedMsgs,
+      );
+
+      // Preserve metadata: use incoming if present, otherwise keep existing
+      this.data = {
+        id: incomingData.id ?? this.data.id,
+        title: incomingData.title ?? this.data.title,
+        turns: mergedTurns,
+      };
+
+      if (shouldClearSuggestions) {
+        this.clearSuggestions();
+      }
+
+      return true;
+    } catch (error) {
+      console.error(
+        `Error updating chat context for profile ${this.profileId}:`,
+        error instanceof Error ? error.message : error,
+      );
       return false;
     }
-
-    // Flatten to MessageWithSender for easier comparison
-    const existingMsgs = flattenToMessages(existingTurns);
-    const incomingMsgs = flattenToMessages(incomingTurns);
-
-    // Find longest contiguous matching sequence (anchor)
-    const anchor = findLongestContiguousMatch(existingMsgs, incomingMsgs);
-    if (!anchor) {
-      return false;
-    }
-
-    // Split both at anchor
-    const { before: existingBefore, after: existingAfter } = splitAtSequence(
-      existingMsgs,
-      anchor,
-    );
-    const { before: incomingBefore, after: incomingAfter } = splitAtSequence(
-      incomingMsgs,
-      anchor,
-    );
-
-    // Take longer prefix and suffix
-    const before =
-      existingBefore.length >= incomingBefore.length
-        ? existingBefore
-        : incomingBefore;
-    const after =
-      existingAfter.length >= incomingAfter.length
-        ? existingAfter
-        : incomingAfter;
-
-    // Merge and rebuild turns
-    const mergedMsgs = [...before, ...anchor, ...after];
-    const mergedTurns = rebuildTurns(mergedMsgs);
-
-    // Preserve metadata: use incoming if present, otherwise keep existing
-    this.data = {
-      id: incomingData.id ?? this.data.id,
-      title: incomingData.title ?? this.data.title,
-      turns: mergedTurns,
-    };
-
-    return true;
   }
 }
