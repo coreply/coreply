@@ -128,26 +128,19 @@ function sequencesMatch(
   return true;
 }
 
-function isSingleUserMessageAppended(
+function shouldClearSuggestionsAfterMerge(
   existingMsgs: MessageWithSender[],
-  incomingMsgs: MessageWithSender[],
+  mergedMsgs: MessageWithSender[],
 ): boolean {
-  if (incomingMsgs.length !== existingMsgs.length + 1) {
+  const lastExisting = existingMsgs.at(-1);
+  const secondLastMerged = mergedMsgs.at(-2);
+  const lastMerged = mergedMsgs.at(-1);
+
+  if (!lastExisting || !secondLastMerged || !lastMerged?.userSent) {
     return false;
   }
 
-  const appended = incomingMsgs.at(-1);
-  if (!appended?.userSent) {
-    return false;
-  }
-
-  for (let i = 0; i < existingMsgs.length; i += 1) {
-    if (!messagesMatch(existingMsgs[i], incomingMsgs[i])) {
-      return false;
-    }
-  }
-
-  return true;
+  return messagesMatch(lastExisting, secondLastMerged);
 }
 
 // Split array at first occurrence of sequence, returning before and after parts
@@ -267,11 +260,6 @@ export class ChatContextImpl implements ChatContext {
       // Flatten to MessageWithSender for easier comparison
       const existingMsgs = flattenToMessages(existingTurns);
       const incomingMsgs = flattenToMessages(incomingTurns);
-      const shouldClearSuggestions = isSingleUserMessageAppended(
-        existingMsgs,
-        incomingMsgs,
-      );
-
       // Find longest contiguous matching sequence (anchor)
       const anchor = findLongestContiguousMatch(existingMsgs, incomingMsgs);
       if (!anchor) {
@@ -301,6 +289,10 @@ export class ChatContextImpl implements ChatContext {
       // Merge and rebuild turns
       const mergedMsgs = [...before, ...anchor, ...after];
       const mergedTurns = rebuildTurns(mergedMsgs);
+      const shouldClearSuggestions = shouldClearSuggestionsAfterMerge(
+        existingMsgs,
+        mergedMsgs,
+      );
 
       // Preserve metadata: use incoming if present, otherwise keep existing
       this.data = {
