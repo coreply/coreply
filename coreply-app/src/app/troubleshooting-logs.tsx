@@ -4,8 +4,12 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedView } from "@/components/themed-view";
+import { Button } from "@/components/ui/button";
 import { Text, TextClassContext } from "@/components/ui/text";
-import { loadSuggestionFetchLogs } from "@/constants/troubleshooting-logs";
+import {
+  clearSuggestionFetchLogs,
+  loadSuggestionFetchLogs,
+} from "@/constants/troubleshooting-logs";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import type { SuggestionFetchLog } from "coreply-wrapper/schemas";
 
@@ -66,12 +70,15 @@ export default function TroubleshootingLogsScreen() {
             ) : (
               logs.map((log, index) => (
                 <View
-                  key={`${log.startedAt}-${log.completedAt}-${log.providerId}-${index}`}
+                  key={`${log.timestamp}-${log.providerId}-${index}`}
                   className="border border-border bg-form px-4 py-4"
                   style={styles.logCard}
                 >
                   <Text className="text-base font-semibold text-foreground">
-                    {log.completedAt}
+                    {new Date(log.timestamp).toLocaleString(undefined, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </Text>
                   <View style={styles.logSection}>
                     <Text className="font-sans text-sm text-foreground">
@@ -81,32 +88,39 @@ export default function TroubleshootingLogsScreen() {
                       Typing: {log.currentTyping || "(empty)"}
                     </Text>
                     <Text className="font-sans text-sm text-foreground">
-                      Started: {log.startedAt}
+                      {log.result.type === "success"
+                        ? `Suggestion: ${log.result.suggestion}`
+                        : `Error: ${log.result.message}`}
                     </Text>
                     <Text className="font-sans text-sm text-foreground">
                       Duration: {log.durationMs}ms
                     </Text>
-                  </View>
-                  <View style={styles.logSection}>
-                    <Text className="text-sm font-semibold text-foreground">
-                      Result
-                    </Text>
-                    <Text style={styles.codeBlock}>
-                      {JSON.stringify(log.result, null, 2)}
-                    </Text>
-                  </View>
-                  <View style={styles.logSection}>
-                    <Text className="text-sm font-semibold text-foreground">
-                      Contexts
-                    </Text>
-                    <Text style={styles.codeBlock}>
-                      {JSON.stringify(log.contexts, null, 2)}
+                    <Text className="font-sans text-sm text-foreground">
+                      Good suggestion: {log.isGood ? "Yes" : "No"}
                     </Text>
                   </View>
                 </View>
               ))
             )}
           </ScrollView>
+          <View className="px-3 pb-3">
+            <Button
+              variant="destructive"
+              disabled={isLoading || logs.length === 0}
+              onPress={async () => {
+                try {
+                  await clearSuggestionFetchLogs();
+                  setLogs([]);
+                } catch (error) {
+                  setLoadError(
+                    error instanceof Error ? error.message : "Failed to delete logs",
+                  );
+                }
+              }}
+            >
+              <Text>Delete All Logs</Text>
+            </Button>
+          </View>
         </TextClassContext.Provider>
       </SafeAreaView>
     </ThemedView>
@@ -139,9 +153,5 @@ const styles = StyleSheet.create({
   },
   logSection: {
     gap: Spacing.one,
-  },
-  codeBlock: {
-    fontFamily: "monospace",
-    fontSize: 12,
   },
 });

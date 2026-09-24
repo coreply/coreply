@@ -2,14 +2,10 @@ import debounce, { type DebouncedFunction } from "debounce";
 import jsonata from "jsonata";
 import Mustache from "mustache";
 import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
-import { ContextStore, PENDING, type CoreplyContext } from "./context";
+import { ContextStore, PENDING } from "./context";
 import { profileGroups, generateGenericProfile } from "./profile";
 import { requestSuggestions } from "./requests";
-import type {
-  LibCoreplyListener,
-  SerializedCoreplyContext,
-  SuggestionFetchLog,
-} from "./listener";
+import type { LibCoreplyListener } from "./listener";
 import type { Snapshot } from "./context/snapshot";
 import { ChatContextImpl } from "./context/chat";
 import { ScreenContextImpl } from "./context/screen";
@@ -40,38 +36,6 @@ export class Coreply {
     return debounce((typing: string, store: ContextStore) => {
       void this.fetchSuggestion(typing, store);
     }, debounceMs);
-  }
-
-  private serializeContexts(
-    contexts: readonly CoreplyContext[],
-  ): SerializedCoreplyContext[] {
-    return contexts.map((context) => {
-      if (context.type === "chat") {
-        return {
-          type: "chat",
-          profileId: context.profileId,
-          dropRule: context.dropRule,
-          data: context.data,
-          label: context.label,
-        };
-      }
-
-      return {
-        type: "screen",
-        profileId: context.profileId,
-        dropRule: context.dropRule,
-        data: context.data,
-        label: context.label,
-      };
-    });
-  }
-
-  private emitLog(log: SuggestionFetchLog) {
-    try {
-      this.listener.onLog(log);
-    } catch (error) {
-      console.error("Error emitting log:", error);
-    }
   }
 
   getSettings(): CoreplySettings {
@@ -281,10 +245,8 @@ export class Coreply {
   }
 
   private async fetchSuggestion(typing: string, store: ContextStore) {
-    const startedAt = new Date().toISOString();
     const startTime = Date.now();
     const contexts = [...store.getContexts()];
-    const serializedContexts = this.serializeContexts(contexts);
 
     try {
       store.setSuggestionPending(typing);
@@ -298,20 +260,21 @@ export class Coreply {
       const finalSuggestion = normalized.startsWith(" ")
         ? ` ${normalized.trim()}`
         : normalized.trimEnd();
-      this.emitLog({
-        type: "suggestionFetch",
-        providerId: this.settings.providerId,
-        currentTyping: typing,
-        startedAt,
-        completedAt: new Date().toISOString(),
-        durationMs: Date.now() - startTime,
-        contexts: serializedContexts,
-        result: {
-          type: "success",
-          suggestion: finalSuggestion,
-        },
-      });
       const cached = store.updateSuggestion(typing, finalSuggestion);
+      if (this.settings.globalSettings.troubleshooting.saveLogs) {
+        this.listener.onLog({
+          type: "suggestionFetch",
+          providerId: this.settings.providerId,
+          currentTyping: typing,
+          timestamp: new Date().toISOString(),
+          durationMs: Date.now() - startTime,
+          isGood: cached !== null && cached !== PENDING,
+          result: {
+            type: "success",
+            suggestion: finalSuggestion,
+          },
+        });
+      }
       if (cached !== null && cached !== PENDING) {
         this.listener.onSuggestionUpdated(`${typing}${cached}`);
       }
@@ -319,19 +282,20 @@ export class Coreply {
       const resolvedError =
         error instanceof Error ? error : new Error(String(error));
       console.log("Error fetching suggestion:", resolvedError);
-      this.emitLog({
-        type: "suggestionFetch",
-        providerId: this.settings.providerId,
-        currentTyping: typing,
-        startedAt,
-        completedAt: new Date().toISOString(),
-        durationMs: Date.now() - startTime,
-        contexts: serializedContexts,
-        result: {
-          type: "error",
-          message: resolvedError.message,
-        },
-      });
+      if (this.settings.globalSettings.troubleshooting.saveLogs) {
+        this.listener.onLog({
+          type: "suggestionFetch",
+          providerId: this.settings.providerId,
+          currentTyping: typing,
+          timestamp: new Date().toISOString(),
+          durationMs: Date.now() - startTime,
+          isGood: false,
+          result: {
+            type: "error",
+            message: resolvedError.message,
+          },
+        });
+      }
       this.listener.onError(resolvedError);
       store.clearSuggestionPending(typing);
     }

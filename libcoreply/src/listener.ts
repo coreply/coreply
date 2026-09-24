@@ -1,35 +1,10 @@
-import type { ChatContextData } from "./context/chat";
-import type { ScreenContextData } from "./context/screen";
-import type { DropRule } from "./profile";
-
-export type SerializedChatContext = {
-  type: "chat";
-  profileId: string;
-  dropRule: DropRule;
-  data: ChatContextData;
-  label?: string;
-};
-
-export type SerializedScreenContext = {
-  type: "screen";
-  profileId: string;
-  dropRule: DropRule;
-  data: ScreenContextData;
-  label?: string;
-};
-
-export type SerializedCoreplyContext =
-  | SerializedChatContext
-  | SerializedScreenContext;
-
 export type SuggestionFetchLog = {
   type: "suggestionFetch";
   providerId: string;
   currentTyping: string;
-  startedAt: string;
-  completedAt: string;
+  timestamp: string;
   durationMs: number;
-  contexts: SerializedCoreplyContext[];
+  isGood: boolean;
   result:
     | {
         type: "success";

@@ -24,3 +24,7 @@ export async function loadSuggestionFetchLogs() {
     return [] as SuggestionFetchLog[];
   }
 }
+
+export async function clearSuggestionFetchLogs() {
+  await storage.removeItem(SUGGESTION_FETCH_LOGS_STORAGE_KEY);
+}

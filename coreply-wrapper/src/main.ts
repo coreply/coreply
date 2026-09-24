@@ -1,9 +1,5 @@
 import { Coreply } from "libcoreply";
-import {
-  suggestionFetchLogSchema,
-  type WrapperOutboundMessage,
-  wrapperInboundMessageSchema,
-} from "./schemas";
+import { type WrapperOutboundMessage, wrapperInboundMessageSchema } from "./schemas";
 
 declare global {
   var coreplyBridgeObject:
@@ -54,14 +50,7 @@ if (coreplyBridgeObject) {
       });
     },
     onLog(log) {
-      try {
-        postToNative({
-          type: "log",
-          payload: suggestionFetchLogSchema.parse(log),
-        });
-      } catch (error) {
-        console.error("Failed to validate suggestion fetch log:", error);
-      }
+      postToNative({ type: "log", payload: log });
     },
   });
   coreplyBridgeObject.onmessage = (event) => {

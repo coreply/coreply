@@ -31,6 +31,9 @@ export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
     showErrors: true,
     suggestionPresentationType: "both",
   },
+  troubleshooting: {
+    saveLogs: false,
+  },
 };
 
 export function createDefaultGlobalSettings(): GlobalSettings {
@@ -61,6 +64,12 @@ export const globalSettingsSchema = z.object({
     suggestionPresentationType: z
       .enum(["inline", "overlay", "both"])
       .default("both"),
+  }),
+  troubleshooting: z.object({
+    saveLogs: z
+      .boolean()
+      .default(false)
+      .describe("Save the 10 most recent suggestion requests on this device"),
   }),
 });
 
