@@ -12,7 +12,6 @@ export async function generateWithCoreplyCloud(
     method: "POST",
     headers: {
       Authorization: `Bearer ${settings.provider.apiKey}`,
-      "Accept-Encoding": "identity",
     },
     body: JSON.stringify({
       action: "completion",
