@@ -5,6 +5,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
@@ -197,6 +198,7 @@ function usePersistedSettings() {
 }
 
 export default function SettingsScreen() {
+  const colorScheme = useColorScheme();
   const [androidAccessibilityEnabled] =
     Platform.OS === "android"
       ? Brownfield.useSharedState("accessibilityEnabled", false)
@@ -304,6 +306,7 @@ export default function SettingsScreen() {
                   <View className="bg-background font-display py-3 px-3 border-border border-b flex-row items-center">
                     <Image
                       source={require("@/assets/images/icon-foreground.png")}
+                      tintColor={colorScheme === "dark" ? "#f8f7f7" : null}
                       contentFit="contain"
                       style={{
                         width: 36,
