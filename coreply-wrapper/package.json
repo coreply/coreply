@@ -3,9 +3,6 @@
 	"private": true,
 	"version": "3.0.0",
 	"type": "module",
-	"exports": {
-		"./schemas": "./src/schemas.ts"
-	},
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",

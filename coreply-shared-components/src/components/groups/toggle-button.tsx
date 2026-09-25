@@ -10,10 +10,10 @@ type ToggleButtonProps = {
 export function ToggleButton({ isOn, onPress }: ToggleButtonProps) {
   return (
     <Button
-      variant="outline"
+      variant={isOn ? "default" : "outline"}
       className={[
         "h-15 w-15 border border-border shadow-none",
-        isOn ? "bg-brand-500" : "bg-card",
+        isOn ? "bg-primary" : "bg-card",
       ].join(" ")}
       style={{ transform: [{ rotate: isOn ? "0deg" : "180deg" }] }}
       onPress={onPress}

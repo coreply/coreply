@@ -1,4 +1,6 @@
 package app.coreply.coreplyapp
+import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -85,6 +87,11 @@ class RnActivity : ReactActivity(){
     override fun onResume() {
         BrownfieldState.set("accessibilityEnabled", AccessibilityStatus.isAccessibilityEnabled(this))
         super.onResume()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        sendBroadcast(Intent("onConfigurationChanged").putExtra("newConfig", newConfig))
     }
 
     /**
