@@ -86,7 +86,7 @@ export function SchemaForm<T extends Record<string, any>>({
 
   return (
     <View className={className || ""}>
-      {title && <Text className="mb-3 text-base font-medium">{title}</Text>}
+      {title && <Text className="mb-5 text-base font-medium">{title}</Text>}
       <JsonForms
         schema={jsonSchema}
         uischema={resolvedUiSchema}

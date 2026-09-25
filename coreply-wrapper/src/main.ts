@@ -1,8 +1,5 @@
 import { Coreply } from "libcoreply";
-import {
-  type WrapperOutboundMessage,
-  wrapperInboundMessageSchema,
-} from "./schemas";
+import { type WrapperOutboundMessage, wrapperInboundMessageSchema } from "./schemas";
 
 declare global {
   var coreplyBridgeObject:
@@ -51,6 +48,9 @@ if (coreplyBridgeObject) {
           collectionMode,
         },
       });
+    },
+    onLog(log) {
+      postToNative({ type: "log", payload: log });
     },
   });
   coreplyBridgeObject.onmessage = (event) => {

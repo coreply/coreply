@@ -165,6 +165,9 @@ describe("buildAdvancedContextMap — contexts field", () => {
     expect(ctxs[0].type).toBe("chat");
     expect(ctxs[0].profileId).toBe("test-chat");
     expect(ctxs[0].label).toBe("messages");
+    if (ctxs[0].type !== "chat") {
+      throw new Error("Expected a chat context");
+    }
     expect(ctxs[0].data.turns).toHaveLength(1);
   });
 

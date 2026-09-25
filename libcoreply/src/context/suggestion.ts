@@ -159,7 +159,10 @@ export class SuggestionStorage {
     const normalizedTyping = this.trimMessagePrefix(
       this.normalizeWhitespace(currentTyping),
     ).toLowerCase();
-    if (!normalizedSuggestion.startsWith(normalizedTyping)) {
+    if (
+      !normalizedSuggestion.startsWith(normalizedTyping) ||
+      normalizedSuggestion.length <= normalizedTyping.length
+    ) {
       return null;
     }
     const frontTrimmedSuggestion = this.trimMessagePrefix(

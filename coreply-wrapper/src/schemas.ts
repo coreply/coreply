@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { coreplySettingsSchema } from "libcoreply";
+import { coreplySettingsSchema, suggestionFetchLogSchema } from "libcoreply";
 
 export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
   z.object({
@@ -42,6 +42,10 @@ export const wrapperOutboundMessageSchema = z.discriminatedUnion("type", [
     payload: z.object({
       collectionMode: z.enum(["minimal", "frequent", "active"]),
     }),
+  }),
+  z.object({
+    type: z.literal("log"),
+    payload: suggestionFetchLogSchema,
   }),
 ]);
 

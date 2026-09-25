@@ -245,10 +245,13 @@ export class Coreply {
   }
 
   private async fetchSuggestion(typing: string, store: ContextStore) {
+    const startTime = Date.now();
+    const contexts = [...store.getContexts()];
+
     try {
       store.setSuggestionPending(typing);
       const suggestion = await requestSuggestions(
-        store.getContexts(),
+        contexts,
         typing,
         this.settings.providerId,
         this.settings.providerConfig,
@@ -258,14 +261,42 @@ export class Coreply {
         ? ` ${normalized.trim()}`
         : normalized.trimEnd();
       const cached = store.updateSuggestion(typing, finalSuggestion);
+      if (this.settings.globalSettings.troubleshooting.saveLogs) {
+        this.listener.onLog({
+          type: "suggestionFetch",
+          providerId: this.settings.providerId,
+          currentTyping: typing,
+          timestamp: new Date().toISOString(),
+          durationMs: Date.now() - startTime,
+          isGood: cached !== null && cached !== PENDING,
+          result: {
+            type: "success",
+            suggestion: finalSuggestion,
+          },
+        });
+      }
       if (cached !== null && cached !== PENDING) {
         this.listener.onSuggestionUpdated(`${typing}${cached}`);
       }
     } catch (error) {
-      console.log("Error fetching suggestion:", error);
-      this.listener.onError(
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      const resolvedError =
+        error instanceof Error ? error : new Error(String(error));
+      console.log("Error fetching suggestion:", resolvedError);
+      if (this.settings.globalSettings.troubleshooting.saveLogs) {
+        this.listener.onLog({
+          type: "suggestionFetch",
+          providerId: this.settings.providerId,
+          currentTyping: typing,
+          timestamp: new Date().toISOString(),
+          durationMs: Date.now() - startTime,
+          isGood: false,
+          result: {
+            type: "error",
+            message: resolvedError.message,
+          },
+        });
+      }
+      this.listener.onError(resolvedError);
     } finally {
       store.clearSuggestionPending(typing);
     }

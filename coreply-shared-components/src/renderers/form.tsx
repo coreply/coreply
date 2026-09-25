@@ -36,7 +36,7 @@ const FormControl = ({
   const hasErrors = Boolean(errors);
 
   return (
-    <View className="mb-4 gap-1.5">
+    <View className="my-2 gap-1.5">
       {hasTextContent(label) ? (
         <View className="flex-row items-center justify-between">
           <Text className="text-sm font-medium">{label}</Text>
