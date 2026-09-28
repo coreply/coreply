@@ -347,6 +347,7 @@ export const providerDefinitions = {
           .meta({ feature: "password" }),
         baseURL: z
           .httpUrl()
+          .optional()
           .describe("Base URL of the Fill-in-the-Middle API endpoint"),
       }),
       request: z.object({
