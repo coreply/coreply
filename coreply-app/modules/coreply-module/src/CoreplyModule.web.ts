@@ -1,5 +1,6 @@
 import { registerWebModule, NativeModule } from 'expo';
 import type { InstalledAppInfo } from './CoreplyModule.types';
+import { profileGroups } from 'libcoreply';
 
 class CoreplyModule extends NativeModule<{}> {
   hello() {
@@ -13,7 +14,15 @@ class CoreplyModule extends NativeModule<{}> {
   requestDisableAccessibility() {}
 
   async getInstalledAppsAsync(): Promise<InstalledAppInfo[]> {
-    return [];
+    return profileGroups
+      .filter((group) =>
+        group.profiles.some((profile) => profile.platform === 'web'),
+      )
+      .map((group) => ({
+        packageName: group.rule,
+        appName: group.rule,
+        iconUri: '',
+      }));
   }
 }
 

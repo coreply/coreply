@@ -69,18 +69,22 @@ function AppSelectionRow({
   return (
     <View className="h-auto w-full flex-row items-center justify-between rounded-none px-3 border-x border-b border-border py-3">
       <View className="flex-1 flex-row items-center pr-3">
-        <Image
-          source={{ uri: app.iconUri }}
-          contentFit="contain"
-          style={styles.appIcon}
-        />
+        {app.iconUri ? (
+          <Image
+            source={{ uri: app.iconUri }}
+            contentFit="contain"
+            style={styles.appIcon}
+          />
+        ) : null}
         <View className="flex-1 gap-0.5">
           <Text className="text-left text-base text-foreground">
             {app.appName}
           </Text>
-          <Text className="text-left text-xs text-muted-foreground font-sans">
-            {app.packageName}
-          </Text>
+          {app.packageName !== app.appName ? (
+            <Text className="text-left text-xs text-muted-foreground font-sans">
+              {app.packageName}
+            </Text>
+          ) : null}
         </View>
       </View>
       <Switch checked={isSelected} onCheckedChange={onToggle} />
@@ -219,7 +223,7 @@ export default function SelectAppsScreen() {
                   ) : null}
 
                   {supportedApps.length > 0 ? (
-                    <View style={styles.section}>
+                    <View>
                       <Text className="text-lg text-foreground mb-2 font-semibold">
                         Coreply Supported Apps
                       </Text>
@@ -238,7 +242,7 @@ export default function SelectAppsScreen() {
                   ) : null}
 
                   {otherApps.length > 0 ? (
-                    <View style={styles.section}>
+                    <View>
                       <Text className="text-lg text-foreground mb-2 font-semibold">
                         Other Apps
                       </Text>
