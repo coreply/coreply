@@ -95,6 +95,125 @@ const buildWhatsAppChatExtractor = (packageName: string) => `(
 // ** Fixed JSONata syntax: replaced custom shorthand with standard $.** for recursive descent
 export const profileGroups: ProfileGroup[] = [
   {
+    rule: "gemini.google.com",
+    profiles: [
+      {
+        id: "gemini-web-chat",
+        platform: "web",
+        dropRule: { differentProfile: 0, sameProfile: 1 },
+        extractors: [
+          `(
+            $matches := $.**[(isContentEditable = true and isVisible = true and $contains(className, "ql-editor") and $contains(className, "textarea")) or (tagName = "DIV" and $contains(className, "conversation-container"))];
+            $editor := $matches[isContentEditable = true and isVisible = true and $contains(className, "ql-editor") and $contains(className, "textarea")][0];
+            $containers := $matches[tagName = "DIV" and $contains(className, "conversation-container")];
+            $turns := $count($containers) = 0 ? [] : $reduce($containers, function($turns, $container) {(
+              $user := $container.**[tagName = "P" and $contains(className, "query-text-line")][0];
+              $assistant := $container.**[tagName = "DIV" and $contains(className, "markdown") and isVisible = true][0];
+              $append($turns, $append(
+                $user ? [{"sender": "Me", "userSent": true, "messages": [{"body": $user.text}]}] : [],
+                $assistant ? [{"sender": "Others", "userSent": false, "messages": [{"body": $assistant.text}]}] : []
+              ))
+            )}, []);
+            $editor ? {"type": "chat", "label": "messages", "snapshotFrequency": $editor.isFocused ? "active" : "frequent", "turns": $turns} : null
+          )`,
+        ],
+      },
+    ],
+  },
+  {
+    rule: "chatgpt.com",
+    profiles: [
+      {
+        id: "chatgpt-web-chat",
+        platform: "web",
+        dropRule: { differentProfile: 0, sameProfile: 1 },
+        extractors: [
+          `(
+            $matches := $.**[(id = "mobile-composer-prompt" and isVisible = true) or $lookup(attributes, "data-message-role") in ["user", "assistant"]];
+            $editor := $matches[id = "mobile-composer-prompt" and isVisible = true][0];
+            $rows := $matches[$lookup(attributes, "data-message-role") in ["user", "assistant"]];
+            $turns := $count($rows) = 0 ? [] : [$map($rows, function($row) {(
+              $body := $row.**[isVisible = true and ($exists($lookup(attributes, "data-user-message-copy")) or $exists($lookup(attributes, "data-assistant-markdown")))][0];
+              {"sender": $lookup($row.attributes, "data-message-role") = "user" ? "Me" : "Others", "userSent": $lookup($row.attributes, "data-message-role") = "user", "messages": $body ? [{"body": $body.text}] : []}
+            )})];
+            $editor ? {"type": "chat", "label": "messages", "snapshotFrequency": $editor.isFocused ? "active" : "frequent", "turns": $turns} : null
+          )`,
+        ],
+      },
+    ],
+  },
+  {
+    rule: "www.perplexity.ai",
+    profiles: [
+      {
+        id: "perplexity-web-chat",
+        platform: "web",
+        dropRule: { differentProfile: 0, sameProfile: 1 },
+        extractors: [
+          `(
+            $editor := $.**[id = "ask-input" and isContentEditable = true and isVisible = true][0];
+            $entries := $.**[$exists($lookup(attributes, "data-workflow-entry")) or $exists($lookup(attributes, "data-workflow-final-text"))];
+            $turns := $count($entries) = 0 ? [] : [$map($entries, function($entry) {(
+              $userSent := $exists($lookup($entry.attributes, "data-workflow-entry"));
+              $body := $entry.**[$lookup(attributes, "data-renderer") = "lm" and isVisible = true and ($userSent or $contains(className, "prose"))][0];
+              $body ? {"sender": $userSent ? "Me" : "Others", "userSent": $userSent, "messages": [{"body": $body.text}]} : null
+            )})[$ != null]];
+            $editor ? {"type": "chat", "label": "messages", "snapshotFrequency": $editor.isFocused ? "active" : "frequent", "turns": $turns} : null
+          )`,
+        ],
+      },
+    ],
+  },
+  {
+    rule: "chat.mistral.ai",
+    profiles: [
+      {
+        id: "mistral-vibe-web-chat",
+        platform: "web",
+        dropRule: { differentProfile: 0, sameProfile: 1 },
+        extractors: [
+          `(
+            $editor := $.**[tagName = "DIV" and isContentEditable = true and isVisible = true and $contains(className, "ProseMirror")][0];
+            $editor ? {"type": "chat", "label": "messages", "snapshotFrequency": $editor.isFocused ? "active" : "frequent", "turns": []} : null
+          )`,
+        ],
+      },
+    ],
+  },
+  {
+    rule: "127.0.0.1",
+    profiles: [
+      {
+        id: "opencode-web-chat",
+        platform: "web",
+        dropRule: { differentProfile: 0, sameProfile: 1 },
+        extractors: [
+          `(
+            $editor := $.**[
+              tagName = "DIV" and
+              isContentEditable = true and
+              isVisible = true and
+              ariaLabel = "Prompt" and
+              $lookup(attributes, "data-component") = "composer-editor"
+            ][0];
+            $rows := $.**[
+              isVisible = true and
+              $lookup(attributes, "data-timeline-row") in ["UserMessage", "AssistantPart"]
+            ];
+            $turns := $count($rows) = 0 ? [] : [$map($rows, function($row) {(
+              $userSent := $lookup($row.attributes, "data-timeline-row") = "UserMessage";
+              $body := $userSent
+                ? $row.**[$lookup(attributes, "data-slot") = "user-message-body" and isVisible = true and text != null and $trim(text) != ""][0]
+                : $row.**[$lookup(attributes, "data-slot") = "text-part-body" and isVisible = true and text != null and $trim(text) != ""][0];
+              $body ? {"sender": $userSent ? "Me" : "Others", "userSent": $userSent, "messages": [{"body": $body.text}]} : null
+            )})[$ != null]];
+            $editor ? {"type": "chat", "label": "messages", "snapshotFrequency": $editor.isFocused ? "active" : "frequent", "turns": $turns} : null
+          )`,
+        ],
+      },
+    ],
+  },
+  {
     rule: "com.whatsapp",
     profiles: [
       {
