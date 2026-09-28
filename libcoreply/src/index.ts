@@ -74,7 +74,7 @@ export class Coreply {
     const packageName =
       platform === "android"
         ? (snapshot.snapshot.packageName ?? "")
-        : snapshot.url;
+        : new URL(snapshot.url).hostname;
 
     // Find matching profile groups
     const matchingGroups = profileGroups.filter((group) => {
@@ -85,6 +85,7 @@ export class Coreply {
     // Fallback: if the app is selected but has no predefined extractors,
     // dynamically generate a generic profile group for it.
     if (
+      platform === "android" &&
       matchingGroups.length === 0 &&
       this.settings.selectedApps.includes(packageName)
     ) {
@@ -109,14 +110,10 @@ export class Coreply {
                   snapshot,
                   jsonataExpr,
                 );
-                const freq =
-                  contextData?.snapshotFrequency === "minimal" ||
-                  contextData?.snapshotFrequency === "frequent" ||
-                  contextData?.snapshotFrequency === "active"
-                    ? contextData.snapshotFrequency
-                    : "minimal";
-
-                this.listener.onCollectionModeUpdated(freq);
+                const freq = contextData?.snapshotFrequency;
+                if (freq === "minimal" || freq === "frequent" || freq === "active") {
+                  this.listener.onCollectionModeUpdated(freq);
+                }
 
                 if (!contextData) {
                   return false;

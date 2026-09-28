@@ -44,6 +44,7 @@ export interface WebSnapshotNode {
   placeholder: string | null;
   name: string | null;
   className: string | null;
+  attributes: Record<string, string>;
   isEditable: boolean;
   isContentEditable: boolean;
   isFocused: boolean;
