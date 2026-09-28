@@ -254,7 +254,9 @@ export class ChatContextImpl implements ChatContext {
       const existingTurns = this.data.turns;
 
       if (incomingTurns.length === 0) {
-        return false;
+        // Both conversations are empty: nothing changed, so keep this context
+        // and its cached suggestions instead of replacing it and refetching.
+        return existingTurns.length === 0;
       }
 
       // Flatten to MessageWithSender for easier comparison
