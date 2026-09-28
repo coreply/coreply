@@ -363,7 +363,9 @@ export const providerDefinitions = {
       }),
     }),
     settingsDefaults: {
-      provider: {},
+      provider: {
+        baseURL: "https://api.mistral.ai/v1/fim/",
+      },
       request: {
         model: "codestral-latest",
         temperature: 1.0,
