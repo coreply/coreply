@@ -9,6 +9,9 @@
 **Coreply** is an open-source Android app providing texting suggestions while you type. It enhances
 your typing experience with intelligent, context-aware suggestions.
 
+<a href="https://play.google.com/store/apps/details?id=app.coreply.coreplyapp">
+<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="60"/>
+</a>
 <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/coreply/coreply">
 <img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60"/>
 </a>
@@ -83,20 +86,9 @@ companies._
 Sign up and get an access key from [Coreply Cloud](https://coreply.up.nadles.com/), and paste it in
 the app.
 
-#### OpenAI-Compatible APIs
+#### Third-party Providers
 
-| Provider                                                      | Guide                                        |
-| ------------------------------------------------------------- | -------------------------------------------- |
-| [Google AI Studio (Gemini API)](https://aistudio.google.com/) | [Here](./docs/providers.md#google-ai-studio) |
-| [Groq](https://groq.com/)                                     | [Here](./docs/providers.md#groq)             |
-| [Openrouter](https://openrouter.ai/)                          | [Here](./docs/providers.md#openrouter)       |
-| [OpenAI](https://platform.openai.com/)                        | [Here](./docs/providers.md#openai)           |
-| [Mistral](https://mistral.ai/)                                | [Here](./docs/providers.md#mistral)          |
-| Other OpenAI-compatible endpoints                             | [Here](./docs/providers.md#others)           |
-
-## How does it work?
-
-See [Prompting](docs/prompting.md) for details.
+Coreply supports providers including Google AI Studio, Groq, OpenRouter, OpenAI, and Mistral; see the [provider documentation](https://docs.coreply.app/providers/overview) for the complete list of providers and setup guides.
 
 ## Build From Source
 
