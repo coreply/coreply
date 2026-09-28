@@ -454,7 +454,7 @@ export const providerDefinitions = {
         ...GenerateTextDefaults,
       },
       providerOptions:
-        '{"google": {"thinkingConfig": {"thinkingBudget": 0, "thinkingLevel": "minimal"}}}',
+        '{"google": {"thinkingConfig": {"thinkingLevel": "minimal"}}}',
     },
     requestFunc: generateWithAIProvider,
   },
@@ -507,7 +507,7 @@ export const providerDefinitions = {
         ...GenerateTextDefaults,
       },
       providerOptions:
-        '{"googleVertex": {"thinkingConfig": {"thinkingBudget": 0}}}',
+        '{"googleVertex": {"thinkingConfig": {"thinkingLevel": "minimal"}}}',
     },
     requestFunc: generateWithAIProvider,
   },
