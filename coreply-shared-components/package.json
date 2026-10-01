@@ -15,6 +15,7 @@
 		"@react-native-community/slider": "^5.2.0",
 		"@rn-primitives/accordion": "^1.4.0",
 		"@rn-primitives/checkbox": "^1.4.0",
+		"@rn-primitives/radio-group": "^1.5.2",
 		"@rn-primitives/select": "^1.4.0",
 		"@rn-primitives/slider": "^1.4.0",
 		"@rn-primitives/slot": "^1.4.0",
