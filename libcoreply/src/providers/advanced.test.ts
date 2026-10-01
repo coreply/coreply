@@ -6,6 +6,21 @@ import type { ChatContext, CoreplyContext } from "../context";
 import { ChatContextImpl } from "../context/chat";
 import type { ScreenContext, ScreenContextData } from "../context/screen";
 import { ScreenContextImpl } from "../context/screen";
+import type { Profile } from "../profile";
+
+const chatProfile: Profile = {
+  id: "test-chat",
+  platform: "web",
+  dropRule: { differentProfile: 0, sameProfile: 1 },
+  extractors: [],
+};
+
+const screenProfile: Profile = {
+  id: "test-screen",
+  platform: "web",
+  dropRule: { differentProfile: 0, sameProfile: 1 },
+  extractors: [],
+};
 
 function makeChatContext(
   turns: Array<{
@@ -14,24 +29,14 @@ function makeChatContext(
     messages: Array<{ body: string; time?: string; quote?: string }>;
   }>,
 ): ChatContext {
-  return new ChatContextImpl(
-    "test-chat",
-    { differentProfile: 0, sameProfile: 1 },
-    { turns },
-    "messages",
-  );
+  return new ChatContextImpl(chatProfile, { turns }, "messages");
 }
 
 function makeScreenContext(
-  text: string | undefined,
-  children?: ScreenContextData[],
+  text: string,
+  children: ScreenContextData[],
 ): ScreenContext {
-  return new ScreenContextImpl(
-    "test-screen",
-    { differentProfile: 0, sameProfile: 1 },
-    { text, children },
-    "screen",
-  );
+  return new ScreenContextImpl(screenProfile, { text, children }, "screen");
 }
 
 describe("buildAdvancedContextMap — v2-compatible fields", () => {
@@ -163,7 +168,7 @@ describe("buildAdvancedContextMap — contexts field", () => {
 
     expect(ctxs).toHaveLength(1);
     expect(ctxs[0].type).toBe("chat");
-    expect(ctxs[0].profileId).toBe("test-chat");
+    expect(ctxs[0].profile.id).toBe("test-chat");
     expect(ctxs[0].label).toBe("messages");
     if (ctxs[0].type !== "chat") {
       throw new Error("Expected a chat context");
@@ -178,6 +183,8 @@ describe("buildAdvancedContextMap — contexts field", () => {
 
     expect(parsed).toHaveLength(1);
     expect(parsed[0].type).toBe("chat");
+    expect(parsed[0]).not.toHaveProperty("profile");
+    expect(parsed[0]).not.toHaveProperty("label");
     expect(parsed[0].data.turns).toHaveLength(1);
   });
 });
@@ -202,7 +209,7 @@ describe("buildAdvancedContextMap — fields coexist", () => {
 
 describe("buildAdvancedContextMap — screen contexts", () => {
   it("includes screen contexts in contexts but not in pastMessages", () => {
-    const screenContext = makeScreenContext("Profile info", undefined) as unknown as CoreplyContext;
+    const screenContext = makeScreenContext("Profile info", []) as unknown as CoreplyContext;
     const chatContext = makeChatContext([
       { userSent: false, messages: [{ body: "msg" }] },
     ]) as unknown as CoreplyContext;

@@ -32,6 +32,9 @@ export interface Profile {
   extractors: string[]; // array of JSONata expressions
   platform: "android" | "web";
   dropRule: DropRule;
+  systemPrompt?: string;
+  promptTemplate?: string;
+  promptPartial?: string;
 }
 
 export interface ProfileGroup {
@@ -527,7 +530,7 @@ export const profileGroups: ProfileGroup[] = [
             $profilePage := $.**[id = "com.tinder:id/user_rec_sparks_profile"][];
             $isProfilePage := $count($profilePage) = 1;
             $extractNestedText := function($node) {(
-               {"text": $node.text, "children": $append([], $map($node.children[$count(children) > 0 or text != null], $extractNestedText))}
+                {"text": $exists($node.text) and $node.text != null ? $node.text : "", "children": $append([], $map($node.children[$count(children) > 0 or text != null], $extractNestedText))}
             )};
             $screenText := $extractNestedText($profilePage[0]);
              $result := $isProfilePage ? (
@@ -949,7 +952,8 @@ export const profileGroups: ProfileGroup[] = [
               "type": "screen",
               "label": "search",
               "snapshotFrequency": "active",
-              "text": "Perplexity search composer"
+               "text": "Perplexity search composer",
+               "children": []
             };
             $result
           )`,
@@ -1004,10 +1008,10 @@ export function generateGenericProfile(
 ): Profile {
   const extractor = `(
     $extract := function($node) {(
-      {"text": $node.text, "children": $append([], $map($node.children[$count(children) > 0 or text != null], $extract))}
+      {"text": $exists($node.text) and $node.text != null ? $node.text : "", "children": $append([], $map($node.children[$count(children) > 0 or text != null], $extract))}
     )};
     $tree := $extract($);
-    $hasText := $exists($tree.text) or $count($tree.**[text != null]) > 0;
+    $hasText := $tree.text != "" or $count($tree.**[$exists(text) and text != ""]) > 0;
     $input := $.**[className = "android.widget.EditText" and isFocused = true][0];
     $result := $hasText ? {
       "type": "screen",

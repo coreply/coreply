@@ -3,11 +3,25 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { requestSuggestions } from "../requests";
 import { ChatContextImpl } from "../context/chat";
 import { ScreenContextImpl } from "../context/screen";
+import type { Profile } from "../profile";
+
+const chatProfile: Profile = {
+  id: "test-chat",
+  platform: "web",
+  dropRule: { differentProfile: 0, sameProfile: 1 },
+  extractors: [],
+};
+
+const screenProfile: Profile = {
+  id: "test-screen",
+  platform: "web",
+  dropRule: { differentProfile: 0, sameProfile: 1 },
+  extractors: [],
+};
 
 function makeChatContext() {
   return new ChatContextImpl(
-    "test-chat",
-    { differentProfile: 0, sameProfile: 1 },
+    chatProfile,
     {
       id: "chat-1",
       title: "Alice",
@@ -29,11 +43,10 @@ function makeChatContext() {
 
 function makeScreenContext() {
   return new ScreenContextImpl(
-    "test-screen",
-    { differentProfile: 0, sameProfile: 1 },
+    screenProfile,
     {
       text: "Profile info",
-      children: [{ text: "Status: online" }],
+      children: [{ text: "Status: online", children: [] }],
     },
     "screen",
   );
@@ -92,8 +105,6 @@ describe("coreplyCloud provider", () => {
       contexts: [
         {
           type: "chat",
-          profileId: "test-chat",
-          dropRule: { differentProfile: 0, sameProfile: 1 },
           data: {
             id: "chat-1",
             title: "Alice",
@@ -109,25 +120,21 @@ describe("coreplyCloud provider", () => {
               },
             ],
           },
-          label: "messages",
         },
         {
           type: "screen",
-          profileId: "test-screen",
-          dropRule: { differentProfile: 0, sameProfile: 1 },
           data: {
             text: "Profile info",
-            children: [{ text: "Status: online" }],
+            children: [{ text: "Status: online", children: [] }],
           },
-          label: "screen",
         },
       ],
       typing: "Working",
     });
-    expect(body.contexts[0]).toHaveProperty("profileId", "test-chat");
-    expect(body.contexts[0]).toHaveProperty("dropRule");
-    expect(body.contexts[0]).toHaveProperty("label", "messages");
-    expect(body.contexts[0]).not.toHaveProperty("suggestionStorage");
+    expect(body.contexts[0]).not.toHaveProperty("profile");
+    expect(body.contexts[0]).not.toHaveProperty("profileId");
+    expect(body.contexts[0]).not.toHaveProperty("dropRule");
+    expect(body.contexts[0]).not.toHaveProperty("label");
   });
 
   it("surfaces backend error messages", async () => {

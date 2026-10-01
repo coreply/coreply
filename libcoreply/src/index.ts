@@ -1,10 +1,11 @@
 import debounce, { type DebouncedFunction } from "debounce";
+import { deepEqual } from "fast-equals";
 import jsonata from "jsonata";
 import Mustache from "mustache";
 import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
 import { ContextStore, PENDING } from "./context";
 import { profileGroups, generateGenericProfile } from "./profile";
-import { requestSuggestions } from "./requests";
+import { createProviderInstance, type ProviderInstance } from "./providers";
 import type { LibCoreplyListener } from "./listener";
 import type { Snapshot } from "./context/snapshot";
 import { ChatContextImpl } from "./context/chat";
@@ -22,12 +23,14 @@ export class Coreply {
   private readonly store = new ContextStore();
   private currentTyping: string | null = null;
   private readonly listener: LibCoreplyListener;
+  private providerInstance: ProviderInstance;
   private fetchSuggestionDebounced: DebouncedFunction<
     (typing: string, store: ContextStore) => void
   >;
 
   constructor(listener: LibCoreplyListener) {
     this.listener = listener;
+    this.providerInstance = createProviderInstance(this.settings.providerId);
     this.fetchSuggestionDebounced = this.createFetchSuggestionDebounced(350);
     this.listener.onInit();
   }
@@ -43,13 +46,27 @@ export class Coreply {
   }
 
   updateSettings(newSettings: Partial<CoreplySettings>) {
-    this.settings = {
-      ...this.settings,
-      ...newSettings,
-    };
-    this.fetchSuggestionDebounced = this.createFetchSuggestionDebounced(
-      this.settings.globalSettings.fetchControl.debounceMs,
-    );
+    const previous = this.settings;
+    const next = { ...previous, ...newSettings };
+
+    this.settings = next;
+
+    if (
+      previous.providerId !== next.providerId ||
+      !deepEqual(previous.providerConfig, next.providerConfig)
+    ) {
+      this.providerInstance = createProviderInstance(next.providerId);
+    }
+
+    if (
+      previous.globalSettings.fetchControl.debounceMs !==
+      next.globalSettings.fetchControl.debounceMs
+    ) {
+      this.fetchSuggestionDebounced.clear();
+      this.fetchSuggestionDebounced = this.createFetchSuggestionDebounced(
+        next.globalSettings.fetchControl.debounceMs,
+      );
+    }
   }
 
   updateTyping(currentTyping: string) {
@@ -64,6 +81,7 @@ export class Coreply {
     this.fetchSuggestionDebounced.clear();
     this.currentTyping = null;
     this.store.clearAll();
+    this.providerInstance = createProviderInstance(this.settings.providerId);
     this.listener.onSuggestionCleared();
   }
 
@@ -126,15 +144,13 @@ export class Coreply {
                 ) {
                   if (contextData.type === "chat") {
                     context = new ChatContextImpl(
-                      profile.id,
-                      profile.dropRule,
+                      profile,
                       contextData,
                       contextData.label,
                     );
                   } else if (contextData.type === "screen") {
                     context = new ScreenContextImpl(
-                      profile.id,
-                      profile.dropRule,
+                      profile,
                       contextData,
                       contextData.label,
                     );
@@ -247,10 +263,9 @@ export class Coreply {
 
     try {
       store.setSuggestionPending(typing);
-      const suggestion = await requestSuggestions(
+      const suggestion = await this.providerInstance.request(
         contexts,
         typing,
-        this.settings.providerId,
         this.settings.providerConfig,
       );
       const normalized = suggestion.replace(/\n/g, " ");

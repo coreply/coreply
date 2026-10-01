@@ -6,6 +6,8 @@ import {
   ScreenContextImpl,
   type ScreenContext,
 } from "./screen";
+import type { BaseContextSerialized } from "./base";
+import type { Profile } from "../profile";
 
 export * from "./payload";
 export * from "./suggestion";
@@ -16,24 +18,17 @@ export * from "./base";
 
 export type CoreplyContext = ChatContext | ScreenContext;
 
+export type SerializedContext =
+  | BaseContextSerialized<"chat", ChatContext["data"]>
+  | BaseContextSerialized<"screen", ScreenContext["data"]>;
+
 export function deserializeContext(
-  context:
-    | ReturnType<ChatContextImpl["toJSON"]>
-    | ReturnType<ScreenContextImpl["toJSON"]>,
+  context: SerializedContext,
+  profile: Profile,
 ): CoreplyContext {
   if (context.type === "chat") {
-    return new ChatContextImpl(
-      context.profileId,
-      context.dropRule,
-      context.data,
-      context.label,
-    );
+    return new ChatContextImpl(profile, context.data);
   }
 
-  return new ScreenContextImpl(
-    context.profileId,
-    context.dropRule,
-    context.data,
-    context.label,
-  );
+  return new ScreenContextImpl(profile, context.data);
 }

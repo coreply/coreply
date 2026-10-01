@@ -1,40 +1,46 @@
-import { generateText } from "ai";
-import { buildChatPrompt, buildScreenPrompt } from "./utils";
+import { generateText, type LanguageModel } from "ai";
+import Mustache from "mustache";
 import type { ProviderDefinition } from "./index";
 import type { CoreplyContext } from "../context";
+
+export type AISDKProviderDefinition = Exclude<
+  ProviderDefinition,
+  { factoryFunc: null }
+>;
 
 // ** Updated to accept contexts and currentTyping instead of typingInfo
 // Constructs prompts from context data using utils functions
 export async function generateWithAIProvider(
-  providerDefinition: ProviderDefinition,
-  settingsByReference: any,
+  providerDefinition: AISDKProviderDefinition,
+  settingsByReference: unknown,
   contexts: CoreplyContext[],
   currentTyping: string,
 ): Promise<string> {
-  if (!providerDefinition.factoryFunc) {
-    throw new Error("Provider does not have a factory function.");
-  }
-
-  const settings = providerDefinition.settingsSchema.parse(
-    settingsByReference,
-  ) as any;
-  const generateTextSettings = { ...settings.generateText };
+  const settings = providerDefinition.settingsSchema.parse(settingsByReference);
+  const { instructions: instructionsTemplate, ...generateTextSettings } =
+    settings.generateText;
   const providerSettings =
-    typeof settings.name === "string"
+    "name" in settings && typeof settings.name === "string"
       ? { ...settings.provider, name: settings.name }
       : settings.provider;
 
-  const provider = providerDefinition.factoryFunc(providerSettings);
+  const createModel = providerDefinition.factoryFunc as (
+    settings: typeof providerSettings,
+  ) => (modelId: string) => LanguageModel;
+  // Registry guarantees each AI provider definition pairs the matching schema and factory.
+  const provider = createModel(providerSettings);
 
-  // Build prompt from contexts using the new format
-  let contextPrompt = "";
-  for (const context of contexts) {
-    if (context.type === "chat") {
-      contextPrompt += buildChatPrompt(context.data);
-    } else if (context.type === "screen") {
-      contextPrompt += buildScreenPrompt(context.data);
-    }
-  }
+  const contextPrompt = contexts.map((context) => context.renderPrompt()).join("");
+  const instructions = Mustache.render(
+    instructionsTemplate,
+    {
+      profileSystemPrompt: contexts.at(-1)?.profile.systemPrompt,
+    },
+    undefined,
+    {
+      escape: (value) => value,
+    },
+  );
 
   let userPrompt =
     "Given this chat history\n" +
@@ -43,11 +49,13 @@ export async function generateWithAIProvider(
   if (currentTyping.trim()) {
     userPrompt += `The reply should start with '${currentTyping.replace(/\s+/g, " ")}'\n`;
   }
+
   const model = provider(settings.model);
   const result = await generateText({
     model: model,
     prompt: userPrompt,
     ...generateTextSettings,
+    instructions,
     providerOptions: settings.providerOptions
       ? JSON.parse(settings.providerOptions)
       : undefined,

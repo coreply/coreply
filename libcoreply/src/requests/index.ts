@@ -1,5 +1,5 @@
 import type { CoreplyContext } from "../context";
-import { providerDefinitions } from "../providers";
+import { createProviderInstance } from "../providers";
 
 // ** Updated to use contexts and currentTyping instead of full TypingInfo
 export async function requestSuggestions(
@@ -8,16 +8,6 @@ export async function requestSuggestions(
   providerId: string,
   providerConfig: Record<string, unknown>,
 ): Promise<string> {
-  const providerDefinition =
-    providerDefinitions[providerId as keyof typeof providerDefinitions];
-  if (!providerDefinition) {
-    throw new Error(`Provider ${providerId} not found`);
-  }
-
-  return providerDefinition.requestFunc(
-    providerDefinition as any,
-    providerConfig,
-    contexts,
-    currentTyping,
-  );
+  const instance = createProviderInstance(providerId);
+  return instance.request(contexts, currentTyping, providerConfig);
 }
