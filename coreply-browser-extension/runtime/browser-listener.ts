@@ -57,16 +57,19 @@ export async function startBrowserListener() {
         collectionMode !== "active" ||
         !activeEditable?.isConnected ||
         getDeepActiveElement() !== activeEditable ||
-        !isCaretAtEnd(activeEditable) ||
-        !fullSuggestion.startsWith(currentTyping)
+        !isCaretAtEnd(activeEditable)
       ) {
         clearOverlay();
         return;
       }
 
+      // Stale responses must not clear a valid suggestion already on screen.
+      if (!fullSuggestion.startsWith(currentTyping)) {
+        return;
+      }
+
       const suffix = fullSuggestion.slice(currentTyping.length);
       if (!suffix.trim()) {
-        clearOverlay();
         return;
       }
 
@@ -114,13 +117,8 @@ export async function startBrowserListener() {
     activeEditable = null;
     currentTyping = "";
     clearOverlay();
-    resetCoreply();
-  }
-
-  function resetCoreply() {
     pendingTyping = null;
     collectionMode = "minimal";
-    coreply.reset();
   }
 
   // Typing must not trigger a fetch before the latest snapshot's context is
@@ -165,7 +163,8 @@ export async function startBrowserListener() {
       return;
     }
 
-    resetCoreply();
+    pendingTyping = null;
+    collectionMode = "minimal";
     currentTyping = "";
     clearOverlay();
     syncFromFocusedEditable();
@@ -227,7 +226,10 @@ export async function startBrowserListener() {
 
     const editable = findEditableFromElement(getDeepActiveElement());
     if (!editable || !editable.isConnected) {
-      if (activeEditable) resetCoreply();
+      if (activeEditable) {
+        pendingTyping = null;
+        collectionMode = "minimal";
+      }
       activeEditable = null;
       currentTyping = "";
       clearOverlay();
@@ -235,7 +237,8 @@ export async function startBrowserListener() {
     }
 
     if (activeEditable && activeEditable !== editable) {
-      resetCoreply();
+      pendingTyping = null;
+      collectionMode = "minimal";
       currentTyping = "";
       clearOverlay();
     }
@@ -245,7 +248,8 @@ export async function startBrowserListener() {
     if (nextTyping === null) {
       currentTyping = "";
       clearOverlay();
-      resetCoreply();
+      pendingTyping = null;
+      collectionMode = "minimal";
       return;
     }
 
@@ -401,7 +405,7 @@ export async function startBrowserListener() {
     unwatchProviderId();
     unwatchSelectedApps();
     unwatchProviderConfig();
-    resetCoreply();
+    clearState();
     overlay.inline.remove();
     overlay.trailing.remove();
     delete window.__coreplyBrowserExtensionCleanup;

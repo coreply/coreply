@@ -386,7 +386,15 @@ open class AppListener : AccessibilityService() {
 
                 "updateSuggestion" -> {
                     val payload = json.getJSONObject("payload")
-                    suggestionStorage.addSuggestion(payload.optString("fullSuggestion"))
+                    val fullSuggestion = payload.optString("fullSuggestion")
+                    val currentTyping = overlayViewModel.uiState.value.currentTyping ?: return
+                    // Stale responses must not overwrite a valid stored suggestion.
+                    if (!fullSuggestion.startsWith(currentTyping) ||
+                        fullSuggestion.substring(currentTyping.length).isBlank()
+                    ) {
+                        return
+                    }
+                    suggestionStorage.addSuggestion(fullSuggestion)
                     refreshSuggestionFromStorage()
                 }
 
