@@ -16,12 +16,10 @@ export class ContextStore {
     for (let i = 0; i < this.contexts.length; i++) {
       if (
         this.contexts[i].type === context.type &&
-        this.contexts[i].profileId === context.profileId
+        this.contexts[i].profile.id === context.profile.id
       ) {
-        if (
-          this.contexts[i].tryUpdate &&
-          this.contexts[i].tryUpdate(context as any)
-        ) {
+        const existingContext = this.contexts[i];
+        if (existingContext.tryUpdate(context)) {
           // Move the updated element to the end of the array
           const [updatedContext] = this.contexts.splice(i, 1);
           this.contexts.push(updatedContext);
@@ -37,7 +35,7 @@ export class ContextStore {
     }
 
     // Apply drop rule from the context's own profile
-    this.applyDropRule(context.dropRule, context.profileId);
+    this.applyDropRule(context.profile.dropRule, context.profile.id);
   }
 
   getSuggestion(text: string): string | null | typeof PENDING {
@@ -91,7 +89,7 @@ export class ContextStore {
 
     for (let i = this.contexts.length - 1; i >= 0; i--) {
       const context = this.contexts[i];
-      const isSameProfile = context.profileId === currentProfileId;
+      const isSameProfile = context.profile.id === currentProfileId;
       const key = context.label || "default-label";
       if (isSameProfile) {
         if (typeof dropRule.sameProfile === "number") {

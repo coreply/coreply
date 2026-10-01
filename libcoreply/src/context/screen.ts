@@ -5,6 +5,7 @@
 */
 
 import { BaseContext } from "./base";
+import type { CoreplyContext } from ".";
 import type { Profile } from "../profile";
 
 export interface ScreenContextData {
@@ -15,7 +16,7 @@ export interface ScreenContextData {
 export interface ScreenContext extends BaseContext<"screen", ScreenContextData> {
   type: "screen";
   data: ScreenContextData;
-  tryUpdate(incomingContext: ScreenContext): boolean;
+  tryUpdate(incomingContext: CoreplyContext): boolean;
 }
 
 // Flatten a nested screen-context tree into a flat list of non-empty text nodes
@@ -100,7 +101,9 @@ export class ScreenContextImpl
     this.data = data;
   }
 
-  tryUpdate(incomingContext: ScreenContext): boolean {
+  tryUpdate(incomingContext: CoreplyContext): boolean {
+    if (incomingContext.type !== "screen") return false;
+
     try {
       const incomingData = incomingContext.data;
 

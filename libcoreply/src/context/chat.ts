@@ -14,6 +14,7 @@ Two types of context have two different additional fields:
 */
 
 import { BaseContext } from "./base";
+import type { CoreplyContext } from ".";
 import type { Profile } from "../profile";
 
 export interface ChatTurn {
@@ -37,7 +38,7 @@ export interface ChatContextData {
 export interface ChatContext extends BaseContext<"chat", ChatContextData> {
   type: "chat";
   data: ChatContextData;
-  tryUpdate(incomingContext: ChatContext): boolean;
+  tryUpdate(incomingContext: CoreplyContext): boolean;
 }
 
 // Helper type for flattened message representation with sender context
@@ -213,7 +214,9 @@ export class ChatContextImpl
     this.data = data;
   }
 
-  tryUpdate(incomingContext: ChatContext): boolean {
+  tryUpdate(incomingContext: CoreplyContext): boolean {
+    if (incomingContext.type !== "chat") return false;
+
     try {
       const incomingData = incomingContext.data;
       const incomingTurns = incomingData.turns;
