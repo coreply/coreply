@@ -13,9 +13,8 @@ Two types of context have two different additional fields:
     - quote (optional): the text the message is quoting
 */
 
-import type { BaseContext } from "./base";
-import type { DropRule } from "../profile";
-import { PENDING, SuggestionStorage } from "./suggestion";
+import { BaseContext } from "./base";
+import type { Profile } from "../profile";
 
 export interface ChatTurn {
   sender?: string;
@@ -35,7 +34,7 @@ export interface ChatContextData {
   turns: ChatTurn[];
 }
 
-export interface ChatContext extends BaseContext {
+export interface ChatContext extends BaseContext<"chat", ChatContextData> {
   type: "chat";
   data: ChatContextData;
   tryUpdate(incomingContext: ChatContext): boolean;
@@ -194,57 +193,24 @@ function rebuildTurns(msgs: MessageWithSender[]): ChatTurn[] {
 
 // ** Implemented tryUpdate for ChatContext
 // Uses anchor-based merging: finds longest contiguous match, then takes longer prefix/suffix
-export class ChatContextImpl implements ChatContext {
+export class ChatContextImpl
+  extends BaseContext<"chat", ChatContextData>
+  implements ChatContext
+{
   type: "chat" = "chat";
-  profileId: string;
-  dropRule: DropRule;
-  label?: string;
   data: ChatContextData;
-  private readonly suggestionStorage = new SuggestionStorage();
+  protected readonly defaultPromptTemplate =
+    "{{#data.turns}}{{#messages}}{{>item}}{{/messages}}{{/data.turns}}";
+  protected readonly defaultPromptPartial =
+    "{{#userSent}}Message I sent:\n{{body}}\n{{/userSent}}{{^userSent}}{{#sender}}Message I received from {{sender}}:\n{{/sender}}{{^sender}}Message I received:\n{{/sender}}{{body}}\n{{/userSent}}";
 
   constructor(
-    profileId: string,
-    dropRule: DropRule,
+    profile: Profile,
     data: ChatContextData,
     label?: string,
   ) {
-    this.profileId = profileId;
-    this.dropRule = dropRule;
-    this.label = label;
+    super(profile, label);
     this.data = data;
-  }
-
-  toJSON() {
-    return {
-      type: this.type,
-      profileId: this.profileId,
-      dropRule: this.dropRule,
-      data: this.data,
-      label: this.label,
-    };
-  }
-
-  getSuggestion(text: string): string | null | typeof PENDING {
-    return this.suggestionStorage.getSuggestion(text);
-  }
-
-  updateSuggestion(
-    currentTyping: string,
-    suggestion: string,
-  ): string | null | typeof PENDING {
-    return this.suggestionStorage.updateSuggestion(currentTyping, suggestion);
-  }
-
-  clearSuggestions(): void {
-    this.suggestionStorage.clear();
-  }
-
-  setSuggestionPending(text: string): void {
-    this.suggestionStorage.setSuggestionPending(text);
-  }
-
-  clearSuggestionPending(text: string): void {
-    this.suggestionStorage.clearSuggestionPending(text);
   }
 
   tryUpdate(incomingContext: ChatContext): boolean {
@@ -310,7 +276,7 @@ export class ChatContextImpl implements ChatContext {
       return true;
     } catch (error) {
       console.error(
-        `Error updating chat context for profile ${this.profileId}:`,
+        `Error updating chat context for profile ${this.profile.id}:`,
         error instanceof Error ? error.message : error,
       );
       return false;

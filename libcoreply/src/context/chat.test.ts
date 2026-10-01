@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ChatContextImpl } from "./chat";
+import type { Profile } from "../profile";
 
 const message = (body: string) => ({ body });
 
@@ -10,10 +11,27 @@ const turn = (userSent: boolean, sender: string, ...bodies: string[]) => ({
   messages: bodies.map(message),
 });
 
+const makeProfile = (id: string): Profile => ({
+  id,
+  platform: "web",
+  dropRule: { differentProfile: 0, sameProfile: 1 },
+  extractors: [],
+});
+
+const makeProfileWithTemplate = (
+  id: string,
+  promptTemplate?: string,
+): Profile => ({
+  id,
+  platform: "web",
+  dropRule: { differentProfile: 0, sameProfile: 1 },
+  extractors: [],
+  promptTemplate,
+});
+
 const makeContext = (profileId: string, ...turns: ReturnType<typeof turn>[]) =>
   new ChatContextImpl(
-    profileId,
-    { differentProfile: 0, sameProfile: 1 },
+    makeProfile(profileId),
     {
       turns: turns.map((t) => ({
         sender: t.sender,
@@ -29,6 +47,90 @@ const flattenedBodies = (context: ChatContextImpl) =>
   );
 
 describe("ChatContextImpl.tryUpdate", () => {
+  it("renders the default chat prompt exactly", () => {
+    const context = new ChatContextImpl(makeProfile("profile"), {
+      turns: [
+        turn(false, "Alice", "Hey there"),
+        {
+          userSent: true,
+          messages: [message("Hi Alice"), message("How are you?")],
+        },
+        {
+          userSent: false,
+          messages: [message("Doing well")],
+        },
+      ],
+    });
+
+    expect(context.renderPrompt()).toBe(
+      "Message I received from Alice:\nHey there\n" +
+        "Message I sent:\nHi Alice\n" +
+        "Message I sent:\nHow are you?\n" +
+        "Message I received:\nDoing well\n",
+    );
+  });
+
+  it("renders an empty prompt when the chat has no turns", () => {
+    const context = new ChatContextImpl(makeProfile("profile"), {
+      turns: [],
+    });
+
+    expect(context.renderPrompt()).toBe("");
+  });
+
+  it("renders a custom chat prompt template from serialized context only", () => {
+    const context = new ChatContextImpl(
+      makeProfileWithTemplate(
+        "profile",
+        "{{type}}|{{data.title}}|{{#data.turns}}{{#messages}}{{{body}}}|{{/messages}}{{/data.turns}}",
+      ),
+      {
+        title: "Chat & Stuff",
+        turns: [turn(false, "Alice", "Hello <b>there</b>")],
+      },
+    );
+
+    expect(context.renderPrompt()).toBe("chat|Chat & Stuff|Hello <b>there</b>|");
+  });
+
+  it("keeps an explicit empty chat prompt override empty", () => {
+    const context = new ChatContextImpl(
+      makeProfileWithTemplate("profile", ""),
+      {
+        turns: [turn(false, "Alice", "hello")],
+      },
+    );
+
+    expect(context.renderPrompt()).toBe("");
+  });
+
+  it("exposes the default partial as item and retains enclosing turn fields", () => {
+    const context = new ChatContextImpl(
+      makeProfileWithTemplate("profile", "{{#data.turns}}{{#messages}}{{>item}}{{/messages}}{{/data.turns}}"),
+      { turns: [turn(false, "Alice & Bob", "Hello <world>")] },
+    );
+
+    expect(context.renderPrompt()).toBe("Message I received from Alice & Bob:\nHello <world>\n");
+  });
+
+  it("uses a profile partial override", () => {
+    const context = new ChatContextImpl(
+      { ...makeProfile("profile"), promptPartial: "{{sender}}: {{body}}\n" },
+      { turns: [turn(false, "Alice", "Hello")] },
+    );
+
+    expect(context.renderPrompt()).toBe("Alice: Hello\n");
+  });
+
+  it("keeps an explicit empty partial override empty", () => {
+    const context = new ChatContextImpl(
+      { ...makeProfile("profile"), promptPartial: "" },
+      { turns: [turn(false, "Alice", "Hello")] },
+    );
+
+    expect(context.renderPrompt()).toBe("");
+  });
+
   it("appends new messages to the end", () => {
     const existing = makeContext(
       "profile",
@@ -194,5 +296,24 @@ describe("ChatContextImpl.tryUpdate", () => {
 
     expect(existing.tryUpdate(malformed)).toBe(false);
     expect(flattenedBodies(existing)).toEqual(["hello"]);
+  });
+
+  it("toJSON only exposes extracted context fields", () => {
+    const context = new ChatContextImpl(
+      makeProfile("profile"),
+      {
+        title: "Alice",
+        turns: [turn(false, "Alice", "hello")],
+      },
+      "messages",
+    );
+
+    expect(context.toJSON()).toEqual({
+      type: "chat",
+      data: {
+        title: "Alice",
+        turns: [turn(false, "Alice", "hello")],
+      },
+    });
   });
 });

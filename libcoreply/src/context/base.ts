@@ -1,24 +1,67 @@
-// ** Defined Base Context interface with profileId field
-/* A Base Context contains:
-- the type field: 'chat' | 'screen'
-- the id of the profile extracting the context
-- a label that identifies the type of the context in a more granular way, e.g. 'messages', 'post', etc.
-- typed fields that carries the context
-- A tryUpdate() method that takes in a structured data from the extractor, it tries and decides whether to update the existing context using the supplied data, and returns a boolean of whether the supplied data is taken into the context
-- profileId: identifies which profile extracted the context, used for context dropping when profile changes
-*/
+import type { Profile } from "../profile";
+import Mustache from "mustache";
+import { PENDING, SuggestionStorage } from "./suggestion";
 
-import type { DropRule } from "../profile";
-import { PENDING } from "./suggestion";
+export interface BaseContextSerialized<Type extends string, Data> {
+  type: Type;
+  data: Data;
+}
 
-export interface BaseContext {
-  profileId: string;
-  dropRule: DropRule;
+export abstract class BaseContext<Type extends string, Data> {
+  abstract type: Type;
+  profile: Profile;
   label?: string;
-  getSuggestion(text: string): string | null | typeof PENDING;
-  updateSuggestion(currentTyping: string, suggestion: string): string | null | typeof PENDING;
-  clearSuggestions(): void;
-  setSuggestionPending(text: string): void;
-  clearSuggestionPending(text: string): void;
-  tryUpdate(data: any): boolean;
+  abstract data: Data;
+  protected abstract readonly defaultPromptTemplate: string;
+  protected abstract readonly defaultPromptPartial: string;
+
+  private readonly suggestionStorage = new SuggestionStorage();
+
+  constructor(profile: Profile, label?: string) {
+    this.profile = profile;
+    this.label = label;
+  }
+
+  toJSON(): BaseContextSerialized<Type, Data> {
+    return {
+      type: this.type,
+      data: this.data,
+    };
+  }
+
+  clearSuggestions(): void {
+    this.suggestionStorage.clear();
+  }
+
+  setSuggestionPending(text: string): void {
+    this.suggestionStorage.setSuggestionPending(text);
+  }
+
+  clearSuggestionPending(text: string): void {
+    this.suggestionStorage.clearSuggestionPending(text);
+  }
+
+  getSuggestion(text: string): string | null | typeof PENDING {
+    return this.suggestionStorage.getSuggestion(text);
+  }
+
+  updateSuggestion(
+    currentTyping: string,
+    suggestion: string,
+  ): string | null | typeof PENDING {
+    return this.suggestionStorage.updateSuggestion(currentTyping, suggestion);
+  }
+
+  renderPrompt(): string {
+    return Mustache.render(
+      this.profile.promptTemplate ?? this.defaultPromptTemplate,
+      this.toJSON(),
+      { item: this.profile.promptPartial ?? this.defaultPromptPartial },
+      {
+        escape: (value) => value,
+      },
+    );
+  }
+
+  abstract tryUpdate(data: BaseContext<Type, Data>): boolean;
 }

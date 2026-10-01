@@ -1,19 +1,18 @@
 // ** Implemented ScreenContext with tryUpdate method
 /* 'screen' type context, nested object of:
-- text (optional): text content of the element
-- children[] (optional): array of child elements containing text
+- text: text content of the element, empty when absent
+- children[]: array of child elements, empty for leaves
 */
 
-import type { BaseContext } from "./base";
-import type { DropRule } from "../profile";
-import { PENDING, SuggestionStorage } from "./suggestion";
+import { BaseContext } from "./base";
+import type { Profile } from "../profile";
 
 export interface ScreenContextData {
-  text?: string;
-  children?: ScreenContextData[];
+  text: string;
+  children: ScreenContextData[];
 }
 
-export interface ScreenContext extends BaseContext {
+export interface ScreenContext extends BaseContext<"screen", ScreenContextData> {
   type: "screen";
   data: ScreenContextData;
   tryUpdate(incomingContext: ScreenContext): boolean;
@@ -27,10 +26,8 @@ function flattenToTexts(data: ScreenContextData): string[] {
     if (node.text && node.text.trim()) {
       texts.push(node.text);
     }
-    if (node.children) {
-      for (const child of node.children) {
-        walk(child);
-      }
+    for (const child of node.children) {
+      walk(child);
     }
   };
   walk(data);
@@ -83,57 +80,24 @@ function totalTextLength(texts: string[]): number {
 // ** Implemented tryUpdate for ScreenContext
 // Flattens the nested tree to text nodes, detects a reliable common part
 // (anchor) against the existing context, and takes the larger context.
-export class ScreenContextImpl implements ScreenContext {
+export class ScreenContextImpl
+  extends BaseContext<"screen", ScreenContextData>
+  implements ScreenContext
+{
   type: "screen" = "screen";
-  profileId: string;
-  dropRule: DropRule;
-  label?: string;
   data: ScreenContextData;
-  private readonly suggestionStorage = new SuggestionStorage();
+  protected readonly defaultPromptTemplate =
+    "{{#data.text}}Text on a screen\n{{/data.text}}{{^data.text}}{{#data.children.length}}Text on a screen\n{{/data.children.length}}{{/data.text}}{{#data}}{{>item}}{{/data}}";
+  protected readonly defaultPromptPartial =
+    "{{#text}}{{.}}\n{{/text}}{{#children}}{{>item}}{{/children}}";
 
   constructor(
-    profileId: string,
-    dropRule: DropRule,
+    profile: Profile,
     data: ScreenContextData,
     label?: string,
   ) {
-    this.profileId = profileId;
-    this.dropRule = dropRule;
-    this.label = label;
+    super(profile, label);
     this.data = data;
-  }
-
-  toJSON() {
-    return {
-      type: this.type,
-      profileId: this.profileId,
-      dropRule: this.dropRule,
-      data: this.data,
-      label: this.label,
-    };
-  }
-
-  getSuggestion(text: string): string | null | typeof PENDING {
-    return this.suggestionStorage.getSuggestion(text);
-  }
-
-  updateSuggestion(
-    currentTyping: string,
-    suggestion: string,
-  ): string | null | typeof PENDING {
-    return this.suggestionStorage.updateSuggestion(currentTyping, suggestion);
-  }
-
-  clearSuggestions(): void {
-    this.suggestionStorage.clear();
-  }
-
-  setSuggestionPending(text: string): void {
-    this.suggestionStorage.setSuggestionPending(text);
-  }
-
-  clearSuggestionPending(text: string): void {
-    this.suggestionStorage.clearSuggestionPending(text);
   }
 
   tryUpdate(incomingContext: ScreenContext): boolean {
@@ -163,7 +127,7 @@ export class ScreenContextImpl implements ScreenContext {
       return true;
     } catch (error) {
       console.error(
-        `Error updating screen context for profile ${this.profileId}:`,
+        `Error updating screen context for profile ${this.profile.id}:`,
         error instanceof Error ? error.message : error,
       );
       return false;
