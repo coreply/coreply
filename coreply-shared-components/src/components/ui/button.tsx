@@ -63,12 +63,16 @@ const buttonTextVariants = cva(
       variant: {
         default: 'text-primary-foreground',
         destructive: 'text-white',
-        outline: cn(
-          'group-active:text-accent-foreground',
-          Platform.select({ web: 'group-hover:text-accent-foreground' })
-        ),
+        // Web state colors are defaults: explicit text utilities must win.
+        outline: Platform.select({
+          web: '[:where(.group:hover_&)]:text-accent-foreground [:where(.group:active_&)]:text-accent-foreground',
+          default: 'group-active:text-accent-foreground',
+        }),
         secondary: 'text-secondary-foreground',
-        ghost: 'group-active:text-accent-foreground',
+        ghost: Platform.select({
+          web: '[:where(.group:active_&)]:text-accent-foreground',
+          default: 'group-active:text-accent-foreground',
+        }),
         link: cn(
           'text-primary group-active:underline',
           Platform.select({ web: 'underline-offset-4 hover:underline group-hover:underline' })

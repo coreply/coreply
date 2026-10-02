@@ -105,7 +105,8 @@ export default function TroubleshootingLogsScreen() {
           </ScrollView>
           <View className="px-3 pb-3">
             <Button
-              variant="destructive"
+              variant="outline"
+              className="border-destructive"
               disabled={isLoading || logs.length === 0}
               onPress={async () => {
                 try {
@@ -118,7 +119,7 @@ export default function TroubleshootingLogsScreen() {
                 }
               }}
             >
-              <Text>Delete All Logs</Text>
+              <Text className="text-destructive">Delete All Logs</Text>
             </Button>
           </View>
         </TextClassContext.Provider>
