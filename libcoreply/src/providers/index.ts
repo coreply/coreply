@@ -142,11 +142,11 @@ export function createStatefulGenerateTextSchema() {
   return createGenerateTextSchema().extend({
     typingTemplate: z
       .string()
-      .describe("Mustache template used to build each typing update message")
+      .describe("Mustache template used to build each current-sentence typing update message")
       .meta({ control: "textarea" }),
     contextAppendTemplate: z
       .string()
-      .describe("Mustache template used to append newly added context content")
+      .describe("Mustache template used to append new context content and completed-sentence replacements")
       .meta({ control: "textarea" }),
   });
 }
@@ -169,10 +169,10 @@ const GenerateTextDefaults = {
 };
 
 export const DEFAULT_STATEFUL_TYPING_TEMPLATE =
-  "Completed sentences already typed:\n{{{completedSentences}}}\nContinue the full current sentence starting with exactly:\n{{{currentSentence}}}\n{{#lastTurnUserSent}}The last visible chat turn was sent by the user. Avoid just repeating it.\n{{/lastTurnUserSent}}{{#previousResponseInvalid}}Your previous response was invalid because it did not correctly continue the required prefix or was not longer than the current typing. Fix that now.\n{{/previousResponseInvalid}}Output only the full current sentence text, beginning with the required current prefix.";
+  "Continue the full current sentence starting with exactly:\n{{{currentSentence}}}\n{{#lastTurnUserSent}}The last visible chat turn was sent by the user. Avoid just repeating it.\n{{/lastTurnUserSent}}{{#previousResponseInvalid}}Your previous response was invalid because it did not correctly continue the required prefix or was not longer than the current typing. Fix that now.\n{{/previousResponseInvalid}}Output only the full current sentence text, beginning with the required current prefix.";
 
 export const DEFAULT_STATEFUL_CONTEXT_APPEND_TEMPLATE =
-  "New context was appended:\n{{{renderedContextPrompt}}}";
+  "{{#renderedContextPrompt}}New context was appended:\n{{{renderedContextPrompt}}}\n{{/renderedContextPrompt}}{{#completedSentencesChanged}}Completed sentences already typed, replacing any previous value:\n<completed-sentences>\n{{{completedSentences}}}\n</completed-sentences>{{/completedSentencesChanged}}";
 
 const StatefulGenerateTextDefaults = {
   ...GenerateTextDefaults,

@@ -131,33 +131,23 @@ function validateSuggestion(
   return reconstructed;
 }
 
-function buildAppendPrompt(
+function buildAppendedContextPrompt(
   incomingContext: CoreplyContext,
   appendData: ChatContextData,
-  contextAppendTemplate: string,
 ) {
   const appendedContext = new ChatContextImpl(
     incomingContext.profile,
     appendData,
     incomingContext.label,
+    incomingContext,
   );
 
-  return Mustache.render(
-    contextAppendTemplate,
-    {
-      renderedContextPrompt: appendedContext.renderPrompt(),
-    },
-    undefined,
-    {
-      escape: (value) => value,
-    },
-  );
+  return appendedContext.renderPrompt();
 }
 
 function compareContexts(
   previousContexts: CoreplyContext[] | null,
   incomingContexts: CoreplyContext[],
-  contextAppendTemplate: string,
 ) {
   if (
     !previousContexts ||
@@ -172,9 +162,9 @@ function compareContexts(
     const previousContext = previousContexts[index];
     if (
       previousContext.profile.id !== incomingContext.profile.id ||
-      previousContext.profile.systemPrompt !== incomingContext.profile.systemPrompt ||
-      previousContext.profile.promptTemplate !== incomingContext.profile.promptTemplate ||
-      previousContext.profile.promptPartial !== incomingContext.profile.promptPartial ||
+      previousContext.profile.appSpecificInstruction !== incomingContext.profile.appSpecificInstruction ||
+      previousContext.contextTemplate !== incomingContext.contextTemplate ||
+      previousContext.contextTemplatePartial !== incomingContext.contextTemplatePartial ||
       previousContext.type !== incomingContext.type
     ) {
       return { reset: true };
@@ -200,10 +190,9 @@ function compareContexts(
     }
 
     if (appendData.turns.length > 0) {
-      appendPrompt += buildAppendPrompt(
+      appendPrompt += buildAppendedContextPrompt(
         incomingContext,
         appendData,
-        contextAppendTemplate,
       );
     }
   }
@@ -215,12 +204,18 @@ export class StatefulAIProviderInstance<
   Settings extends z.output<ReturnType<typeof createStatefulSettingsSchema>>,
 > implements ProviderInstance {
   private previousContexts: CoreplyContext[] | null = null;
+  private previousCompletedSentences: string | null = null;
   private responseMessages: ModelMessage[] = [];
+  private readonly settingsSchema: z.ZodType<Settings>;
+  private readonly createModel: (settings: Settings) => LanguageModel;
 
   constructor(
-    private readonly settingsSchema: z.ZodType<Settings>,
-    private readonly createModel: (settings: Settings) => LanguageModel,
-  ) {}
+    settingsSchema: z.ZodType<Settings>,
+    createModel: (settings: Settings) => LanguageModel,
+  ) {
+    this.settingsSchema = settingsSchema;
+    this.createModel = createModel;
+  }
 
   async request(
     contexts: CoreplyContext[],
@@ -231,6 +226,7 @@ export class StatefulAIProviderInstance<
       const clone = deserializeContext(
         structuredClone(context.toJSON()),
         structuredClone(context.profile),
+        context,
       );
       clone.label = context.label;
       return clone;
@@ -247,15 +243,16 @@ export class StatefulAIProviderInstance<
     const decision = compareContexts(
       this.previousContexts,
       incomingContexts,
-      contextAppendTemplate,
     );
 
     const typingView = buildTypingTemplateView(activeContext, currentTyping);
+    const completedSentencesChanged = decision.reset ||
+      typingView.completedSentences !== this.previousCompletedSentences;
 
     const instructions = Mustache.render(
       instructionsTemplate,
       {
-        profileSystemPrompt: activeContext?.profile.systemPrompt,
+        profileSystemPrompt: activeContext?.profile.appSpecificInstruction,
       },
       undefined,
       {
@@ -264,9 +261,26 @@ export class StatefulAIProviderInstance<
     );
 
     let messages: ModelMessage[] = decision.reset ? [] : [...this.responseMessages];
-    const contextPrompt = decision.reset
+    const renderedContextPrompt = decision.reset
       ? contexts.map((context) => context.renderPrompt()).join("")
       : decision.appendPrompt;
+    const appendPrompt = completedSentencesChanged || (!decision.reset && renderedContextPrompt)
+      ? Mustache.render(
+        contextAppendTemplate,
+        {
+          renderedContextPrompt: decision.reset ? "" : renderedContextPrompt,
+          completedSentencesChanged,
+          completedSentences: typingView.completedSentences,
+        },
+        undefined,
+        {
+          escape: (value) => value,
+        },
+      )
+      : "";
+    const contextPrompt = [decision.reset ? renderedContextPrompt : "", appendPrompt]
+      .filter((prompt) => prompt !== undefined && prompt !== "")
+      .join("\n");
 
     const model = this.createModel(settings);
     const providerOptions = settings.providerOptions
@@ -277,7 +291,11 @@ export class StatefulAIProviderInstance<
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const renderedTypingPrompt = Mustache.render(
         typingTemplate,
-        { ...typingView, previousResponseInvalid: attempt > 0 },
+        {
+          currentSentence: typingView.currentSentence,
+          lastTurnUserSent: typingView.lastTurnUserSent,
+          previousResponseInvalid: attempt > 0,
+        },
         undefined,
         {
           escape: (value) => value,
@@ -313,6 +331,7 @@ export class StatefulAIProviderInstance<
     }
 
     this.previousContexts = incomingContexts;
+    this.previousCompletedSentences = typingView.completedSentences;
     this.responseMessages = messages;
 
     return suggestion ?? "";

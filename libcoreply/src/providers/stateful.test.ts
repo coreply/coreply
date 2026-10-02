@@ -19,14 +19,16 @@ const profile: Profile = {
   id: "chat-profile",
   platform: "web",
   dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
+  matchingRule: ".*",
+  contextExtractors: [],
 };
 
 const otherProfile: Profile = {
   id: "screen-profile",
   platform: "web",
   dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
+  matchingRule: ".*",
+  contextExtractors: [],
 };
 
 function createInstance() {
@@ -47,8 +49,8 @@ const baseConfig = {
   generateText: {
     instructions: "I {{#profileSystemPrompt}}{{{profileSystemPrompt}}}{{/profileSystemPrompt}}",
     typingTemplate:
-      "typing={{{typing}}}|done={{{completedSentences}}}|current={{{currentSentence}}}|lastTurnUserSent={{#lastTurnUserSent}}true{{/lastTurnUserSent}}{{^lastTurnUserSent}}false{{/lastTurnUserSent}}|previousResponseInvalid={{#previousResponseInvalid}}true{{/previousResponseInvalid}}{{^previousResponseInvalid}}false{{/previousResponseInvalid}}",
-    contextAppendTemplate: "APPEND {{{renderedContextPrompt}}}",
+      "typing={{{currentSentence}}}|current={{{currentSentence}}}|lastTurnUserSent={{#lastTurnUserSent}}true{{/lastTurnUserSent}}{{^lastTurnUserSent}}false{{/lastTurnUserSent}}|previousResponseInvalid={{#previousResponseInvalid}}true{{/previousResponseInvalid}}{{^previousResponseInvalid}}false{{/previousResponseInvalid}}",
+    contextAppendTemplate: "{{#renderedContextPrompt}}APPEND {{{renderedContextPrompt}}}{{/renderedContextPrompt}}{{#completedSentencesChanged}}DONE [{{{completedSentences}}}]{{/completedSentencesChanged}}",
   },
   providerOptions: '{"vertex":{"thinkingConfig":{"thinkingLevel":"minimal"}}}',
 };
@@ -138,7 +140,7 @@ describe("StatefulAIProviderInstance", () => {
     });
   });
 
-  it("sends only the typing prompt when the chat has no turns", async () => {
+  it("sends the initial completed-sentence state and typing when the chat has no turns", async () => {
     const instance = createInstance();
     generateTextMock.mockResolvedValueOnce({
       text: "Hi there",
@@ -152,7 +154,7 @@ describe("StatefulAIProviderInstance", () => {
         role: "user",
         content: [{
           type: "text",
-          text: "typing=Hi|done=|current=Hi|lastTurnUserSent=false|previousResponseInvalid=false",
+          text: "DONE []\ntyping=Hi|current=Hi|lastTurnUserSent=false|previousResponseInvalid=false",
         }],
       },
     ]);
@@ -173,7 +175,7 @@ describe("StatefulAIProviderInstance", () => {
     expect(messages).toHaveLength(1);
     expect(messages[0]?.role).toBe("user");
     expect(messages[0]?.content?.[0]?.text).toBe(
-      `${chat.renderPrompt()}${screen.renderPrompt()}\ntyping=Hi|done=|current=Hi|lastTurnUserSent=false|previousResponseInvalid=false`,
+      `${chat.renderPrompt()}${screen.renderPrompt()}\nDONE []\ntyping=Hi|current=Hi|lastTurnUserSent=false|previousResponseInvalid=false`,
     );
   });
 
@@ -253,16 +255,13 @@ describe("StatefulAIProviderInstance", () => {
     );
   });
 
-  it("uses the profile prompt template when rendering appended delta contexts", async () => {
+  it("uses the context template when rendering appended delta contexts", async () => {
     const instance = createInstance();
-    const templatedProfile: Profile = {
-      ...profile,
-      promptTemplate: "DELTA:{{#data.turns}}{{#messages}}{{{body}}}|{{/messages}}{{/data.turns}}",
-    };
     const context = new ChatContextImpl(
-      templatedProfile,
+      profile,
       { turns: [{ userSent: false, messages: [{ body: "A" }] }] },
       "messages",
+      { contextTemplate: "DELTA:{{#data.turns}}{{#messages}}{{{body}}}|{{/messages}}{{/data.turns}}" },
     );
 
     generateTextMock
@@ -337,12 +336,13 @@ describe("StatefulAIProviderInstance", () => {
     expect(generateTextMock.mock.calls[1]?.[0]?.messages).toHaveLength(1);
   });
 
-  it("resets history when the profile partial changes", async () => {
+  it("resets history when the context partial changes", async () => {
     const instance = createInstance();
     const context = new ChatContextImpl(
-      { ...profile, promptPartial: "Before: {{body}}\n" },
+      profile,
       { turns: [{ userSent: false, messages: [{ body: "A" }] }] },
       "messages",
+      { contextTemplatePartial: "Before: {{body}}\n" },
     );
     generateTextMock.mockResolvedValue({
       text: "x1",
@@ -350,7 +350,7 @@ describe("StatefulAIProviderInstance", () => {
     });
 
     await instance.request([context], "x", baseConfig);
-    context.profile.promptPartial = "After: {{body}}\n";
+    context.contextTemplatePartial = "After: {{body}}\n";
     await instance.request([context], "x", baseConfig);
 
     expect(generateTextMock.mock.calls[1]?.[0]?.messages).toHaveLength(1);
@@ -511,23 +511,175 @@ describe("StatefulAIProviderInstance", () => {
     const context = makeChatContext([{ userSent: false, messages: [{ body: "Hello" }] }]);
 
     generateTextMock.mockResolvedValueOnce({
-      text: "world  again",
-      responseMessages: [{ role: "assistant", content: [{ type: "text", text: "world  again" }] }],
+      text: "World  again",
+      responseMessages: [{ role: "assistant", content: [{ type: "text", text: "World  again" }] }],
     });
 
-    const result = await instance.request([context], "Done. world", baseConfig);
-    expect(result).toBe("Done. world  again");
+    const result = await instance.request([context], "Done. World", baseConfig);
+    expect(result).toBe("Done. World  again");
+  });
+
+  it("sends completed sentences initially but not on current-sentence typing updates", async () => {
+    const instance = createInstance();
+    generateTextMock.mockResolvedValue({
+      text: "World again",
+      responseMessages: [{ role: "assistant", content: "World again" }],
+    });
+
+    await instance.request([], "Done. W", baseConfig);
+    await instance.request([], "Done. World", baseConfig);
+
+    expect(generateTextMock.mock.calls[0]?.[0]?.messages.at(-1)?.content?.[0]?.text).toBe(
+      "DONE [Done. ]\ntyping=W|current=W|lastTurnUserSent=false|previousResponseInvalid=false",
+    );
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages.at(-1)?.content?.[0]?.text).toBe(
+      "typing=World|current=World|lastTurnUserSent=false|previousResponseInvalid=false",
+    );
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages).toHaveLength(3);
+  });
+
+  it.each([
+    ["extended", "Done. Extra. World", "Done. Extra. "],
+    ["edited", "Changed. World", "Changed. "],
+    ["deleted", "World", ""],
+  ])("replaces %s completed sentences without resetting history", async (_change, typing, completedSentences) => {
+    const instance = createInstance();
+    generateTextMock.mockResolvedValue({
+      text: "World again",
+      responseMessages: [{ role: "assistant", content: "World again" }],
+    });
+
+    await instance.request([], "Done. World", baseConfig);
+    await expect(instance.request([], typing, baseConfig)).resolves.toBe(
+      `${completedSentences}World again`,
+    );
+    await instance.request([], typing, baseConfig);
+
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages).toHaveLength(3);
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages.at(-1)?.content?.[0]?.text).toBe(
+      `DONE [${completedSentences}]\ntyping=World|current=World|lastTurnUserSent=false|previousResponseInvalid=false`,
+    );
+    expect(generateTextMock.mock.calls[2]?.[0]?.messages.at(-1)?.content?.[0]?.text).not.toContain("DONE");
+  });
+
+  it("renders context and completed-sentence changes together in the append template", async () => {
+    const instance = createInstance();
+    const context = makeChatContext([{ userSent: false, messages: [{ body: "A" }] }]);
+    generateTextMock.mockResolvedValue({
+      text: "World again",
+      responseMessages: [{ role: "assistant", content: "World again" }],
+    });
+
+    await instance.request([context], "World", baseConfig);
+    context.data.turns[0]?.messages.push({ body: "B" });
+    await instance.request([context], "Done. World", baseConfig);
+    context.data.turns[0]?.messages.push({ body: "C" });
+    await instance.request([context], "Done. World", baseConfig);
+
+    const combinedPrompt = generateTextMock.mock.calls[1]?.[0]?.messages.at(-1)?.content?.[0]?.text;
+    expect(combinedPrompt).toContain("APPEND Message I received:\nB\n");
+    expect(combinedPrompt).toContain("DONE [Done. ]");
+    const contextOnlyPrompt = generateTextMock.mock.calls[2]?.[0]?.messages.at(-1)?.content?.[0]?.text;
+    expect(contextOnlyPrompt).toContain("APPEND Message I received:\nC\n");
+    expect(contextOnlyPrompt).not.toContain("DONE");
+    expect(contextOnlyPrompt).not.toContain("Done. ");
+  });
+
+  it("includes unchanged completed sentences again after a context reset", async () => {
+    const instance = createInstance();
+    const context = makeScreenContext("Screen A");
+    generateTextMock.mockResolvedValue({
+      text: "World again",
+      responseMessages: [{ role: "assistant", content: "World again" }],
+    });
+
+    await instance.request([context], "Done. World", baseConfig);
+    context.data.text = "Screen B";
+    await instance.request([context], "Done. World", baseConfig);
+
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages).toHaveLength(1);
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages[0]?.content?.[0]?.text).toContain(
+      "DONE [Done. ]",
+    );
+  });
+
+  it("does not repeat completed sentences in a correction prompt", async () => {
+    const instance = createInstance();
+    generateTextMock
+      .mockResolvedValueOnce({ text: "bad", responseMessages: [{ role: "assistant", content: "bad" }] })
+      .mockResolvedValueOnce({ text: "World again", responseMessages: [{ role: "assistant", content: "World again" }] });
+
+    await expect(instance.request([], "Done. World", baseConfig)).resolves.toBe("Done. World again");
+
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages.at(-1)?.content?.[0]?.text).not.toContain("Done.");
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages.at(-1)?.content?.[0]?.text).toContain(
+      "previousResponseInvalid=true",
+    );
+  });
+
+  it.each([false, true])("does not commit completed-sentence changes after an API error, correction=%s", async (correction) => {
+    const instance = createInstance();
+    generateTextMock.mockResolvedValueOnce({
+      text: "World again",
+      responseMessages: [{ role: "assistant", content: "World again" }],
+    });
+    await instance.request([], "World", baseConfig);
+
+    if (correction) {
+      generateTextMock.mockResolvedValueOnce({
+        text: "bad",
+        responseMessages: [{ role: "assistant", content: "bad" }],
+      });
+    }
+    generateTextMock
+      .mockRejectedValueOnce(new Error("boom"))
+      .mockResolvedValueOnce({
+        text: "World again",
+        responseMessages: [{ role: "assistant", content: "World again" }],
+      });
+
+    await expect(instance.request([], "Done. World", baseConfig)).rejects.toThrow("boom");
+    await instance.request([], "Done. World", baseConfig);
+
+    const lastRequest = generateTextMock.mock.calls.at(-1)?.[0];
+    expect(lastRequest.messages).toHaveLength(3);
+    expect(lastRequest.messages.at(-1)?.content?.[0]?.text).toContain("DONE [Done. ]");
+    expect(JSON.stringify(lastRequest.messages)).not.toContain("bad");
+  });
+
+  it("uses the default append template to clear deleted completed sentences", async () => {
+    const provider = providerDefinitions.googleVertexStateful;
+    const instance = provider.createInstance();
+    const config = {
+      ...baseConfig,
+      generateText: provider.settingsDefaults.generateText,
+    };
+    generateTextMock.mockResolvedValue({
+      text: "World again",
+      responseMessages: [{ role: "assistant", content: "World again" }],
+    });
+
+    await instance.request([], "Done. World", config);
+    await instance.request([], "World", config);
+
+    expect(generateTextMock.mock.calls[0]?.[0]?.messages.at(-1)?.content?.[0]?.text).toContain(
+      "<completed-sentences>\nDone. \n</completed-sentences>",
+    );
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages.at(-1)?.content?.[0]?.text).toContain(
+      "Completed sentences already typed, replacing any previous value:\n<completed-sentences>\n\n</completed-sentences>",
+    );
+    expect(generateTextMock.mock.calls[1]?.[0]?.messages).toHaveLength(3);
   });
 
   it("interpolates profile systemPrompt into instructions", async () => {
     const instance = createInstance();
     const earlierProfile: Profile = {
       ...profile,
-      systemPrompt: "Earlier ignored",
+      appSpecificInstruction: "Earlier ignored",
     };
     const instructionProfile: Profile = {
       ...profile,
-      systemPrompt: "Use company tone",
+      appSpecificInstruction: "Use company tone",
     };
     const earlierContext = new ChatContextImpl(
       earlierProfile,
@@ -559,7 +711,7 @@ describe("StatefulAIProviderInstance", () => {
     const instance = createInstance();
     const earlierProfile: Profile = {
       ...profile,
-      systemPrompt: "Earlier ignored",
+      appSpecificInstruction: "Earlier ignored",
     };
     const earlierContext = new ChatContextImpl(
       earlierProfile,
