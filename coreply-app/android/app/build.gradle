@@ -83,3 +83,14 @@ react {
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
+
+tasks.withType(com.facebook.react.tasks.BundleHermesCTask).configureEach {
+    ["libcoreply", "coreply-shared-components"].each { packageName ->
+        inputs.files(fileTree(new File(rootDir, "../../${packageName}")) {
+            include("src/**")
+            include("package.json")
+        })
+            .withPropertyName("${packageName}Sources")
+            .withPathSensitivity(org.gradle.api.tasks.PathSensitivity.RELATIVE)
+    }
+}
