@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { type JsonSchema, type UISchemaElement } from "@jsonforms/core";
 import { JsonForms } from "@jsonforms/react";
 import { View } from "react-native";
@@ -45,6 +45,14 @@ export function SchemaForm<T extends Record<string, any>>({
   className,
 }: SchemaFormProps<T>) {
   const [draftData, setDraftData] = useState<T>(data);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  // Keep the extra quiet period that prevents stale controlled-data feedback.
+  const emitChange = useMemo(() => debounce((newData: T) => {
+    setDraftData(newData);
+    onChangeRef.current(newData);
+  }, 1000), []);
+  useEffect(() => () => emitChange.flush(), [emitChange]);
 
   const additionalErrors = useMemo(() => {
     const parsed = safeParseWithCustomStringErrors(schema, draftData);
@@ -89,12 +97,9 @@ export function SchemaForm<T extends Record<string, any>>({
       {title && <Text className="mb-5 text-base font-medium">{title}</Text>}
       <JsonForms
         schema={jsonSchema}
-        uischema={resolvedUiSchema}
+        uischema={uiSchema ?? resolvedUiSchema}
         data={draftData}
-        onChange={debounce(({ data: newData }) => {
-          setDraftData(newData);
-          onChange(newData);
-        }, 1000)}
+        onChange={({ data: newData }) => emitChange(newData)}
         renderers={customRenderers}
         additionalErrors={additionalErrors}
         validationMode="NoValidation"
