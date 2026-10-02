@@ -9,7 +9,13 @@ import { ChatContextImpl, type ChatContextData, type ChatTurn } from "../context
 import type { ProviderInstance } from "./instance";
 import type { createStatefulSettingsSchema } from "./index";
 
-const sentenceSegmenter = new Intl.Segmenter(undefined, { granularity: "sentence" });
+// Hermes (React Native) lacks Intl.Segmenter; create it only when segmentation
+// actually runs, so importing this module stays safe.
+let sentenceSegmenter: Intl.Segmenter | undefined;
+
+function getSentenceSegmenter(): Intl.Segmenter {
+  return (sentenceSegmenter ??= new Intl.Segmenter(undefined, { granularity: "sentence" }));
+}
 
 function getStrictChatAppend(
   previousData: ChatContextData,
@@ -94,7 +100,7 @@ function buildTypingTemplateView(
   activeContext: CoreplyContext | undefined,
   typing: string,
 ) {
-  const segments = [...sentenceSegmenter.segment(typing)].map((segment) => segment.segment);
+  const segments = [...getSentenceSegmenter().segment(typing)].map((segment) => segment.segment);
   const lastTurn = activeContext?.type === "chat" ? activeContext.data.turns.at(-1) : undefined;
 
   return {

@@ -8,12 +8,21 @@ export const PENDING = Symbol("PENDING");
  */
 export class SuggestionStorage {
   private readonly history = new Map<string, string | typeof PENDING>();
-  private readonly sentenceSegmenter = new Intl.Segmenter(undefined, {
-    granularity: "sentence",
-  });
-  private readonly wordSegmenter = new Intl.Segmenter(undefined, {
-    granularity: "word",
-  });
+  // Created on first use; Intl.Segmenter is unavailable in Hermes.
+  private sentenceSegmenterInstance: Intl.Segmenter | undefined;
+  private wordSegmenterInstance: Intl.Segmenter | undefined;
+
+  private get sentenceSegmenter(): Intl.Segmenter {
+    return (this.sentenceSegmenterInstance ??= new Intl.Segmenter(undefined, {
+      granularity: "sentence",
+    }));
+  }
+
+  private get wordSegmenter(): Intl.Segmenter {
+    return (this.wordSegmenterInstance ??= new Intl.Segmenter(undefined, {
+      granularity: "word",
+    }));
+  }
 
   clear() {
     this.history.clear();

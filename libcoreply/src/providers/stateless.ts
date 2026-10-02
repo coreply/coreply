@@ -3,9 +3,13 @@ import type { ProviderDefinition } from "./index";
 import type { ProviderInstance } from "./instance";
 
 export class StatelessProviderInstance implements ProviderInstance {
+  private readonly providerDefinition: ProviderDefinition;
+
   constructor(
-    private readonly providerDefinition: ProviderDefinition,
-  ) {}
+    providerDefinition: ProviderDefinition,
+  ) {
+    this.providerDefinition = providerDefinition;
+  }
 
   request(
     contexts: CoreplyContext[],

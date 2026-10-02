@@ -39,17 +39,22 @@ export function toTemplateMap(value: string): TemplateMap | null {
   };
 }
 
+// Created on first use; Intl.Segmenter is unavailable in Hermes.
+let wordSegmenter: Intl.Segmenter | undefined;
+
+function getWordSegmenter(): Intl.Segmenter {
+  return (wordSegmenter ??= new Intl.Segmenter("en", {
+    granularity: "word",
+  }));
+}
+
 function tokenizeText(input: string): string[] {
   if (!input) {
     return [];
   }
 
-  const segmenter = new Intl.Segmenter("en", {
-    granularity: "word",
-  });
-
   const segments = Array.from(
-    segmenter.segment(input),
+    getWordSegmenter().segment(input),
     (segment) => segment.segment,
   );
   const tokens: string[] = [];
