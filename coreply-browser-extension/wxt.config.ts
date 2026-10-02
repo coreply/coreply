@@ -7,25 +7,11 @@ import { fileURLToPath } from "url";
 export default defineConfig({
   manifest: {
     permissions: ["storage"],
-    host_permissions: [
-      "*://gemini.google.com/*",
-      "*://chatgpt.com/*",
-      "*://*.perplexity.ai/*",
-      "*://chat.mistral.ai/*",
-      "http://127.0.0.1/*",
-      "https://127.0.0.1/*",
-    ],
+    host_permissions: ["http://*/*", "https://*/*"],
     web_accessible_resources: [
       {
         resources: ["/logo.png"],
-        matches: [
-          "*://gemini.google.com/*",
-          "*://chatgpt.com/*",
-          "*://*.perplexity.ai/*",
-          "*://chat.mistral.ai/*",
-          "http://127.0.0.1/*",
-          "https://127.0.0.1/*",
-        ],
+        matches: ["http://*/*", "https://*/*"],
       },
     ],
   },

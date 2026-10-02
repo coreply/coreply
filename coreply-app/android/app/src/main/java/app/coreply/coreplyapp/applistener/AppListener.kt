@@ -40,8 +40,7 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import app.coreply.coreplyapp.BuildConfig
 import app.coreply.coreplyapp.R
-import app.coreply.coreplyapp.data.ExpoSettingsStorage
-import app.coreply.coreplyapp.data.ExpoTroubleshootingStorage
+import app.coreply.coreplyapp.data.CoreplyStorageManager
 import app.coreply.coreplyapp.data.PreferencesManager
 import app.coreply.coreplyapp.suggestions.SuggestionStorage
 import app.coreply.coreplyapp.ui.Overlay
@@ -93,8 +92,7 @@ open class AppListener : AccessibilityService() {
     private lateinit var overlayViewModel: OverlayViewModel
     private val pixelCalculator: PixelCalculator = PixelCalculator(this)
     private lateinit var preferencesManager: PreferencesManager
-    private lateinit var expoSettingsStorage: ExpoSettingsStorage
-    private lateinit var expoTroubleshootingStorage: ExpoTroubleshootingStorage
+    private lateinit var storageManager: CoreplyStorageManager
     private lateinit var webView: WebView
     private val suggestionStorage = SuggestionStorage()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -217,8 +215,7 @@ open class AppListener : AccessibilityService() {
 
         val appContext = applicationContext
         preferencesManager = PreferencesManager.getInstance(appContext)
-        expoSettingsStorage = ExpoSettingsStorage(appContext)
-        expoTroubleshootingStorage = ExpoTroubleshootingStorage(appContext)
+        storageManager = CoreplyStorageManager(appContext)
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(appContext))
             .build()
@@ -423,7 +420,7 @@ open class AppListener : AccessibilityService() {
                 "log" -> {
                     val payload = json.getJSONObject("payload")
                     serviceScope.launch {
-                        expoTroubleshootingStorage.appendSuggestionFetchLog(payload)
+                        storageManager.appendSuggestionFetchLog(payload)
                     }
                 }
             }
@@ -447,10 +444,10 @@ open class AppListener : AccessibilityService() {
     }
 
     private suspend fun sendSettings() {
-        if (!::expoSettingsStorage.isInitialized) {
+        if (!::storageManager.isInitialized) {
             return
         }
-        val payload = expoSettingsStorage.getStoredCoreplySettings() ?: return
+        val payload = storageManager.getStoredCoreplySettings() ?: return
         sendSettings(payload)
     }
 

@@ -13,6 +13,7 @@ import {
   MASTER_SWITCH_KEY,
   PROVIDER_ID_KEY,
   SELECTED_APPS_KEY,
+  PROFILES_KEY,
   getProviderConfigKey,
   syncCoreplySettings,
 } from "./settings";
@@ -37,6 +38,7 @@ export async function startBrowserListener() {
   let currentSuggestion = "";
   let isComposing = false;
   let isEnabled = true;
+  let currentUrl = location.href;
   let collectionMode: "minimal" | "frequent" | "active" = "minimal";
   let pendingTyping: { editable: SupportedEditable; text: string } | null = null;
   let suggestionPresentationType: "inline" | "overlay" | "both" = "both";
@@ -149,9 +151,7 @@ export async function startBrowserListener() {
     suggestionPresentationType =
       coreply.getSettings().globalSettings.presentation.suggestionPresentationType;
     if (isEnabled) {
-      const storedProviderId = await storage.getItem<string>(PROVIDER_ID_KEY);
-      const nextProviderId = storedProviderId ?? coreply.getSettings().providerId;
-      watchProviderConfig(nextProviderId);
+      watchProviderConfig(coreply.getSettings().providerId);
     }
   }
 
@@ -189,6 +189,9 @@ export async function startBrowserListener() {
   });
 
   const unwatchSelectedApps = storage.watch<string>(SELECTED_APPS_KEY, () => {
+    void syncSettingsAndRefreshSuggestion();
+  });
+  const unwatchProfiles = storage.watch<string>(PROFILES_KEY, () => {
     void syncSettingsAndRefreshSuggestion();
   });
 
@@ -266,6 +269,12 @@ export async function startBrowserListener() {
   }
 
   function updateSnapshot() {
+    if (currentUrl !== location.href) {
+      currentUrl = location.href;
+      coreply.reset();
+      void syncSettingsAndRefreshSuggestion();
+      return;
+    }
     if (!isEnabled || isComposing) return;
     coreply.snapshotUpdated({
       platform: "web",
@@ -273,6 +282,12 @@ export async function startBrowserListener() {
       snapshot: serializeWebSnapshot(document.documentElement),
     });
   }
+
+  const onNavigation = () => {
+    currentUrl = location.href;
+    coreply.reset();
+    void syncSettingsAndRefreshSuggestion();
+  };
 
   const onInput = () => {
     syncFromFocusedEditable();
@@ -377,8 +392,8 @@ export async function startBrowserListener() {
   document.addEventListener("focusout", onFocusOut, true);
   document.addEventListener("compositionstart", onCompositionStart, true);
   document.addEventListener("compositionend", onCompositionEnd, true);
-  window.addEventListener("popstate", updateSnapshot);
-  window.addEventListener("hashchange", updateSnapshot);
+  window.addEventListener("popstate", onNavigation);
+  window.addEventListener("hashchange", onNavigation);
   document.addEventListener("keydown", onKeyDown, true);
   window.addEventListener("scroll", onScrollOrResize, true);
   window.addEventListener("resize", onScrollOrResize, true);
@@ -394,8 +409,8 @@ export async function startBrowserListener() {
       true,
     );
     document.removeEventListener("compositionend", onCompositionEnd, true);
-    window.removeEventListener("popstate", updateSnapshot);
-    window.removeEventListener("hashchange", updateSnapshot);
+    window.removeEventListener("popstate", onNavigation);
+    window.removeEventListener("hashchange", onNavigation);
     stopObservingSnapshots();
     document.removeEventListener("keydown", onKeyDown, true);
     window.removeEventListener("scroll", onScrollOrResize, true);
@@ -404,6 +419,7 @@ export async function startBrowserListener() {
     unwatchMasterSwitch();
     unwatchProviderId();
     unwatchSelectedApps();
+    unwatchProfiles();
     unwatchProviderConfig();
     clearState();
     overlay.inline.remove();

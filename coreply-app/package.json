@@ -52,7 +52,8 @@
     "@types/react": "~19.2.2",
     "babel-preset-expo": "^56.0.15",
     "prettier-plugin-tailwindcss": "^0.5.14",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.11"
   },
   "scripts": {
     "start": "expo start",
@@ -61,6 +62,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest",
     "build": "expo export --platform web --output-dir ../coreply-browser-extension/entrypoints/popup/"
   },
   "private": true

@@ -46,54 +46,11 @@ import "../../global.css";
 
 import type { GlobalSettings } from "libcoreply";
 
-import { createAsyncStorage } from "@/constants/storage";
+import { storageManager } from "@/constants/storage-manager";
 
 import * as Brownfield from "@/utils/brownfield-wrapper";
 
 import { Stack } from "expo-router";
-
-import { ZodType } from "zod";
-
-const storage = createAsyncStorage("coreply.settings");
-const MASTER_SWITCH_KEY = "masterSwitch";
-
-const parseJsonStringWithFallback = (
-  jsonString: string | null,
-  schema: ZodType,
-  fallback: any,
-) => {
-  if (!jsonString) {
-    return fallback;
-  }
-  try {
-    const parsed = JSON.parse(jsonString);
-    const validated = schema.safeParse(parsed);
-    if (validated.success) {
-      return validated.data;
-    }
-  } catch (error) {
-    return fallback;
-  }
-  return fallback;
-};
-
-const parseJsonObjectWithFallback = (
-  jsonString: string | null,
-  fallback: Record<string, any>,
-) => {
-  if (!jsonString) {
-    return fallback;
-  }
-  try {
-    const parsed = JSON.parse(jsonString);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed;
-    }
-  } catch {
-    return fallback;
-  }
-  return fallback;
-};
 
 function usePersistedSettings() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -105,32 +62,11 @@ function usePersistedSettings() {
     useState<GlobalSettings>(DEFAULT_GLOBAL_SETTINGS);
 
   useEffect(() => {
-    storage.getItem("providerId").then((storedProviderId) => {
-      const actualProviderId = storedProviderId ?? "coreplyCloud";
-      Promise.all([
-        storage.getItem(`${actualProviderId}.providerConfig`),
-        storage.getItem("globalSettings"),
-      ]).then(([storedProviderConfig, storedGlobalSettings]) => {
-        const provider =
-          providerDefinitions[
-            actualProviderId as keyof typeof providerDefinitions
-          ];
-        const parsedProviderConfig = parseJsonObjectWithFallback(
-          storedProviderConfig,
-          provider.settingsDefaults,
-        );
-        const parsedGlobalSettings = parseJsonStringWithFallback(
-          storedGlobalSettings,
-          globalSettingsSchema,
-          DEFAULT_GLOBAL_SETTINGS,
-        );
-
-        setProviderId(actualProviderId);
-        setInitialProviderConfig(parsedProviderConfig);
-        setInitialGlobalSettings(parsedGlobalSettings);
-
-        setIsLoaded(true);
-      });
+    storageManager.loadSettings().then((settings) => {
+      setProviderId(settings.providerId);
+      setInitialProviderConfig(settings.providerConfig);
+      setInitialGlobalSettings(settings.globalSettings);
+      setIsLoaded(true);
     });
   }, []);
 
@@ -139,7 +75,7 @@ function usePersistedSettings() {
       return;
     }
 
-    storage.setItem("providerId", providerId);
+    void storageManager.saveProviderId(providerId);
   }, [isLoaded, providerId]);
 
   const saveProviderConfig = (newSettings: Record<string, any>) => {
@@ -151,10 +87,7 @@ function usePersistedSettings() {
       return;
     }
 
-    storage.setItem(
-      `${providerId}.providerConfig`,
-      JSON.stringify(newSettings),
-    );
+    void storageManager.saveProviderConfig(providerId, parsed.data);
 
     if (isLoaded && Platform.OS === "android") {
       Brownfield.sendMessage({
@@ -173,7 +106,7 @@ function usePersistedSettings() {
       return;
     }
 
-    void storage.setItem("globalSettings", JSON.stringify(parsed.data));
+    void storageManager.saveGlobalSettings(parsed.data);
     if (isLoaded && Platform.OS === "android") {
       Brownfield.sendMessage({
         type: "settingsUpdated",
@@ -234,9 +167,7 @@ export default function SettingsScreen() {
       return;
     }
 
-    storage.getItem(MASTER_SWITCH_KEY).then((storedValue) => {
-      setExtensionEnabled(storedValue !== "false");
-    });
+    void storageManager.loadMasterSwitch().then(setExtensionEnabled);
   }, []);
 
   const accessibilityEnabled =
@@ -245,15 +176,7 @@ export default function SettingsScreen() {
   // Handle provider change - load saved settings for the new provider
   const handleProviderChange = async (option: Option) => {
     const newProviderId = option?.value || providerId;
-    const storedProviderConfig = await storage.getItem(
-      `${newProviderId}.providerConfig`,
-    );
-    const provider =
-      providerDefinitions[newProviderId as keyof typeof providerDefinitions];
-    const nextProviderConfig = parseJsonObjectWithFallback(
-      storedProviderConfig,
-      provider.settingsDefaults,
-    );
+    const nextProviderConfig = await storageManager.loadProviderConfig(newProviderId);
 
     setProviderId(newProviderId);
     setInitialProviderConfig(nextProviderConfig);
@@ -273,7 +196,7 @@ export default function SettingsScreen() {
     if (Platform.OS === "web") {
       const nextEnabled = !extensionEnabled;
       setExtensionEnabled(nextEnabled);
-      void storage.setItem(MASTER_SWITCH_KEY, JSON.stringify(nextEnabled));
+      void storageManager.saveMasterSwitch(nextEnabled);
       return;
     }
 
@@ -345,7 +268,7 @@ export default function SettingsScreen() {
                 >
                   <View>
                     <Text className="mb-2 text-lg px-3 font-semibold">
-                      Select Apps
+                      {Platform.OS === "web" ? "Profiles" : "Select Apps"}
                     </Text>
                     <View className="px-3 pb-3">
                       <Button
@@ -355,10 +278,10 @@ export default function SettingsScreen() {
                       >
                         <View className="h-auto flex-1 gap-1">
                           <Text className="text-left text-base text-foreground font-medium">
-                            Select Apps
+                            {Platform.OS === "web" ? "Profiles" : "Select Apps"}
                           </Text>
                           <Text className="text-left text-sm text-muted-foreground font-sans">
-                            Choose apps enabling Coreply.
+                            {Platform.OS === "web" ? "Manage profiles and choose where Coreply runs." : "Choose apps and customize their profiles."}
                           </Text>
                         </View>
                         <Icon

@@ -6,15 +6,23 @@ import org.asyncstorage.shared_storage.SharedStorage
 import org.asyncstorage.storage.StorageRegistry
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-class ExpoSettingsStorage(context: Context) {
+class CoreplyStorageManager(context: Context) {
 	companion object {
 		private const val COREPLY_SETTINGS_STORAGE_NAME = "coreply.settings"
 		private const val SELECTED_APPS_STORAGE_KEY = "selectedApps"
+		private const val PROFILES_STORAGE_KEY = "profiles"
+		private const val LOGS_STORAGE_NAME = "coreply.troubleshooting"
+		private const val LOGS_STORAGE_KEY = "suggestionFetchLogs"
+		private const val MAX_LOG_COUNT = 10
 	}
 
 	private val coreSettingsStorage: SharedStorage =
 		StorageRegistry.getStorage(context, COREPLY_SETTINGS_STORAGE_NAME)
+	private val logsStorage: SharedStorage = StorageRegistry.getStorage(context, LOGS_STORAGE_NAME)
+	private val logMutex = Mutex()
 
 	suspend fun hasExistingCoreSettings(): Boolean {
 		val values = getCoreValues("providerId", "globalSettings")
@@ -58,9 +66,11 @@ class ExpoSettingsStorage(context: Context) {
 			"$providerId.providerConfig",
 			"globalSettings",
 			SELECTED_APPS_STORAGE_KEY,
+			PROFILES_STORAGE_KEY,
 		)
 		val globalSettings = parseJsonObject(values["globalSettings"]) ?: return null
 		val selectedApps = parseJsonArray(values[SELECTED_APPS_STORAGE_KEY]) ?: JSONArray()
+		val profiles = parseJsonArray(values[PROFILES_STORAGE_KEY]) ?: JSONArray()
 
 		return JSONObject().apply {
 			put("providerId", providerId)
@@ -70,7 +80,19 @@ class ExpoSettingsStorage(context: Context) {
 			)
 			put("globalSettings", globalSettings)
 			put("selectedApps", selectedApps)
+			put("profiles", profiles)
 		}
+	}
+
+	suspend fun appendSuggestionFetchLog(log: JSONObject) = logMutex.withLock {
+		val value = logsStorage.getValues(listOf(LOGS_STORAGE_KEY)).firstOrNull()?.value
+		val logs = parseJsonArray(value) ?: JSONArray()
+		logs.put(log)
+		val trimmed = JSONArray()
+		for (index in maxOf(0, logs.length() - MAX_LOG_COUNT) until logs.length()) {
+			trimmed.put(logs.getJSONObject(index))
+		}
+		logsStorage.setValues(listOf(SharedEntry(LOGS_STORAGE_KEY, trimmed.toString())))
 	}
 
 	private suspend fun getCoreValues(vararg keys: String): Map<String, String?> {

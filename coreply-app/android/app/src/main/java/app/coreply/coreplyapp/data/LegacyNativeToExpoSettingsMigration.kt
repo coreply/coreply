@@ -13,7 +13,7 @@ class LegacyNativeToExpoSettingsMigration(context: Context) {
     }
 
     private val preferencesManager = PreferencesManager.getInstance(context)
-    private val expoSettingsStorage = ExpoSettingsStorage(context)
+    private val expoSettingsStorage = CoreplyStorageManager(context)
     private val migrationStorage: SharedStorage =
         StorageRegistry.getStorage(context, MIGRATION_STORAGE_NAME)
 
@@ -150,6 +150,12 @@ class LegacyNativeToExpoSettingsMigration(context: Context) {
                         "suggestionPresentationType",
                         mapSuggestionPresentationType(preferencesManager.suggestionPresentationTypeState.value),
                     )
+                },
+            )
+            put(
+                "troubleshooting",
+                JSONObject().apply {
+                    put("saveLogs", false)
                 },
             )
         }
