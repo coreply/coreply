@@ -15,18 +15,8 @@ const makeProfile = (id: string): Profile => ({
   id,
   platform: "web",
   dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
-});
-
-const makeProfileWithTemplate = (
-  id: string,
-  promptTemplate?: string,
-): Profile => ({
-  id,
-  platform: "web",
-  dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
-  promptTemplate,
+  matchingRule: ".*",
+  contextExtractors: [],
 });
 
 const makeContext = (profileId: string, ...turns: ReturnType<typeof turn>[]) =>
@@ -80,14 +70,13 @@ describe("ChatContextImpl.tryUpdate", () => {
 
   it("renders a custom chat prompt template from serialized context only", () => {
     const context = new ChatContextImpl(
-      makeProfileWithTemplate(
-        "profile",
-        "{{type}}|{{data.title}}|{{#data.turns}}{{#messages}}{{{body}}}|{{/messages}}{{/data.turns}}",
-      ),
+      makeProfile("profile"),
       {
         title: "Chat & Stuff",
         turns: [turn(false, "Alice", "Hello <b>there</b>")],
       },
+      undefined,
+      { contextTemplate: "{{type}}|{{data.title}}|{{#data.turns}}{{#messages}}{{{body}}}|{{/messages}}{{/data.turns}}" },
     );
 
     expect(context.renderPrompt()).toBe("chat|Chat & Stuff|Hello <b>there</b>|");
@@ -95,10 +84,12 @@ describe("ChatContextImpl.tryUpdate", () => {
 
   it("keeps an explicit empty chat prompt override empty", () => {
     const context = new ChatContextImpl(
-      makeProfileWithTemplate("profile", ""),
+      makeProfile("profile"),
       {
         turns: [turn(false, "Alice", "hello")],
       },
+      undefined,
+      { contextTemplate: "" },
     );
 
     expect(context.renderPrompt()).toBe("");
@@ -106,17 +97,21 @@ describe("ChatContextImpl.tryUpdate", () => {
 
   it("exposes the default partial as item and retains enclosing turn fields", () => {
     const context = new ChatContextImpl(
-      makeProfileWithTemplate("profile", "{{#data.turns}}{{#messages}}{{>item}}{{/messages}}{{/data.turns}}"),
+      makeProfile("profile"),
       { turns: [turn(false, "Alice & Bob", "Hello <world>")] },
+      undefined,
+      { contextTemplate: "{{#data.turns}}{{#messages}}{{>item}}{{/messages}}{{/data.turns}}" },
     );
 
     expect(context.renderPrompt()).toBe("Message I received from Alice & Bob:\nHello <world>\n");
   });
 
-  it("uses a profile partial override", () => {
+  it("uses an extractor partial override", () => {
     const context = new ChatContextImpl(
-      { ...makeProfile("profile"), promptPartial: "{{sender}}: {{body}}\n" },
+      makeProfile("profile"),
       { turns: [turn(false, "Alice", "Hello")] },
+      undefined,
+      { contextTemplatePartial: "{{sender}}: {{body}}\n" },
     );
 
     expect(context.renderPrompt()).toBe("Alice: Hello\n");
@@ -124,8 +119,10 @@ describe("ChatContextImpl.tryUpdate", () => {
 
   it("keeps an explicit empty partial override empty", () => {
     const context = new ChatContextImpl(
-      { ...makeProfile("profile"), promptPartial: "" },
+      makeProfile("profile"),
       { turns: [turn(false, "Alice", "Hello")] },
+      undefined,
+      { contextTemplatePartial: "" },
     );
 
     expect(context.renderPrompt()).toBe("");

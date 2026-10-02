@@ -7,7 +7,7 @@ import {
   type ScreenContext,
 } from "./screen";
 import type { BaseContextSerialized } from "./base";
-import type { Profile } from "../profile";
+import type { ContextExtractor, Profile } from "../profile";
 
 export * from "./payload";
 export * from "./suggestion";
@@ -25,10 +25,11 @@ export type SerializedContext =
 export function deserializeContext(
   context: SerializedContext,
   profile: Profile,
+  contextExtractor?: Pick<ContextExtractor, "contextTemplate" | "contextTemplatePartial">,
 ): CoreplyContext {
   if (context.type === "chat") {
-    return new ChatContextImpl(profile, context.data);
+    return new ChatContextImpl(profile, context.data, undefined, contextExtractor);
   }
 
-  return new ScreenContextImpl(profile, context.data);
+  return new ScreenContextImpl(profile, context.data, undefined, contextExtractor);
 }

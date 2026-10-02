@@ -4,7 +4,7 @@ import jsonata from "jsonata";
 import Mustache from "mustache";
 import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
 import { ContextStore, PENDING } from "./context";
-import { profileGroups, generateGenericProfile } from "./profile";
+import { generateGenericProfile, matchesProfile } from "./profile";
 import { createProviderInstance, type ProviderInstance } from "./providers";
 import type { LibCoreplyListener } from "./listener";
 import type { Snapshot } from "./context/snapshot";
@@ -19,9 +19,11 @@ export class Coreply {
     providerId: "openaiCompatible",
     providerConfig: {},
     selectedApps: [],
+    profiles: [],
   };
   private readonly store = new ContextStore();
   private currentTyping: string | null = null;
+  private snapshotRevision = 0;
   private readonly listener: LibCoreplyListener;
   private providerInstance: ProviderInstance;
   private fetchSuggestionDebounced: DebouncedFunction<
@@ -51,6 +53,10 @@ export class Coreply {
 
     this.settings = next;
 
+    if (!deepEqual(previous.profiles, next.profiles) || !deepEqual(previous.selectedApps, next.selectedApps)) {
+      this.reset();
+    }
+
     if (
       previous.providerId !== next.providerId ||
       !deepEqual(previous.providerConfig, next.providerConfig)
@@ -78,6 +84,7 @@ export class Coreply {
   }
 
   reset() {
+    this.snapshotRevision += 1;
     this.fetchSuggestionDebounced.clear();
     this.currentTyping = null;
     this.store.clearAll();
@@ -87,47 +94,48 @@ export class Coreply {
 
   // ** Implemented snapshotUpdated method to process snapshots and create contexts
   snapshotUpdated(snapshot: Snapshot) {
+    const revision = ++this.snapshotRevision;
     // Find matching profile groups based on platform and packageName/URL
     const platform = snapshot.platform;
-    const packageName =
+    const target =
       platform === "android"
         ? (snapshot.snapshot.packageName ?? "")
-        : new URL(snapshot.url).hostname;
+        : snapshot.url;
 
     // Find matching profile groups
-    const matchingGroups = profileGroups.filter((group) => {
-      // Match rule against packageName or URL
-      return packageName === group.rule;
-    });
+    const matchingProfiles = this.settings.profiles.filter((profile) =>
+      this.settings.selectedApps.includes(profile.id) &&
+      (platform !== "android" || profile.id === target) &&
+      matchesProfile(profile, platform, target),
+    );
 
     // Fallback: if the app is selected but has no predefined extractors,
     // dynamically generate a generic profile group for it.
     if (
       platform === "android" &&
-      matchingGroups.length === 0 &&
-      this.settings.selectedApps.includes(packageName)
+      !this.settings.profiles.some((profile) => profile.platform === "android" && profile.id === target) &&
+      this.settings.selectedApps.includes(target)
     ) {
-      const profile = generateGenericProfile(packageName, platform);
-      matchingGroups.push({ rule: packageName, profiles: [profile] });
+      matchingProfiles.push(generateGenericProfile(target, target));
     }
 
-    if (matchingGroups.length === 0) {
+    if (matchingProfiles.length === 0) {
       this.listener.onCollectionModeUpdated("minimal");
       return;
     }
 
     const extractorPromises: Promise<boolean>[] = [];
 
-    for (const group of matchingGroups) {
-      for (const profile of group.profiles) {
-        for (const jsonataExpr of profile.extractors) {
+      for (const profile of matchingProfiles) {
+        for (const contextExtractor of profile.contextExtractors) {
           extractorPromises.push(
             (async () => {
               try {
                 const contextData = await this.runJsonata(
                   snapshot,
-                  jsonataExpr,
+                  contextExtractor.extractor,
                 );
+                if (revision !== this.snapshotRevision) return false;
                 const freq = contextData?.snapshotFrequency;
                 if (freq === "minimal" || freq === "frequent" || freq === "active") {
                   this.listener.onCollectionModeUpdated(freq);
@@ -147,12 +155,14 @@ export class Coreply {
                       profile,
                       contextData,
                       contextData.label,
+                      contextExtractor,
                     );
                   } else if (contextData.type === "screen") {
                     context = new ScreenContextImpl(
                       profile,
                       contextData,
                       contextData.label,
+                      contextExtractor,
                     );
                   }
                 }
@@ -177,9 +187,8 @@ export class Coreply {
           );
         }
       }
-    }
-
     void Promise.all(extractorPromises).then((results) => {
+      if (revision !== this.snapshotRevision) return;
       const hasContext = results.some((foundContext) => foundContext);
       if (!hasContext) {
         this.listener.onCollectionModeUpdated("minimal");
@@ -196,6 +205,7 @@ export class Coreply {
     const result = await expression.evaluate(snapshot.snapshot);
     const elapsed = Date.now() - startTime;
     const resultString = JSON.stringify(result);
+    if (resultString === undefined) return result;
     const chunkSize = 4000;
     for (let i = 0; i < resultString.length; i += chunkSize) {
       const chunk = resultString.slice(i, i + chunkSize);

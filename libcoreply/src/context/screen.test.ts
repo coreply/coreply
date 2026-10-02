@@ -8,16 +8,9 @@ const profile: Profile = {
   id: "profile",
   platform: "web",
   dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
+  matchingRule: ".*",
+  contextExtractors: [],
 };
-
-const makeProfileWithTemplate = (promptTemplate?: string): Profile => ({
-  id: "profile",
-  platform: "web",
-  dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
-  promptTemplate,
-});
 
 const screenData = (
   text: string,
@@ -56,10 +49,10 @@ describe("ScreenContextImpl.tryUpdate", () => {
 
   it("renders a custom screen prompt template from serialized context only", () => {
     const context = new ScreenContextImpl(
-      makeProfileWithTemplate(
-        "{{type}}|{{data.text}}|{{#data.children}}{{{text}}}|{{/data.children}}",
-      ),
+      profile,
       screenData("Root", [screenData("A&B", []), screenData("<tag>", [])]),
+      undefined,
+      { contextTemplate: "{{type}}|{{data.text}}|{{#data.children}}{{{text}}}|{{/data.children}}" },
     );
 
     expect(context.renderPrompt()).toBe("screen|Root|A&B|<tag>|");
@@ -67,8 +60,10 @@ describe("ScreenContextImpl.tryUpdate", () => {
 
   it("keeps an explicit empty screen prompt override empty", () => {
     const context = new ScreenContextImpl(
-      makeProfileWithTemplate(""),
+      profile,
       screenData("Root", [screenData("Child", [])]),
+      undefined,
+      { contextTemplate: "" },
     );
 
     expect(context.renderPrompt()).toBe("");
@@ -76,20 +71,21 @@ describe("ScreenContextImpl.tryUpdate", () => {
 
   it("exposes the default partial as item to custom templates", () => {
     const context = new ScreenContextImpl(
-      makeProfileWithTemplate("{{#data}}{{>item}}{{/data}}"),
+      profile,
       screenData("Root & <tag>", [screenData("Child", [])]),
+      undefined,
+      { contextTemplate: "{{#data}}{{>item}}{{/data}}" },
     );
 
     expect(context.renderPrompt()).toBe("Root & <tag>\nChild\n");
   });
 
-  it("uses a profile partial override for recursive rendering", () => {
+  it("uses an extractor partial override for recursive rendering", () => {
     const context = new ScreenContextImpl(
-      {
-        ...profile,
-        promptPartial: "{{#text}}[{{.}}]{{/text}}{{#children}}{{>item}}{{/children}}",
-      },
+      profile,
       screenData("Root", [screenData("Child", [])]),
+      undefined,
+      { contextTemplatePartial: "{{#text}}[{{.}}]{{/text}}{{#children}}{{>item}}{{/children}}" },
     );
 
     expect(context.renderPrompt()).toBe("Text on a screen\n[Root][Child]");
@@ -97,8 +93,10 @@ describe("ScreenContextImpl.tryUpdate", () => {
 
   it("keeps an explicit empty partial override empty", () => {
     const context = new ScreenContextImpl(
-      { ...profile, promptPartial: "" },
+      profile,
       screenData("Root", [screenData("Child", [])]),
+      undefined,
+      { contextTemplatePartial: "" },
     );
 
     expect(context.renderPrompt()).toBe("Text on a screen\n");
@@ -106,10 +104,10 @@ describe("ScreenContextImpl.tryUpdate", () => {
 
   it("treats empty fields as present and renders their inverted sections", () => {
     const context = new ScreenContextImpl(
-      makeProfileWithTemplate(
-        "{{#data}}{{#children}}{{#text}}unexpected text{{/text}}{{^text}}no text{{/text}}|{{#children}}unexpected children{{/children}}{{^children}}no children{{/children}}{{/children}}{{/data}}",
-      ),
+      profile,
       screenData("Parent text", [screenData("", [])]),
+      undefined,
+      { contextTemplate: "{{#data}}{{#children}}{{#text}}unexpected text{{/text}}{{^text}}no text{{/text}}|{{#children}}unexpected children{{/children}}{{^children}}no children{{/children}}{{/children}}{{/data}}" },
     );
 
     expect(context.renderPrompt()).toBe("no text|no children");

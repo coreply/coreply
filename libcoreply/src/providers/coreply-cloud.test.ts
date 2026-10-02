@@ -9,14 +9,16 @@ const chatProfile: Profile = {
   id: "test-chat",
   platform: "web",
   dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
+  matchingRule: ".*",
+  contextExtractors: [],
 };
 
 const screenProfile: Profile = {
   id: "test-screen",
   platform: "web",
   dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
+  matchingRule: ".*",
+  contextExtractors: [],
 };
 
 function makeChatContext() {

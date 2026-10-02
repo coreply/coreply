@@ -25,7 +25,8 @@ const createProfile = (
   id,
   platform: "web",
   dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
+  matchingRule: ".*",
+  contextExtractors: [],
   ...overrides,
 });
 
@@ -37,19 +38,19 @@ describe("generateWithAIProvider", () => {
   it("renders instructions from the latest context profile system prompt only", async () => {
     const contexts = [
       new ChatContextImpl(
-        createProfile("a", { systemPrompt: "First <keep>" }),
+        createProfile("a", { appSpecificInstruction: "First <keep>" }),
         { turns: [] },
       ),
       new ChatContextImpl(
-        createProfile("a", { systemPrompt: "Ignored because not topmost" }),
+        createProfile("a", { appSpecificInstruction: "Ignored because not topmost" }),
         { turns: [] },
       ),
       new ChatContextImpl(
-        createProfile("b", { systemPrompt: "Middle ignored" }),
+        createProfile("b", { appSpecificInstruction: "Middle ignored" }),
         { turns: [] },
       ),
       new ChatContextImpl(
-        createProfile("c", { systemPrompt: "Second & final" }),
+        createProfile("c", { appSpecificInstruction: "Second & final" }),
         { turns: [] },
       ),
     ];
@@ -97,7 +98,7 @@ describe("generateWithAIProvider", () => {
       },
       [
         new ChatContextImpl(
-          createProfile("a", { systemPrompt: "Earlier ignored" }),
+          createProfile("a", { appSpecificInstruction: "Earlier ignored" }),
           { turns: [] },
         ),
         new ChatContextImpl(createProfile("b"), { turns: [] }),
@@ -127,11 +128,11 @@ describe("generateWithAIProvider", () => {
       },
       [
         new ChatContextImpl(
-          createProfile("a", { systemPrompt: "Rendered" }),
+          createProfile("a", { appSpecificInstruction: "Rendered" }),
           { turns: [] },
         ),
         new ChatContextImpl(
-          createProfile("b", { systemPrompt: "Topmost" }),
+          createProfile("b", { appSpecificInstruction: "Topmost" }),
           { turns: [] },
         ),
       ],

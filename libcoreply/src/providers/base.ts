@@ -34,7 +34,7 @@ export async function generateWithAIProvider(
   const instructions = Mustache.render(
     instructionsTemplate,
     {
-      profileSystemPrompt: contexts.at(-1)?.profile.systemPrompt,
+      profileSystemPrompt: contexts.at(-1)?.profile.appSpecificInstruction,
     },
     undefined,
     {

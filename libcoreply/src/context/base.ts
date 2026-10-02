@@ -12,8 +12,8 @@ export abstract class BaseContext<Type extends string, Data> {
   profile: Profile;
   label?: string;
   abstract data: Data;
-  protected abstract readonly defaultPromptTemplate: string;
-  protected abstract readonly defaultPromptPartial: string;
+  abstract contextTemplate: string;
+  abstract contextTemplatePartial: string;
 
   private readonly suggestionStorage = new SuggestionStorage();
 
@@ -54,9 +54,9 @@ export abstract class BaseContext<Type extends string, Data> {
 
   renderPrompt(): string {
     return Mustache.render(
-      this.profile.promptTemplate ?? this.defaultPromptTemplate,
+      this.contextTemplate,
       this.toJSON(),
-      { item: this.profile.promptPartial ?? this.defaultPromptPartial },
+      { item: this.contextTemplatePartial },
       {
         escape: (value) => value,
       },

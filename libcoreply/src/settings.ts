@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { profileSchema } from "./profile/schema";
 
 export const DEFAULT_SYSTEM_PROMPT =
   "You are an AI texting assistant. You will be given a list of text messages between the user and other people. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start with a certain prefix (could be part of a longer word). Make sure your output is LONGER than the user requested prefix and what the user is typing.\n{{#profileSystemPrompt}}\nAdditional app-specific instructions:\n{{{profileSystemPrompt}}}\n{{/profileSystemPrompt}}Output the suggested text only. Do not output anything else. Do not surround output with quotation marks";
@@ -84,6 +85,7 @@ export const coreplySettingsSchema = z.object({
   providerId: z.string(),
   providerConfig: z.record(z.string(), z.unknown()),
   selectedApps: z.array(z.string()).default([]),
+  profiles: z.array(profileSchema),
 });
 
 export type CoreplySettings = z.infer<typeof coreplySettingsSchema>;

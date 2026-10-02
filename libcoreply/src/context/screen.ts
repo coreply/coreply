@@ -6,7 +6,7 @@
 
 import { BaseContext } from "./base";
 import type { CoreplyContext } from ".";
-import type { Profile } from "../profile";
+import type { ContextExtractor, Profile } from "../profile";
 
 export interface ScreenContextData {
   text: string;
@@ -87,18 +87,25 @@ export class ScreenContextImpl
 {
   type: "screen" = "screen";
   data: ScreenContextData;
-  protected readonly defaultPromptTemplate =
+  contextTemplate =
     "{{#data.text}}Text on a screen\n{{/data.text}}{{^data.text}}{{#data.children.length}}Text on a screen\n{{/data.children.length}}{{/data.text}}{{#data}}{{>item}}{{/data}}";
-  protected readonly defaultPromptPartial =
+  contextTemplatePartial =
     "{{#text}}{{.}}\n{{/text}}{{#children}}{{>item}}{{/children}}";
 
   constructor(
     profile: Profile,
     data: ScreenContextData,
     label?: string,
+    contextExtractor?: Pick<ContextExtractor, "contextTemplate" | "contextTemplatePartial">,
   ) {
     super(profile, label);
     this.data = data;
+    if (contextExtractor?.contextTemplate !== undefined) {
+      this.contextTemplate = contextExtractor.contextTemplate;
+    }
+    if (contextExtractor?.contextTemplatePartial !== undefined) {
+      this.contextTemplatePartial = contextExtractor.contextTemplatePartial;
+    }
   }
 
   tryUpdate(incomingContext: CoreplyContext): boolean {

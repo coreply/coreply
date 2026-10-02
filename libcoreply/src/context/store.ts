@@ -17,6 +17,9 @@ export class ContextStore {
       if (
         this.contexts[i].type === context.type &&
         this.contexts[i].profile.id === context.profile.id
+        && this.contexts[i].label === context.label
+        && this.contexts[i].contextTemplate === context.contextTemplate
+        && this.contexts[i].contextTemplatePartial === context.contextTemplatePartial
       ) {
         const existingContext = this.contexts[i];
         if (existingContext.tryUpdate(context)) {

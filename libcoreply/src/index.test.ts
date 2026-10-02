@@ -13,7 +13,8 @@ const testProfile: Profile = {
   id: "test",
   platform: "web",
   dropRule: { differentProfile: 0, sameProfile: 1 },
-  extractors: [],
+  matchingRule: ".*",
+  contextExtractors: [],
 };
 
 function createListener(logs: SuggestionFetchLog[], errors: Error[]) {
@@ -231,13 +232,13 @@ describe("Coreply provider instance continuity", () => {
     coreply.updateSettings({ selectedApps: ["com.example.app"] });
     coreply.updateSettings({ globalSettings: createDefaultGlobalSettings() });
     expect(coreply["fetchSuggestionDebounced"]).toBe(previous);
-    expect(clear).not.toHaveBeenCalled();
+    expect(clear).toHaveBeenCalledTimes(1);
 
     const settings = createDefaultGlobalSettings();
     settings.fetchControl.debounceMs = 100;
     coreply.updateSettings({ globalSettings: settings });
     expect(coreply["fetchSuggestionDebounced"]).not.toBe(previous);
-    expect(clear).toHaveBeenCalledTimes(1);
+    expect(clear).toHaveBeenCalledTimes(2);
     clear.mockRestore();
   });
 

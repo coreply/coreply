@@ -22,24 +22,20 @@ An extractor contains:
   - the structured data compatible with that type of context
 */
 
-export interface DropRule {
-  differentProfile: Record<string, number> | number;
-  sameProfile: Record<string, number> | number;
-}
+import type { DropRule, Profile } from "./schema";
+import { exactPackageRule } from "./schema";
+export * from "./schema";
 
-export interface Profile {
+interface BuiltInDefinition {
   id: string;
   extractors: string[]; // array of JSONata expressions
   platform: "android" | "web";
   dropRule: DropRule;
-  systemPrompt?: string;
-  promptTemplate?: string;
-  promptPartial?: string;
 }
 
-export interface ProfileGroup {
+interface TemplateGroup {
   rule: string; // A coarse rule that matches packageNames (android) or URLs (web), serves as id at the same time.
-  profiles: Profile[];
+  profiles: BuiltInDefinition[];
 }
 
 const buildWhatsAppChatExtractor = (packageName: string) => `(
@@ -96,7 +92,7 @@ const buildWhatsAppChatExtractor = (packageName: string) => `(
 )`;
 
 // ** Fixed JSONata syntax: replaced custom shorthand with standard $.** for recursive descent
-export const profileGroups: ProfileGroup[] = [
+const templateGroups: TemplateGroup[] = [
   {
     rule: "gemini.google.com",
     profiles: [
@@ -999,12 +995,28 @@ export const profileGroups: ProfileGroup[] = [
   // ** Added profiles for ALL supported Android apps
 ];
 
+export const builtInProfiles: readonly Profile[] = templateGroups.flatMap((group) => {
+  const definitions = group.profiles[0].platform === "android"
+    ? [{ ...group.profiles[0], extractors: group.profiles.flatMap((definition) => definition.extractors) }]
+    : group.profiles;
+  return definitions.map((definition) => ({
+    id: definition.platform === "android" ? group.rule : definition.id,
+    displayName: group.rule,
+    platform: definition.platform,
+    matchingRule: definition.platform === "android"
+      ? exactPackageRule(group.rule)
+      : `^https?://${group.rule.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?::[0-9]+)?(?:/|$)`,
+    dropRule: definition.dropRule,
+    contextExtractors: definition.extractors.map((extractor) => ({ extractor })),
+  }));
+});
+
 // ** Dynamically generates a generic profile for any selected app without predefined extractors.
 // ** A single extractor builds a nested screen-context tree from all visible text; snapshotFrequency
 // ** is "active" when an EditText is focused, otherwise "frequent".
 export function generateGenericProfile(
   packageName: string,
-  platform: "android" | "web",
+  displayName: string,
 ): Profile {
   const extractor = `(
     $extract := function($node) {(
@@ -1023,9 +1035,11 @@ export function generateGenericProfile(
     $result
   )`;
   return {
-    id: `generic-${packageName}`,
-    extractors: [extractor],
-    platform: platform,
+    id: packageName,
+    displayName,
+    matchingRule: exactPackageRule(packageName),
+    contextExtractors: [{ extractor }],
+    platform: "android",
     dropRule: {
       differentProfile: 0,
       sameProfile: 2,

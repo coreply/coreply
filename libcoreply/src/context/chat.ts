@@ -15,7 +15,7 @@ Two types of context have two different additional fields:
 
 import { BaseContext } from "./base";
 import type { CoreplyContext } from ".";
-import type { Profile } from "../profile";
+import type { ContextExtractor, Profile } from "../profile";
 
 export interface ChatTurn {
   sender?: string;
@@ -200,18 +200,25 @@ export class ChatContextImpl
 {
   type: "chat" = "chat";
   data: ChatContextData;
-  protected readonly defaultPromptTemplate =
+  contextTemplate =
     "{{#data.turns}}{{#messages}}{{>item}}{{/messages}}{{/data.turns}}";
-  protected readonly defaultPromptPartial =
+  contextTemplatePartial =
     "{{#userSent}}Message I sent:\n{{body}}\n{{/userSent}}{{^userSent}}{{#sender}}Message I received from {{sender}}:\n{{/sender}}{{^sender}}Message I received:\n{{/sender}}{{body}}\n{{/userSent}}";
 
   constructor(
     profile: Profile,
     data: ChatContextData,
     label?: string,
+    contextExtractor?: Pick<ContextExtractor, "contextTemplate" | "contextTemplatePartial">,
   ) {
     super(profile, label);
     this.data = data;
+    if (contextExtractor?.contextTemplate !== undefined) {
+      this.contextTemplate = contextExtractor.contextTemplate;
+    }
+    if (contextExtractor?.contextTemplatePartial !== undefined) {
+      this.contextTemplatePartial = contextExtractor.contextTemplatePartial;
+    }
   }
 
   tryUpdate(incomingContext: CoreplyContext): boolean {
