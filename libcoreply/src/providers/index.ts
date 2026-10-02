@@ -200,11 +200,9 @@ export const GoogleVertexBaseProviderSchema = z.object({
     .object({
       clientEmail: z
         .string()
-        .optional()
         .describe("Service account client email"),
       privateKey: z
         .string()
-        .optional()
         .describe("Service account private key")
         .meta({ control: "textarea", feature: "password" }),
       privateKeyId: z
@@ -213,7 +211,7 @@ export const GoogleVertexBaseProviderSchema = z.object({
         .describe("Service account private key ID"),
     })
     .optional()
-    .describe("Service account credentials (if no API key supplied)"),
+    .describe("Service account credentials. Omit for API-key authentication; when supplied, client email and private key are required."),
 });
 
 const baseProviderDefinitions = {
@@ -441,8 +439,8 @@ const baseProviderDefinitions = {
           .meta({ feature: "password" }),
         baseURL: z
           .httpUrl()
-          .optional()
-          .describe("Base URL of the Fill-in-the-Middle API endpoint"),
+          .default("https://api.mistral.ai/v1/fim/")
+           .describe("Base URL of the Fill-in-the-Middle API endpoint"),
       }),
       request: z.object({
         model: z
