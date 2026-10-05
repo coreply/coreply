@@ -72,7 +72,11 @@ const InputControl = ({
   errors,
   enabled,
 }: ControlProps & {
-  schema: ControlProps["schema"] & { feature?: string; control?: string };
+  schema: ControlProps["schema"] & {
+    feature?: string;
+    control?: string;
+    textareaSize?: "s" | "m" | "l";
+  };
 }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const isEnabled = enabled !== false;
@@ -82,6 +86,14 @@ const InputControl = ({
   const controlType = getStringControlType(schema);
   const isMultiline = controlType === "textarea";
   const isPassword = schema.feature === "password";
+  const multilineClassName =
+    schema.textareaSize === "s"
+      ? "h-36 min-h-36 py-3"
+      : schema.textareaSize === "m"
+        ? "h-48 min-h-48 py-3"
+        : "h-64 min-h-64 py-3";
+  const multilineNumberOfLines =
+    schema.textareaSize === "s" ? 3 : schema.textareaSize === "m" ? 4 : 6;
   const value = data === undefined || data === null ? "" : String(data);
   const hasErrors = Boolean(errors);
 
@@ -110,7 +122,7 @@ const InputControl = ({
         "shadow-none",
         isPassword ? "pr-9" : undefined,
         isMultiline && (!isPassword || passwordVisible)
-          ? "h-64 min-h-64 py-3"
+          ? multilineClassName
           : undefined,
         hasErrors ? "border-destructive" : undefined,
       ]
@@ -121,7 +133,9 @@ const InputControl = ({
       editable={isEnabled}
       multiline={isMultiline && (!isPassword || passwordVisible)}
       numberOfLines={
-        isMultiline && (!isPassword || passwordVisible) ? 6 : undefined
+        isMultiline && (!isPassword || passwordVisible)
+          ? multilineNumberOfLines
+          : undefined
       }
       textAlignVertical={
         isMultiline && (!isPassword || passwordVisible) ? "top" : undefined

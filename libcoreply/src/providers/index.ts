@@ -97,7 +97,7 @@ function createProviderOptionsFieldSchema(description: string) {
     .string()
     .optional()
     .describe(description)
-    .meta({ control: "textarea" })
+    .meta({ control: "textarea", textareaSize: "s" })
     .refine(
       (val) => {
         if (val === "" || val === undefined) {
@@ -143,7 +143,7 @@ export function createStatefulGenerateTextSchema() {
     typingTemplate: z
       .string()
       .describe("Mustache template used to build each current-sentence typing update message")
-      .meta({ control: "textarea" }),
+      .meta({ control: "textarea", textareaSize: "m" }),
     contextAppendTemplate: z
       .string()
       .describe("Mustache template used to append new context content and completed-sentence replacements")
@@ -697,6 +697,19 @@ const baseProviderDefinitions = {
 
 export const providerDefinitions = {
   ...baseProviderDefinitions,
+  coreplyCloudStateful: {
+    name: "Coreply Cloud Preview",
+    stateful: true,
+    factoryFunc: null,
+    settingsSchema: z.object({}),
+    settingsDefaults: {},
+    async requestFunc(): Promise<string> {
+      throw new Error("Coreply Cloud Preview is UI-only; suggestions are not connected yet.");
+    },
+    createInstance(): ProviderInstance {
+      return { request: () => this.requestFunc() };
+    },
+  },
   openaiStateful: {
     ...baseProviderDefinitions.openai,
     stateful: true,

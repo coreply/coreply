@@ -12,8 +12,8 @@ export const dropRuleSchema = z.object({
 
 export const contextExtractorSchema = z.object({
   extractor: z.string().min(1).meta({ control: "textarea" }),
-  contextTemplate: z.string().optional().meta({ control: "textarea" }),
-  contextTemplatePartial: z.string().optional().meta({ control: "textarea" }),
+  contextTemplate: z.string().optional().meta({ control: "textarea", textareaSize: "m" }),
+  contextTemplatePartial: z.string().optional().meta({ control: "textarea", textareaSize: "s" }),
 });
 
 export const profileSchema = z.object({
