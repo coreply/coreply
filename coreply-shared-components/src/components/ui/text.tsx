@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils";
+import { Slot } from "@rn-primitives/slot";
+import type {} from "uniwind/types";
 
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
