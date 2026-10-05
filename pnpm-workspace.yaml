@@ -4,6 +4,8 @@ packages:
   - libcoreply
   - coreply-shared-components
   - coreply-browser-extension
+  - coreply-server
 allowBuilds:
   esbuild: true
   spawn-sync: true
+  workerd: true

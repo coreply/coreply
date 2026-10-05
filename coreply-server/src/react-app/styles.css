@@ -1,0 +1,25 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+@import "../../../coreply-app/global.css";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-subheading: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-light: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-medium: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-semibold: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-bold: "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
