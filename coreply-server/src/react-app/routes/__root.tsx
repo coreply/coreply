@@ -2,6 +2,7 @@ import { Outlet, createRootRoute } from "@tanstack/react-router";
 
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
+import { TooltipProvider } from "@server/components/ui/tooltip";
 
 import "../styles.css";
 
@@ -12,7 +13,9 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
-      <Outlet />
+      <TooltipProvider>
+        <Outlet />
+      </TooltipProvider>
       <TanStackDevtools
         config={{
           position: "bottom-right",

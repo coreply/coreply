@@ -8,7 +8,8 @@
 		"skipLibCheck": true,
 		"types": ["vite/client"],
 		"paths": {
-			"@/*": ["../coreply-shared-components/src/*"]
+			"@/*": ["../coreply-shared-components/src/*"],
+			"@server/*": ["./src/react-app/*"]
 		},
 
 		/* Bundler mode */

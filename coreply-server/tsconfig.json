@@ -1,4 +1,10 @@
 {
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["../coreply-shared-components/src/*"],
+      "@server/*": ["./src/react-app/*"]
+    }
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
