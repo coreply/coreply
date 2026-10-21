@@ -1,7 +1,6 @@
 import React from "react";
 import { SchemaForm } from "../ui/form";
 import { providerDefinitions } from "libcoreply";
-import { CoreplyCloudSignIn } from "./coreply-cloud-sign-in";
 
 interface ProviderSettingsFormProps {
   providerId: string;
@@ -21,10 +20,6 @@ export function ProviderSettingsForm({
 
   if (!provider) {
     return null;
-  }
-
-  if (providerId === "coreplyCloudStateful") {
-    return <CoreplyCloudSignIn />;
   }
 
   return (
