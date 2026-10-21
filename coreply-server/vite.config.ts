@@ -10,9 +10,7 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
 
   optimizeDeps: {
-    include: [
-      "coreply-shared-components > react-native-web",
-    ],
+    include: ["coreply-shared-components > react-native-web"],
   },
   plugins: [
     devtools(),

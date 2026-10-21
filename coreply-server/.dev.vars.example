@@ -1,0 +1,9 @@
+BETTER_AUTH_SECRET=replace-with-a-random-secret-at-least-32-characters
+BETTER_AUTH_URL=http://localhost:5173
+GOOGLE_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-web-client-secret
+# Exact browser origin allowed to call this backend. Use http://localhost:8081
+# when testing Expo web against this backend instead of the server frontend.
+CLOUD_WEB_ORIGIN=http://localhost:5173
+# Server-only Autumn key. Use the sandbox key while developing.
+AUTUMN_SECRET_KEY=am_sk_replace-with-your-autumn-sandbox-key

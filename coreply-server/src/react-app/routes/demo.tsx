@@ -1,6 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { LogInIcon, MessageCircleIcon, PanelLeftIcon, SparklesIcon } from "lucide-react";
 import { DemoConversation } from "coreply-shared-components/src/components/groups/demo-conversation";
+import { RequireSession } from "@server/components/require-session";
+import { authClient } from "@server/lib/auth-client";
+import { useState } from "react";
+import { Button } from "@server/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +26,21 @@ import {
 export const Route = createFileRoute("/demo")({ component: ComponentDemo });
 
 function DemoSidebar() {
+  const { data: session } = authClient.useSession();
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
+  async function signOut() {
+    setSigningOut(true);
+    setSignOutError(null);
+    try {
+      const result = await authClient.signOut();
+      if (result.error) setSignOutError("Couldn't sign out. Try again.");
+    } catch {
+      setSignOutError("Couldn't connect to sign out. Try again when online.");
+    } finally {
+      setSigningOut(false);
+    }
+  }
   const { setOpenMobile } = useSidebar();
   const closeMobileSidebar = () => setOpenMobile(false);
 
@@ -67,6 +86,11 @@ function DemoSidebar() {
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter className="gap-2 p-5">
+        <p className="truncate text-sm">{session?.user.email}</p>
+        <Button variant="outline" disabled={signingOut} onClick={signOut}>
+          {signingOut ? "Signing out..." : "Sign out"}
+        </Button>
+        {signOutError && <p role="alert" className="text-xs text-destructive">{signOutError}</p>}
         <p className="text-sm font-medium">One shared theme</p>
         <p className="text-xs leading-5 text-muted-foreground">
           shadcn navigation and React Native chat, using the same Coreply colors and font.
@@ -78,6 +102,7 @@ function DemoSidebar() {
 
 function ComponentDemo() {
   return (
+    <RequireSession>
     <SidebarProvider>
       <DemoSidebar />
       <SidebarInset className="min-w-0">
@@ -101,5 +126,6 @@ function ComponentDemo() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </RequireSession>
   );
 }

@@ -10,12 +10,19 @@
 
 import { Route as rootRouteImport } from './react-app/routes/__root'
 import { Route as IndexRouteImport } from './react-app/routes/index'
+import { Route as BillingRouteImport } from './react-app/routes/billing'
 import { Route as DemoRouteImport } from './react-app/routes/demo'
 import { Route as OnboardingRouteImport } from './react-app/routes/onboarding'
+import { Route as UsageRouteImport } from './react-app/routes/usage'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -28,35 +35,48 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsageRoute = UsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/demo': typeof DemoRoute
   '/onboarding': typeof OnboardingRoute
+  '/usage': typeof UsageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/demo': typeof DemoRoute
   '/onboarding': typeof OnboardingRoute
+  '/usage': typeof UsageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/billing': typeof BillingRoute
   '/demo': typeof DemoRoute
   '/onboarding': typeof OnboardingRoute
+  '/usage': typeof UsageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/onboarding'
+  fullPaths: '/' | '/billing' | '/demo' | '/onboarding' | '/usage'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/onboarding'
-  id: '__root__' | '/' | '/demo' | '/onboarding'
+  to: '/' | '/billing' | '/demo' | '/onboarding' | '/usage'
+  id: '__root__' | '/' | '/billing' | '/demo' | '/onboarding' | '/usage'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BillingRoute: typeof BillingRoute
   DemoRoute: typeof DemoRoute
   OnboardingRoute: typeof OnboardingRoute
+  UsageRoute: typeof UsageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -82,13 +109,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/usage': {
+      id: '/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof UsageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BillingRoute: BillingRoute,
   DemoRoute: DemoRoute,
   OnboardingRoute: OnboardingRoute,
+  UsageRoute: UsageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
