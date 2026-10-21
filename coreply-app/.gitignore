@@ -51,3 +51,5 @@ example
 .playwright-cli
 
 AGENTS.md
+
+.env

@@ -4,10 +4,13 @@
   "version": "3.0.0",
   "expo": {
     "autolinking": {
-      "include": ["@rn-primitives/portal"]
+      "include": [
+        "@rn-primitives/portal"
+      ]
     }
   },
   "dependencies": {
+    "@better-auth/expo": "1.7.7",
     "@expo-google-fonts/outfit": "^0.4.3",
     "@expo/ui": "~56.0.15",
     "@jsonforms/core": "^3.7.0",
@@ -15,7 +18,9 @@
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/slider": "^5.2.0",
     "@rn-primitives/portal": "^1.5.3",
+    "@tanstack/react-query": "^5.104.4",
     "@wxt-dev/storage": "^1.2.8",
+    "better-auth": "1.7.7",
     "chrome-types": "^0.1.431",
     "clsx": "^2.1.1",
     "coreply-shared-components": "workspace:*",
@@ -28,7 +33,9 @@
     "expo-image": "~56.0.9",
     "expo-intent-launcher": "^56.0.4",
     "expo-linking": "~56.0.13",
+    "expo-network": "~56.0.5",
     "expo-router": "~56.2.8",
+    "expo-secure-store": "~56.0.4",
     "expo-splash-screen": "~56.0.10",
     "expo-status-bar": "~56.0.4",
     "expo-symbols": "~56.0.5",
@@ -40,6 +47,9 @@
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
     "react-native-gesture-handler": "~2.31.1",
+    "react-native-keyboard-controller": "1.21.6",
+    "react-native-nitro-google-signin": "^2.3.0",
+    "react-native-nitro-modules": "^0.37.1",
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
@@ -68,7 +78,7 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "build": "expo export --platform web --output-dir ../coreply-browser-extension/entrypoints/popup/"
+    "build": "expo export --platform web --output-dir ../coreply-browser-extension/entrypoints/popup/ --clear"
   },
   "private": true
 }

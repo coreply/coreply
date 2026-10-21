@@ -2,8 +2,14 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { useColorScheme, Appearance, Platform } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { PortalHost } from "@rn-primitives/portal";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { CloudAuthProvider } from "coreply-shared-components/src/cloud/auth-context";
+import { authClient } from "@/cloud/auth-client";
 
 SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient();
 
 export default function TabLayout() {
   if (Platform.OS === "android") {
@@ -11,11 +17,26 @@ export default function TabLayout() {
   }
   const colorScheme = useColorScheme();
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      {/* <AppTabs /> */}
+    <KeyboardProvider
+      preserveEdgeToEdge={true}
+      statusBarTranslucent={true}
+      navigationBarTranslucent={true}
+    >
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <QueryClientProvider client={queryClient}>
+          <CloudAuthProvider
+            authClient={authClient}
+            callbackURL={
+              process.env.EXPO_PUBLIC_COREPLY_CLOUD_CALLBACK_URL || "/"
+            }
+          >
+            {/* <AppTabs /> */}
 
-      <Stack screenOptions={{ headerShown: false }} />
-      <PortalHost name="coreplyPortal" />
-    </ThemeProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+            <PortalHost name="coreplyPortal" />
+          </CloudAuthProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </KeyboardProvider>
   );
 }

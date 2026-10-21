@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  useColorScheme,
-} from "react-native";
+import { Platform, ScrollView, StyleSheet, useColorScheme } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 
@@ -51,6 +46,17 @@ import { storageManager } from "@/constants/storage-manager";
 import * as Brownfield from "@/utils/brownfield-wrapper";
 
 import { Stack } from "expo-router";
+import { authClient, billingHeaders } from "@/cloud/auth-client";
+import { cloudConfigured } from "@/cloud/config";
+import { createBillingClient } from "coreply-shared-components/src/utils/hc";
+import { CoreplyCloudSignIn } from "@/components/groups/coreply-cloud-sign-in";
+import { CoreplyCloudUsage } from "@/components/groups/coreply-cloud-usage";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+const billingClient = createBillingClient(
+  process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL!,
+  billingHeaders,
+);
 
 function usePersistedSettings() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -131,6 +137,26 @@ function usePersistedSettings() {
 }
 
 export default function SettingsScreen() {
+  const {
+    data: session,
+    isPending: sessionPending,
+    error: sessionError,
+    refetch: refetchSession,
+  } = authClient.useSession();
+  const queryClient = useQueryClient();
+  const signOut = useMutation({
+    mutationFn: async () => {
+      const result = await authClient.signOut();
+      if (result.error)
+        throw new Error(
+          result.error.message ?? "Couldn't sign out. Please try again.",
+        );
+    },
+    onSuccess: async () => {
+      await queryClient.cancelQueries({ queryKey: ["billing"] });
+      queryClient.removeQueries({ queryKey: ["billing"] });
+    },
+  });
   const colorScheme = useColorScheme();
   const [androidAccessibilityEnabled] =
     Platform.OS === "android"
@@ -176,7 +202,8 @@ export default function SettingsScreen() {
   // Handle provider change - load saved settings for the new provider
   const handleProviderChange = async (option: Option) => {
     const newProviderId = option?.value || providerId;
-    const nextProviderConfig = await storageManager.loadProviderConfig(newProviderId);
+    const nextProviderConfig =
+      await storageManager.loadProviderConfig(newProviderId);
 
     setProviderId(newProviderId);
     setInitialProviderConfig(nextProviderConfig);
@@ -211,15 +238,12 @@ export default function SettingsScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1 }}
-    >
-      <ThemedView style={styles.container}>
-        <SafeAreaView style={styles.safeArea}>
-          <Stack.Header hidden />
-          <TextClassContext.Provider value="font-display">
-            {fontsLoaded && (
+    <ThemedView style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <Stack.Header hidden />
+        <TextClassContext.Provider value="font-display">
+          {fontsLoaded && (
+            <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
               <ScrollView
                 stickyHeaderIndices={[0]}
                 stickyHeaderHiddenOnScroll={true}
@@ -281,7 +305,9 @@ export default function SettingsScreen() {
                             {Platform.OS === "web" ? "Profiles" : "Select Apps"}
                           </Text>
                           <Text className="text-left text-sm text-muted-foreground font-sans">
-                            {Platform.OS === "web" ? "Manage profiles and choose where Coreply runs." : "Choose apps and customize their profiles."}
+                            {Platform.OS === "web"
+                              ? "Manage profiles and choose where Coreply runs."
+                              : "Choose apps and customize their profiles."}
                           </Text>
                         </View>
                         <Icon
@@ -303,11 +329,69 @@ export default function SettingsScreen() {
                     </View>
                     {isLoaded ? (
                       <View className="px-3">
-                        <ProviderSettingsForm
-                          providerId={providerId}
-                          settings={initialProviderConfig}
-                          onChange={saveProviderConfig}
-                        />
+                        {providerId === "coreplyCloudStateful" ? (
+                          session ? (
+                              <View className="gap-4">
+                                <CoreplyCloudUsage
+                                  client={billingClient}
+                                  userId={session.user.id}
+                                />
+                                <Text className="text-sm text-muted-foreground">
+                                  Signed in as {session.user.email}
+                                </Text>
+                                <Button
+                                  variant="outline"
+                                  onPress={() => signOut.mutate()}
+                                  disabled={signOut.isPending}
+                                >
+                                  <Text>
+                                    {signOut.isPending
+                                      ? "Signing out..."
+                                      : "Sign out"}
+                                  </Text>
+                                </Button>
+                                {signOut.error && (
+                                  <Text
+                                    role="alert"
+                                    className="text-sm text-destructive"
+                                  >
+                                    {signOut.error.message}
+                                  </Text>
+                                )}
+                              </View>
+                            ) : sessionPending ? (
+                              <Text className="text-sm text-muted-foreground">
+                                Checking your session...
+                              </Text>
+                            ) : sessionError && sessionError.status !== 401 ? (
+                              <View className="gap-3">
+                                <Text
+                                  role="alert"
+                                  className="text-sm text-destructive"
+                                >
+                                  Couldn't check your session.
+                                </Text>
+                                <Button
+                                  variant="outline"
+                                  onPress={() => {
+                                    void refetchSession();
+                                  }}
+                                >
+                                  <Text>Try again</Text>
+                                </Button>
+                              </View>
+                            ) : (
+                              <CoreplyCloudSignIn
+                                configured={cloudConfigured}
+                              />
+                          )
+                        ) : (
+                          <ProviderSettingsForm
+                            providerId={providerId}
+                            settings={initialProviderConfig}
+                            onChange={saveProviderConfig}
+                          />
+                        )}
                       </View>
                     ) : null}
                   </View>
@@ -354,11 +438,11 @@ export default function SettingsScreen() {
                   </View>
                 </View>
               </ScrollView>
-            )}
-          </TextClassContext.Provider>
-        </SafeAreaView>
-      </ThemedView>
-    </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+          )}
+        </TextClassContext.Provider>
+      </SafeAreaView>
+    </ThemedView>
   );
 }
 

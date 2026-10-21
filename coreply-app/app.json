@@ -12,7 +12,8 @@
         "backgroundColor": "#F8F7F7",
         "foregroundImage": "./assets/images/icon-foreground.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "output": "single",
@@ -30,7 +31,8 @@
           ]
         }
       ],
-      "expo-brownfield"
+      "expo-brownfield",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
