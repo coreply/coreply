@@ -47,7 +47,7 @@ object CustomAPISuggestionRequester : SuggestionRequester {
                 .build()
 
             val response = client.newCall(request).execute()
-            val responseBody = response.body.string()
+            val responseBody = response.body?.string() ?: ""
 
 
             // Parse the response to extract the completion text

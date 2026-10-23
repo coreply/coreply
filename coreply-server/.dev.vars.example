@@ -1,9 +1,15 @@
 BETTER_AUTH_SECRET=replace-with-a-random-secret-at-least-32-characters
 BETTER_AUTH_URL=http://localhost:5173
 GOOGLE_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
+GOOGLE_ANDROID_CLIENT_ID=your-android-client-id.apps.googleusercontent.com
+GOOGLE_EXTENSION_CLIENT_ID=your-extension-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-web-client-secret
 # Exact browser origin allowed to call this backend. Use http://localhost:8081
 # when testing Expo web against this backend instead of the server frontend.
 CLOUD_WEB_ORIGIN=http://localhost:5173
 # Server-only Autumn key. Use the sandbox key while developing.
 AUTUMN_SECRET_KEY=am_sk_replace-with-your-autumn-sandbox-key
+# Server-only JSON configuration for Cloud suggestions. Store as a secret in production.
+# Replace the model and API key. This configuration is not wired up yet.
+# maxRetries controls transport retries, not the stateful provider's invalid-output retry.
+COREPLY_CLOUD_SETTINGS='{"providerId":"openaiStateful","providerConfig":{"model":"gpt-4.1-mini","provider":{"apiKey":"replace-with-your-model-provider-api-key"},"generateText":{"instructions":"Complete the user\u0027s message naturally using the supplied context. Return only the completed current sentence, beginning with the exact required prefix.","typingTemplate":"Continue the full current sentence starting with exactly:\n{{{currentSentence}}}\n{{#lastTurnUserSent}}The last visible chat turn was sent by the user. Avoid just repeating it.\n{{/lastTurnUserSent}}{{#previousResponseInvalid}}Your previous response was invalid because it did not correctly continue the required prefix or was not longer than the current typing. Fix that now.\n{{/previousResponseInvalid}}Output only the full current sentence text, beginning with the required current prefix.","contextAppendTemplate":"{{#renderedContextPrompt}}New context was appended:\n{{{renderedContextPrompt}}}\n{{/renderedContextPrompt}}{{#completedSentencesChanged}}Completed sentences already typed, replacing any previous value:\n<completed-sentences>\n{{{completedSentences}}}\n</completed-sentences>{{/completedSentencesChanged}}","maxOutputTokens":100,"maxRetries":0,"timeout":5000}}}'

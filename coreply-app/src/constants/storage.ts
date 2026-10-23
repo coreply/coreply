@@ -3,14 +3,7 @@ import {
   type AsyncStorage,
 } from "@react-native-async-storage/async-storage";
 import { storage as extensionStorage } from "@wxt-dev/storage";
-
-function isExtensionEnvironment() {
-  return (
-    typeof chrome !== "undefined" &&
-    typeof chrome.runtime !== "undefined" &&
-    chrome.runtime.id !== undefined
-  );
-}
+import { isBrowserExtension } from "../utils/extension";
 
 class WxtAsyncStorage implements AsyncStorage {
   constructor(private readonly namespace: string) {}
@@ -73,7 +66,7 @@ class WxtAsyncStorage implements AsyncStorage {
 }
 
 export function createAsyncStorage(namespace: string): AsyncStorage {
-  if (isExtensionEnvironment()) {
+  if (isBrowserExtension()) {
     return new WxtAsyncStorage(namespace);
   }
 

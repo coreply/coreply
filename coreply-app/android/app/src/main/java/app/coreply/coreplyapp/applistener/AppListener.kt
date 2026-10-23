@@ -21,6 +21,7 @@ package app.coreply.coreplyapp.applistener
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.view.WindowManager
@@ -216,7 +217,12 @@ open class AppListener : AccessibilityService() {
         val appContext = applicationContext
         preferencesManager = PreferencesManager.getInstance(appContext)
         storageManager = CoreplyStorageManager(appContext)
+        val wrapperOrigin = Uri.parse(BuildConfig.COREPLY_CLOUD_ORIGIN)
+        check(BuildConfig.DEBUG || wrapperOrigin.scheme == "https") {
+            "Release builds require an HTTPS Coreply Cloud URL."
+        }
         val assetLoader = WebViewAssetLoader.Builder()
+            .setDomain(requireNotNull(wrapperOrigin.authority))
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(appContext))
             .build()
         webView = WebView(appContext)
@@ -227,7 +233,7 @@ open class AppListener : AccessibilityService() {
             WebViewCompat.addWebMessageListener(
                 webView,
                 "coreplyBridgeObject",
-                setOf("*")
+                setOf(BuildConfig.COREPLY_CLOUD_ORIGIN)
             ) { _, msg, _, _, replyProxy ->
                 javaScriptReplyProxy = javaScriptReplyProxy ?: replyProxy
                 handleWrapperMessage(msg)
@@ -235,7 +241,7 @@ open class AppListener : AccessibilityService() {
         } else {
             Log.w("CoWA", "WebMessageListener is not supported on this device.")
         }
-        webView.loadUrl("https://appassets.androidplatform.net/assets/wrapper/index.html")
+        webView.loadUrl("${BuildConfig.COREPLY_CLOUD_ORIGIN}/assets/wrapper/index.html")
 
         overlay = Overlay(appContext, getSystemService(WINDOW_SERVICE) as WindowManager)
         overlayViewModel = overlay.viewModel

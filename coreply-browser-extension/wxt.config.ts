@@ -7,7 +7,10 @@ import { fileURLToPath } from "url";
 export default defineConfig({
   manifest: {
     permissions: ["storage"],
-    host_permissions: ["http://*/*", "https://*/*"],
+    host_permissions: [
+      "http://localhost/*",
+      "https://coreply.up.nadles.com/*",
+    ],
     web_accessible_resources: [
       {
         resources: ["/logo.png"],

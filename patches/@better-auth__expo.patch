@@ -1,0 +1,148 @@
+diff --git a/dist/client.d.ts b/dist/client.d.ts
+index eaad9bbde9b1bd9d28642ea44706c693692e0570..04e3f86bd506d2b3690d784d404047287a1b07bc 100644
+--- a/dist/client.d.ts
++++ b/dist/client.d.ts
+@@ -2,7 +2,7 @@ import { parseSetCookieHeader } from "better-auth/cookies/utils";
+ import { FocusManager, OnlineManager } from "better-auth/client";
+ import * as _$expo_web_browser0 from "expo-web-browser";
+ import * as _$_better_fetch_fetch0 from "@better-fetch/fetch";
+-import { ClientFetchOption, ClientStore } from "@better-auth/core";
++import { BetterAuthClientOptions, ClientFetchOption, ClientStore } from "@better-auth/core";
+ import * as SecureStore from "expo-secure-store";
+ 
+ //#region src/client-storage.d.ts
+@@ -102,7 +102,7 @@ declare function hasBetterAuthCookies(setCookieHeader: string, cookiePrefix: str
+ declare const expoClient: (opts: ExpoClientOptions) => {
+   id: "expo";
+   version: string;
+-  getActions(_fetch: unknown, $store: ClientStore): {
++  getActions(_fetch: unknown, $store: ClientStore, options?: BetterAuthClientOptions): {
+     /**
+      * Get the stored cookie.
+      *
+diff --git a/dist/client.js b/dist/client.js
+index 4b4f4e8f1d21a10e1d8a88a680c448930327d11c..c4c5c4443f3710b7428ebb13608368e71adab212 100644
+--- a/dist/client.js
++++ b/dist/client.js
+@@ -1,6 +1,6 @@
+ import { t as PACKAGE_VERSION } from "./version-Bhp0O2mQ.js";
+ import { safeJSONParse } from "@better-auth/core/utils/json";
+-import { SECURE_COOKIE_PREFIX, parseSetCookieHeader, parseSetCookieHeader as parseSetCookieHeader$1, stripSecureCookiePrefix } from "better-auth/cookies/utils";
++import { SECURE_COOKIE_PREFIX, parseSetCookieHeader, parseSetCookieHeader as parseSetCookieHeader$1, splitSetCookieHeader, stripSecureCookiePrefix } from "better-auth/cookies/utils";
+ import Constants from "expo-constants";
+ import * as Linking from "expo-linking";
+ import { AppState, Platform } from "react-native";
+@@ -570,7 +570,25 @@ const expoClient = (opts) => {
+ 	const localCacheName = `${storagePrefix}_session_data`;
+ 	const storage = createManagedStorage(opts.storage);
+ 	const isWeb = Platform.OS === "web";
++	// Do not initialize Nitro's native module on iOS or web.
++	const androidCookies = Platform.OS === "android" ? require("react-native-nitro-cookies").default : null;
+ 	const cookiePrefix = opts?.cookiePrefix || "better-auth";
++	const readCookieHeader = async (url) => androidCookies
++		? androidCookies.getCookieHeader(url)
++		: getCookie(await storage.getItemAsync(cookieName));
++	const readCookieJSON = async (url) => androidCookies
++		? JSON.stringify(await androidCookies.get(url))
++		: storage.getItemAsync(cookieName);
++	const writeCookies = async (url, header) => {
++		if (!androidCookies) return storage.updateItemAsync(cookieName, (currentValue) => getSetCookie(header, currentValue ?? void 0));
++		// The native jar does not expose attributes, so compare session cookie
++		// values through the same JSON form hasSessionCookieChanged expects.
++		const previousValue = await readCookieJSON(url);
++		// Preserve raw values and attributes, including SameSite and deletion headers.
++		for (const cookie of splitSetCookieHeader(header)) await androidCookies.setFromResponse(url, cookie);
++		await androidCookies.flush();
++		return { previousValue, value: await readCookieJSON(url) };
++	};
+ 	let sessionCacheHydration;
+ 	const restoreSessionCache = async () => {
+ 		if (isWeb || opts?.disableCache) return;
+@@ -596,7 +614,9 @@ const expoClient = (opts) => {
+ 		return sessionCacheHydration;
+ 	};
+ 	const clearSessionCache = async () => {
+-		await storage.setItemAsync(cookieName, "{}");
++		// Android cookies are expired by the server's sign-out response. Keep them
++		// available until that request is sent, and never clear unrelated WebView cookies.
++		if (!androidCookies) await storage.setItemAsync(cookieName, "{}");
+ 		store?.atoms.session?.set({
+ 			...store.atoms.session.get(),
+ 			data: null,
+@@ -611,8 +631,9 @@ const expoClient = (opts) => {
+ 	return defineExpoClientPlugin({
+ 		id: "expo",
+ 		version: PACKAGE_VERSION,
+-		getActions(_fetch, $store) {
++		getActions(_fetch, $store, options) {
+ 			store = $store;
++			if (androidCookies && typeof options?.baseURL !== "string") throw new Error("Android cookie storage requires an explicit auth client baseURL.");
+ 			return { 
+ 			/**
+ 			* Get the stored cookie.
+@@ -628,7 +649,7 @@ const expoClient = (opts) => {
+ 			* ```
+ 			*/
+ getCookie: async () => {
+-				return getCookie(await storage.getItemAsync(cookieName));
++				return readCookieHeader(options?.baseURL);
+ 			} };
+ 		},
+ 		fetchPlugins: [{
+@@ -636,11 +657,12 @@ getCookie: async () => {
+ 			name: "Expo",
+ 			hooks: { async onSuccess(context) {
+ 				if (isWeb) return;
+-				const { pathname } = new URL(context.request.url);
++				const requestURL = new URL(context.request.url);
++				const { pathname } = requestURL;
+ 				const setCookie = context.response.headers.get("set-cookie");
+ 				if (setCookie) {
+ 					if (hasBetterAuthCookies(setCookie, cookiePrefix)) {
+-						const update = await storage.updateItemAsync(cookieName, (currentValue) => getSetCookie(setCookie, currentValue ?? void 0));
++						const update = await writeCookies(requestURL.href, setCookie);
+ 						if (update && hasSessionCookieChanged(update.previousValue, update.value)) store?.notify("$sessionSignal");
+ 					}
+ 				}
+@@ -667,7 +689,7 @@ getCookie: async () => {
+ 					if (Platform.OS === "android") try {
+ 						Browser.dismissAuthSession();
+ 					} catch {}
+-					const oauthStateValue = getOAuthStateValue(await storage.getItemAsync(cookieName), cookiePrefix);
++					const oauthStateValue = getOAuthStateValue(await readCookieJSON(requestURL.href), cookiePrefix);
+ 					const params = new URLSearchParams({ authorizationURL: signInURL });
+ 					if (oauthStateValue) params.append("oauthState", oauthStateValue);
+ 					const proxyURL = `${context.request.baseURL}/expo-authorization-proxy?${params.toString()}`;
+@@ -675,7 +697,7 @@ getCookie: async () => {
+ 					if (result.type !== "success") return;
+ 					const cookie = new URL(result.url).searchParams.get("cookie");
+ 					if (!cookie) return;
+-					if (await storage.updateItemAsync(cookieName, (currentValue) => getSetCookie(cookie, currentValue ?? void 0))) store?.notify("$sessionSignal");
++					if (await writeCookies(requestURL.href, cookie)) store?.notify("$sessionSignal");
+ 				}
+ 			} },
+ 			async init(url, options) {
+@@ -683,19 +705,20 @@ getCookie: async () => {
+ 					url,
+ 					options
+ 				};
+-				const { pathname } = new URL(url, options?.baseURL);
++				const requestURL = new URL(url, options?.baseURL);
++				const { pathname } = requestURL;
+ 				if (pathname.endsWith("/get-session")) await hydrateSessionCache();
+ 				options = options || {};
+ 				options.credentials = "omit";
+ 				if (options.body?.idToken !== void 0) {
+-					const cookie = getCookie(pathname.endsWith("/link-social") ? await storage.getItemAsync(cookieName) : null);
++					const cookie = pathname.endsWith("/link-social") ? await readCookieHeader(requestURL.href) : "";
+ 					options.headers = {
+ 						...options.headers,
+ 						...cookie ? { cookie } : {},
+ 						"x-skip-oauth-proxy": "true"
+ 					};
+ 				} else {
+-					const cookie = getCookie(await storage.getItemAsync(cookieName));
++					const cookie = await readCookieHeader(requestURL.href);
+ 					options.headers = {
+ 						...options.headers,
+ 						...cookie ? { cookie } : {},

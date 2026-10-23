@@ -51,6 +51,7 @@ import { cloudConfigured } from "@/cloud/config";
 import { createBillingClient } from "coreply-shared-components/src/utils/hc";
 import { CoreplyCloudSignIn } from "@/components/groups/coreply-cloud-sign-in";
 import { CoreplyCloudUsage } from "@/components/groups/coreply-cloud-usage";
+import { isBrowserExtension } from "@/utils/extension";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const billingClient = createBillingClient(
@@ -383,8 +384,13 @@ export default function SettingsScreen() {
                             ) : (
                               <CoreplyCloudSignIn
                                 configured={cloudConfigured}
+                                extensionSignInUrl={
+                                  isBrowserExtension()
+                                    ? process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL
+                                    : undefined
+                                }
                               />
-                          )
+                            )
                         ) : (
                           <ProviderSettingsForm
                             providerId={providerId}
