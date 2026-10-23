@@ -61,7 +61,7 @@ function Billing() {
     {billing.data && <>
       {billing.data.subscription.pastDue && <p role="alert" className="text-destructive">Your payment needs attention. Update it in billing settings.</p>}
       {billing.data.subscription.canceled && <p className="text-muted-foreground">Your subscription is set to cancel. Manage it in billing settings.</p>}
-      <div className="grid gap-5 sm:grid-cols-2">{billing.data.plans.map((plan) => <section key={plan.id} className="flex flex-col gap-5 rounded-xl border bg-form p-6">
+      <div className="grid gap-5 sm:grid-cols-2">{billing.data.plans.map((plan) => <section key={plan.id} className="flex flex-col gap-5 border bg-form p-6">
         <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">{plan.name}</h2>{billing.data.plan.id === plan.id && <span className="text-sm text-primary">Current plan</span>}</div>
         <p className="text-3xl font-semibold">{plan.price ? `$${plan.price.amount}` : "$0"}<span className="text-sm font-normal text-muted-foreground"> / month</span></p>
         <p className="text-sm text-muted-foreground">{plan.monthlyAllowance.toLocaleString()} monthly units<br />{plan.dailyCap.toLocaleString()} daily cap</p>

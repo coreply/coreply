@@ -26,7 +26,7 @@ const buttonVariants = cva(
         outline: cn(
           'border-border bg-background active:bg-accent dark:bg-input/30 dark:border-input dark:active:bg-input/50 border shadow-sm shadow-black/5',
           Platform.select({
-            web: 'hover:bg-accent dark:hover:bg-input/50',
+            web: 'hover:bg-muted',
           })
         ),
         secondary: cn(
@@ -35,7 +35,7 @@ const buttonVariants = cva(
         ),
         ghost: cn(
           'active:bg-accent dark:active:bg-accent/50',
-          Platform.select({ web: 'hover:bg-accent dark:hover:bg-accent/50' })
+          Platform.select({ web: 'hover:bg-muted' })
         ),
         link: '',
       },
@@ -65,7 +65,7 @@ const buttonTextVariants = cva(
         destructive: 'text-white',
         // Web state colors are defaults: explicit text utilities must win.
         outline: Platform.select({
-          web: '[:where(.group:hover_&)]:text-accent-foreground [:where(.group:active_&)]:text-accent-foreground',
+          web: '[:where(.group:active_&)]:text-accent-foreground',
           default: 'group-active:text-accent-foreground',
         }),
         secondary: 'text-secondary-foreground',

@@ -1,15 +1,11 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
-@import "../../../coreply-app/global.css";
+@import "../../../coreply-shared-components/global.css";
 @import "tw-animate-css";
 
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-subheading: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-light: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-medium: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-semibold: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-bold: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: max(0px, calc(var(--radius) - 4px));
   --radius-md: max(0px, calc(var(--radius) - 2px));
 }
@@ -21,7 +17,7 @@
   --color-sidebar-foreground: var(--color-foreground);
   --color-sidebar-primary: var(--color-primary);
   --color-sidebar-primary-foreground: var(--color-primary-foreground);
-  --color-sidebar-accent: var(--color-accent);
+  --color-sidebar-accent: var(--color-muted);
   --color-sidebar-accent-foreground: var(--color-foreground);
   --color-sidebar-border: var(--color-border);
   --color-sidebar-ring: var(--color-ring);
@@ -32,7 +28,7 @@
   --foreground: var(--color-foreground);
   --secondary: var(--color-secondary);
   --sidebar-border: var(--color-border);
-  --sidebar-accent: var(--color-accent);
+  --sidebar-accent: var(--color-muted);
 }
 
 @layer base {
