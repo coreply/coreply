@@ -4,6 +4,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./db/auth-schema";
+import { cloudOrigins } from "./origins";
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -13,9 +14,8 @@ export const auth = betterAuth({
     schema,
   }),
   trustedOrigins: [
-    env.CLOUD_WEB_ORIGIN,
+    ...cloudOrigins,
     "coreplyapp://",
-    "chrome-extension://nmfnmclpahgpkgaaigpnclioncflbmhp",
   ],
   socialProviders: {
     google: {

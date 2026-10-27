@@ -3,7 +3,21 @@ import type { User } from "better-auth";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 
-const featureId = "standard_usage";
+export const featureId = "standard_ai_usage";
+
+export function customerUsage(customer: Customer) {
+  const monthly = customer.balances[featureId];
+  const daily = customer.billingControls.usageLimits?.find(
+    (limit) => limit.featureId === featureId && limit.interval === "day" && limit.enabled && !limit.filter,
+  );
+  if (!monthly || monthly.granted <= 0 || !daily || daily.limit <= 0 || daily.usage === undefined) {
+    throw new HTTPException(502, { message: "Usage information is unavailable. Please try again." });
+  }
+  return {
+    monthly: { allowance: monthly.granted, remaining: monthly.remaining, used: monthly.usage },
+    daily: { allowance: daily.limit, remaining: Math.max(0, daily.limit - daily.usage), used: daily.usage },
+  };
+}
 
 function currentSubscription(customer: Customer) {
   const subscriptions = customer.subscriptions.filter(
@@ -53,21 +67,14 @@ export const billing = new Hono<{
       autumn.plans.get({ planId: "plus" }),
     ]);
     const subscription = currentSubscription(customer);
-    const monthly = customer.balances[featureId];
-    const daily = customer.billingControls.usageLimits?.find(
-      (limit) => limit.featureId === featureId && limit.interval === "day" && limit.enabled && !limit.filter,
-    );
-    if (!monthly || monthly.granted <= 0 || !daily || daily.limit <= 0 || daily.usage === undefined) {
-      throw new HTTPException(502, { message: "Usage information is unavailable. Please try again." });
-    }
+    const usage = customerUsage(customer);
     const plans = [planSummary(free), planSummary(plus)];
     const plan = plans.find((item) => item.id === subscription.planId);
     if (!plan) throw new HTTPException(502, { message: "Your plan is unavailable." });
     return c.json({
       plan,
       plans,
-      monthly: { allowance: monthly.granted, remaining: monthly.remaining, used: monthly.usage },
-      daily: { allowance: daily.limit, remaining: Math.max(0, daily.limit - daily.usage), used: daily.usage },
+      ...usage,
       subscription: {
         pastDue: subscription.pastDue,
         canceled: subscription.canceledAt !== null,
