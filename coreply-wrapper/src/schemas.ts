@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { coreplySettingsSchema, suggestionFetchLogSchema } from "libcoreply";
+import { snapshotSchema } from "libcoreply/src/context/snapshot";
 
 export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
   z.object({
@@ -16,12 +17,13 @@ export const wrapperInboundMessageSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("snapshotUpdated"),
     payload: z.object({
-      snapshot: z.any(),
+      snapshot: snapshotSchema,
     }),
   }),
 ]);
 
 export const wrapperOutboundMessageSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("clearSuggestion") }),
   z.object({
     type: z.literal("init"),
   }),

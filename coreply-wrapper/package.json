@@ -4,6 +4,7 @@
 	"version": "3.0.0",
 	"type": "module",
 	"exports": {
+		"./runtime": "./src/runtime.ts",
 		"./schemas": "./src/schemas.ts"
 	},
 	"scripts": {

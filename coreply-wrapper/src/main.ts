@@ -1,4 +1,4 @@
-import { Coreply } from "libcoreply";
+import { createCoreplyRuntime } from "./runtime";
 import { type WrapperOutboundMessage, wrapperInboundMessageSchema } from "./schemas";
 
 declare global {
@@ -18,57 +18,12 @@ function postToNative(message: WrapperOutboundMessage) {
 }
 
 if (coreplyBridgeObject) {
-  const coreply = new Coreply({
-    onInit() {
-      postToNative({
-        type: "init",
-      });
-    },
-    onSuggestionUpdated(fullSuggestion) {
-      postToNative({
-        type: "updateSuggestion",
-        payload: {
-          fullSuggestion,
-        },
-      });
-    },
-    onSuggestionCleared() {},
-    onError(error) {
-      postToNative({
-        type: "error",
-        payload: {
-          message: error instanceof Error ? error.message : String(error),
-        },
-      });
-    },
-    onCollectionModeUpdated(collectionMode) {
-      postToNative({
-        type: "collectionModeUpdated",
-        payload: {
-          collectionMode,
-        },
-      });
-    },
-    onLog(log) {
-      postToNative({ type: "log", payload: log });
-    },
-  });
+  const runtime = createCoreplyRuntime(postToNative, import.meta.env.VITE_COREPLY_CLOUD_URL);
   coreplyBridgeObject.onmessage = (event) => {
     const data = event.data;
     if (typeof data === "string") {
       const parsedData = wrapperInboundMessageSchema.parse(JSON.parse(data));
-      switch (parsedData.type) {
-        case "settings":
-          coreply.updateSettings(parsedData.payload);
-          break;
-        case "updateTyping":
-          coreply.updateTyping(parsedData.payload.currentTyping);
-          break;
-        // ** Added snapshotUpdated event handler to pass snapshots to libcoreply
-        case "snapshotUpdated":
-          coreply.snapshotUpdated(parsedData.payload.snapshot);
-          break;
-      }
+      runtime.nativeToLib(parsedData);
     }
   };
 }
