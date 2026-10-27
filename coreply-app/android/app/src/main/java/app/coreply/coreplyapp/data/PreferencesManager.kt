@@ -15,7 +15,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.preference.PreferenceManager
-import app.coreply.coreplyapp.applistener.SupportedApps
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -69,7 +68,30 @@ class PreferencesManager private constructor(
         private const val DEFAULT_SYSTEM_PROMPT =
             "You are an AI texting assistant. You will be given a list of text messages between the user and other people. Your job is to suggest the next message the user should send. Match the tone and style of the conversation. The user may request the message start with a certain prefix (could be part of a longer word). Make sure your output is LONGER than the user requested prefix and what the user is typing. \nOutput the suggested text only. Do not output anything else. Do not surround output with quotation marks"
         private const val DEFAULT_TEMPERATURE = 1.0f
-        private val DEFAULT_SELECTED_APPS = SupportedApps.supportedApps.map { it.pkgName }.toSet()
+        private val DEFAULT_SELECTED_APPS = setOf(
+            "com.whatsapp.w4b",
+            "jp.naver.line.android",
+            "com.instagram.android",
+            "org.thoughtcrime.securesms",
+            "co.hinge.app",
+            "com.tinder",
+            "com.vr.heymandi",
+            "com.android.systemui",
+            "com.whatsapp",
+            "org.telegram.messenger",
+            "org.telegram.messenger.web",
+            "tw.nekomimi.nekogram",
+            "com.mattermost.rn",
+            "com.google.android.apps.messaging",
+            "com.facebook.orca",
+            "com.snapchat.android",
+            "com.microsoft.teams",
+            "com.viber.voip",
+            "com.discord",
+            "com.beeper.android",
+            "com.openai.chatgpt",
+            "ai.perplexity.app.android",
+        )
         private const val DEFAULT_TOP_P = 1.0f
         private const val DEFAULT_SUGGESTION_PRESENTATION_TYPE = 2
         private const val DEFAULT_SHOW_ERRORS = true

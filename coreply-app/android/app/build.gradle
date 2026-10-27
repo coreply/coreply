@@ -22,7 +22,7 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField("String", "COREPLY_CLOUD_ORIGIN", '"https://localhost:5173"')
+            buildConfigField("String", "COREPLY_CLOUD_ORIGIN", '"http://localhost:5173"')
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }

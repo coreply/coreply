@@ -223,6 +223,7 @@ open class AppListener : AccessibilityService() {
         }
         val assetLoader = WebViewAssetLoader.Builder()
             .setDomain(requireNotNull(wrapperOrigin.authority))
+            .setHttpAllowed(BuildConfig.DEBUG)
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(appContext))
             .build()
         webView = WebView(appContext)

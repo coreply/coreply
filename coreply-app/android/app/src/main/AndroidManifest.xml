@@ -22,11 +22,6 @@
         android:theme="@style/AppTheme">
         <activity
             android:exported="true"
-            android:name="app.coreply.coreplyapp.SettingsActivity"
-            android:label="@string/app_name" />
-
-        <activity
-            android:exported="true"
             android:name="app.coreply.coreplyapp.RnActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
             android:windowSoftInputMode="adjustResize"
@@ -55,11 +50,6 @@
             android:name="app.coreply.coreplyapp.DisclosureActivity"
             android:label="Disclosure Activity"
             android:theme="@style/AppThemeNoActionBar" />
-
-        <activity
-            android:name="app.coreply.coreplyapp.AppSelectorActivity"
-            android:label="Select Apps"
-            android:parentActivityName="app.coreply.coreplyapp.SettingsActivity" />
 
     </application>
 

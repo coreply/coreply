@@ -6,4 +6,4 @@
     android:accessibilityFeedbackType="feedbackGeneric"
     android:canRetrieveWindowContent="true"
     android:notificationTimeout="0"
-    android:settingsActivity="app.coreply.coreplyapp.SettingsActivity"/>
+    android:settingsActivity="app.coreply.coreplyapp.RnActivity"/>

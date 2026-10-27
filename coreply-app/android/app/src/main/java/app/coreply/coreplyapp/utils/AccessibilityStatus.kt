@@ -14,12 +14,14 @@ object AccessibilityStatus {
         val infos =
             manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
         for (info in infos) {
-            if (info.settingsActivityName != null && info.settingsActivityName == activityName) return true
+            if (info.resolveInfo.serviceInfo.packageName == context.packageName &&
+                info.settingsActivityName?.substringAfterLast('.') == activityName
+            ) return true
         }
         return false
     }
 
     fun isAccessibilityEnabled(context: Context?): Boolean {
-        return isAccessibilityEnabled(context, "app.coreply.coreplyapp.SettingsActivity")
+        return isAccessibilityEnabled(context, "RnActivity")
     }
 }

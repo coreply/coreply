@@ -66,7 +66,8 @@ class CoreplyModule : Module() {
           manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
 
         return@Function infos.any {
-          it.settingsActivityName == "app.coreply.coreplyapp.SettingsActivity"
+          it.resolveInfo.serviceInfo.packageName == context.packageName &&
+            it.settingsActivityName?.substringAfterLast('.') == "RnActivity"
         }
       }
     }
