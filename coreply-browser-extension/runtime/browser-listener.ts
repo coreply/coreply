@@ -1,4 +1,3 @@
-import { storage } from "#imports";
 import {
   findEditableFromElement,
   getDeepActiveElement,
@@ -8,15 +7,11 @@ import {
   isCaretAtEnd,
   type SupportedEditable,
 } from "./editor";
-import {
-  GLOBAL_SETTINGS_KEY,
-  MASTER_SWITCH_KEY,
-  PROVIDER_ID_KEY,
-  SELECTED_APPS_KEY,
-  PROFILES_KEY,
-  getProviderConfigKey,
-  syncCoreplySettings,
-} from "./settings";
+import { browser } from "wxt/browser";
+import { storage } from "#imports";
+import { matchesProfile } from "libcoreply";
+import { storageManager } from "./storage-manager";
+import { GLOBAL_SETTINGS_KEY, MASTER_SWITCH_KEY, SELECTED_APPS_KEY, PROFILES_KEY } from "./settings";
 import { observeWebSnapshot, serializeWebSnapshot } from "./snapshot";
 import {
   clearSuggestionOverlay,
@@ -24,8 +19,8 @@ import {
   positionSuggestionOverlay,
   setSuggestionText,
 } from "./ui";
-import { appendSuggestionFetchLog } from "./troubleshooting";
-import { Coreply } from "../../libcoreply/src";
+import { wrapperOutboundMessageSchema, type WrapperInboundMessage } from "coreply-wrapper/schemas";
+import type { WebSnapshot } from "libcoreply/src/context/snapshot";
 
 export async function startBrowserListener() {
   window.__coreplyBrowserExtensionCleanup?.();
@@ -37,24 +32,33 @@ export async function startBrowserListener() {
   let currentTyping = "";
   let currentSuggestion = "";
   let isComposing = false;
-  let isEnabled = true;
+  let isEnabled = false;
   let currentUrl = location.href;
   let collectionMode: "minimal" | "frequent" | "active" = "minimal";
   let pendingTyping: { editable: SupportedEditable; text: string } | null = null;
   let suggestionPresentationType: "inline" | "overlay" | "both" = "both";
 
-  const coreply = new Coreply({
-    onInit() {},
-    onCollectionModeUpdated(mode) {
-      collectionMode = mode;
-      if (mode !== "active") {
-        clearOverlay();
-      }
-      queueMicrotask(flushPendingTyping);
-    },
-    onSuggestionUpdated(fullSuggestion) {
+  const isForeground = () => document.visibilityState === "visible" && document.hasFocus();
+
+  function sendToBackground(message: WrapperInboundMessage) {
+    void browser.runtime.sendMessage(message).catch(() => clearOverlay());
+  }
+
+  function sendCoreplyEvent(message: WrapperInboundMessage) {
+    if (!isEnabled || !isForeground()) return;
+    sendToBackground(message);
+  }
+
+  // Collection-only proxy. The shared runtime executes in the background.
+  const coreply = {
+    updateTyping(currentTyping: string) { sendCoreplyEvent({ type: "updateTyping", payload: { currentTyping } }); },
+    snapshotUpdated(snapshot: WebSnapshot) { sendCoreplyEvent({ type: "snapshotUpdated", payload: { snapshot } }); },
+  };
+
+  function showSuggestion(fullSuggestion: string) {
       if (
         !isEnabled ||
+        !isForeground() ||
         isComposing ||
         collectionMode !== "active" ||
         !activeEditable?.isConnected ||
@@ -81,38 +85,58 @@ export async function startBrowserListener() {
         trailing: suggestionPresentationType === "inline" ? "" : suffix,
       });
       positionOverlay();
-    },
-    onSuggestionCleared() {
-      clearOverlay();
-    },
-    onError() {
-      clearOverlay();
-    },
-    onLog(log) {
-      void appendSuggestionFetchLog(log);
-    },
-  });
+  }
 
-  let watchedProviderConfigKey = "";
-  let unwatchProviderConfig = () => {};
+  function onBackgroundMessage(raw: unknown): undefined {
+    const parsed = wrapperOutboundMessageSchema.safeParse(raw);
+    if (!parsed.success) return;
+    const message = parsed.data;
+    if (!isForeground() || !isEnabled) return;
+    switch (message.type) {
+      case "updateSuggestion": showSuggestion(message.payload.fullSuggestion); break;
+      case "collectionModeUpdated":
+        collectionMode = message.payload.collectionMode;
+        if (collectionMode !== "active") clearOverlay();
+        flushPendingTyping();
+        break;
+      case "clearSuggestion":
+      case "error": clearOverlay(); break;
+    }
+  }
+
+  async function loadSettings() {
+    const [settings, enabled] = await Promise.all([
+      storageManager.loadSettings(),
+      storageManager.loadMasterSwitch(),
+    ]);
+    isEnabled = enabled && settings.profiles.some((profile) =>
+      settings.selectedApps.includes(profile.id) && matchesProfile(profile, "web", location.href),
+    );
+    suggestionPresentationType = settings.globalSettings.presentation.suggestionPresentationType;
+    if (!isEnabled) clearState();
+    else onForegroundChanged();
+  }
+
+  function refreshSettings() {
+    void loadSettings().catch(() => {
+      isEnabled = false;
+      clearState();
+    });
+  }
+
+  function onForegroundChanged() {
+    if (isForeground()) {
+      syncFromFocusedEditable();
+      if (!pendingTyping) updateSnapshot();
+    } else {
+      clearState();
+    }
+  }
 
   function clearOverlay() {
     currentSuggestion = "";
     setSuggestionText(overlay, { inline: "", trailing: "" });
     clearSuggestionOverlay(overlay);
-  }
-
-  function watchProviderConfig(providerId: string) {
-    const nextProviderConfigKey = getProviderConfigKey(providerId);
-    if (nextProviderConfigKey === watchedProviderConfigKey) {
-      return;
-    }
-
-    unwatchProviderConfig();
-    watchedProviderConfigKey = nextProviderConfigKey;
-    unwatchProviderConfig = storage.watch<string>(nextProviderConfigKey, () => {
-      void syncSettingsAndRefreshSuggestion();
-    });
   }
 
   function clearState() {
@@ -123,13 +147,10 @@ export async function startBrowserListener() {
     collectionMode = "minimal";
   }
 
-  // Typing must not trigger a fetch before the latest snapshot's context is
-  // committed, and it only reaches Coreply when the profile reports the
-  // supported composer is focused (active mode), matching Android where
-  // typing updates only flow in active mode. The microtask lets the
-  // extractor finish adding the context first.
+  // Once a profile identifies the supported composer, forward typing without
+  // waiting for subsequent context extraction.
   function flushPendingTyping() {
-    if (!pendingTyping || !isEnabled || isComposing) {
+    if (!pendingTyping || !isEnabled || !isForeground() || isComposing) {
       return;
     }
 
@@ -145,55 +166,6 @@ export async function startBrowserListener() {
       coreply.updateTyping(text);
     }
   }
-
-  async function syncSettings() {
-    isEnabled = await syncCoreplySettings(coreply);
-    suggestionPresentationType =
-      coreply.getSettings().globalSettings.presentation.suggestionPresentationType;
-    if (isEnabled) {
-      watchProviderConfig(coreply.getSettings().providerId);
-    }
-  }
-
-  async function syncSettingsAndRefreshSuggestion() {
-    await syncSettings();
-
-    if (!isEnabled) {
-      clearState();
-      return;
-    }
-
-    pendingTyping = null;
-    collectionMode = "minimal";
-    currentTyping = "";
-    clearOverlay();
-    syncFromFocusedEditable();
-    if (!pendingTyping) updateSnapshot();
-  }
-
-  await syncSettings();
-
-  const unwatchGlobalSettings = storage.watch<string>(
-    GLOBAL_SETTINGS_KEY,
-    () => {
-      void syncSettingsAndRefreshSuggestion();
-    },
-  );
-
-  const unwatchMasterSwitch = storage.watch<string>(MASTER_SWITCH_KEY, () => {
-    void syncSettingsAndRefreshSuggestion();
-  });
-
-  const unwatchProviderId = storage.watch<string>(PROVIDER_ID_KEY, () => {
-    void syncSettingsAndRefreshSuggestion();
-  });
-
-  const unwatchSelectedApps = storage.watch<string>(SELECTED_APPS_KEY, () => {
-    void syncSettingsAndRefreshSuggestion();
-  });
-  const unwatchProfiles = storage.watch<string>(PROFILES_KEY, () => {
-    void syncSettingsAndRefreshSuggestion();
-  });
 
   function positionOverlay() {
     positionSuggestionOverlay(
@@ -218,7 +190,7 @@ export async function startBrowserListener() {
   }
 
   function syncFromFocusedEditable() {
-    if (!isEnabled) {
+    if (!isEnabled || !isForeground()) {
       clearState();
       return;
     }
@@ -271,11 +243,11 @@ export async function startBrowserListener() {
   function updateSnapshot() {
     if (currentUrl !== location.href) {
       currentUrl = location.href;
-      coreply.reset();
-      void syncSettingsAndRefreshSuggestion();
+      clearState();
+      refreshSettings();
       return;
     }
-    if (!isEnabled || isComposing) return;
+    if (!isEnabled || !isForeground() || isComposing) return;
     coreply.snapshotUpdated({
       platform: "web",
       url: location.href,
@@ -285,8 +257,8 @@ export async function startBrowserListener() {
 
   const onNavigation = () => {
     currentUrl = location.href;
-    coreply.reset();
-    void syncSettingsAndRefreshSuggestion();
+    clearState();
+    refreshSettings();
   };
 
   const onInput = () => {
@@ -386,7 +358,14 @@ export async function startBrowserListener() {
     () => collectionMode === "active" ? activeEditable : null,
   );
 
+  const unwatchSettings = [GLOBAL_SETTINGS_KEY, MASTER_SWITCH_KEY, SELECTED_APPS_KEY, PROFILES_KEY]
+    .map((key) => storage.watch<string>(key, refreshSettings));
+
   document.addEventListener("input", onInput, true);
+  browser.runtime.onMessage.addListener(onBackgroundMessage);
+  document.addEventListener("visibilitychange", onForegroundChanged);
+  window.addEventListener("focus", onForegroundChanged);
+  window.addEventListener("blur", onForegroundChanged);
   document.addEventListener("selectionchange", onSelectionChange, true);
   document.addEventListener("focusin", onFocusIn, true);
   document.addEventListener("focusout", onFocusOut, true);
@@ -399,6 +378,11 @@ export async function startBrowserListener() {
   window.addEventListener("resize", onScrollOrResize, true);
 
   window.__coreplyBrowserExtensionCleanup = () => {
+    for (const unwatch of unwatchSettings) unwatch();
+    browser.runtime.onMessage.removeListener(onBackgroundMessage);
+    document.removeEventListener("visibilitychange", onForegroundChanged);
+    window.removeEventListener("focus", onForegroundChanged);
+    window.removeEventListener("blur", onForegroundChanged);
     document.removeEventListener("input", onInput, true);
     document.removeEventListener("selectionchange", onSelectionChange, true);
     document.removeEventListener("focusin", onFocusIn, true);
@@ -415,18 +399,11 @@ export async function startBrowserListener() {
     document.removeEventListener("keydown", onKeyDown, true);
     window.removeEventListener("scroll", onScrollOrResize, true);
     window.removeEventListener("resize", onScrollOrResize, true);
-    unwatchGlobalSettings();
-    unwatchMasterSwitch();
-    unwatchProviderId();
-    unwatchSelectedApps();
-    unwatchProfiles();
-    unwatchProviderConfig();
     clearState();
     overlay.inline.remove();
     overlay.trailing.remove();
     delete window.__coreplyBrowserExtensionCleanup;
   };
 
-  syncFromFocusedEditable();
-  if (!pendingTyping) updateSnapshot();
+  refreshSettings();
 }

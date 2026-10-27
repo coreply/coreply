@@ -5,12 +5,15 @@ import { fileURLToPath } from "url";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
+  dev: {
+    server: {
+      port: 3000,
+      strictPort: true,
+    },
+  },
   manifest: {
     permissions: ["storage"],
-    host_permissions: [
-      "http://localhost/*",
-      "https://coreply.up.nadles.com/*",
-    ],
+    host_permissions: ["http://localhost/*", "https://coreply.up.nadles.com/*"],
     web_accessible_resources: [
       {
         resources: ["/logo.png"],

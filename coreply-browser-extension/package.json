@@ -19,6 +19,9 @@
     "wxt": "^0.20.27"
   },
   "dependencies": {
+    "coreply-wrapper": "workspace:*",
+    "libcoreply": "workspace:*",
+    "zod": "^4.4.3",
     "chrome-types": "^0.1.431"
   }
 }
