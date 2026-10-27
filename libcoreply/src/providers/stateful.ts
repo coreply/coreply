@@ -6,8 +6,8 @@ import type { z } from "zod";
 
 import { deserializeContext, type CoreplyContext } from "../context";
 import { ChatContextImpl, type ChatContextData, type ChatTurn } from "../context/chat";
-import type { ProviderInstance } from "./instance";
-import type { createStatefulSettingsSchema } from "./index";
+import type { ProviderInstance, ProviderInstanceOptions } from "./instance";
+import type { createStatefulSettingsSchema } from "./settings";
 
 // Hermes (React Native) lacks Intl.Segmenter; create it only when segmentation
 // actually runs, so importing this module stays safe.
@@ -203,6 +203,7 @@ function compareContexts(
 export class StatefulAIProviderInstance<
   Settings extends z.output<ReturnType<typeof createStatefulSettingsSchema>>,
 > implements ProviderInstance {
+  onModelResponse?: ProviderInstanceOptions["onModelResponse"];
   private previousContexts: CoreplyContext[] | null = null;
   private previousCompletedSentences: string | null = null;
   private responseMessages: ModelMessage[] = [];
@@ -212,9 +213,11 @@ export class StatefulAIProviderInstance<
   constructor(
     settingsSchema: z.ZodType<Settings>,
     createModel: (settings: Settings) => LanguageModel,
+    onModelResponse?: ProviderInstanceOptions["onModelResponse"],
   ) {
     this.settingsSchema = settingsSchema;
     this.createModel = createModel;
+    this.onModelResponse = onModelResponse;
   }
 
   async request(
@@ -322,6 +325,8 @@ export class StatefulAIProviderInstance<
         ...generateTextSettings,
         providerOptions,
       });
+
+      await this.onModelResponse?.(result);
 
       messages = [...requestMessages, ...result.responseMessages];
       suggestion = validateSuggestion(typingView, result.text);

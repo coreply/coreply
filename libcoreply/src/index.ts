@@ -6,6 +6,7 @@ import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
 import { ContextStore, PENDING } from "./context";
 import { generateGenericProfile, matchesProfile } from "./profile";
 import { createProviderInstance, type ProviderInstance } from "./providers";
+import type { ProviderInstanceOptions } from "./providers/instance";
 import type { LibCoreplyListener } from "./listener";
 import type { Snapshot } from "./context/snapshot";
 import { ChatContextImpl } from "./context/chat";
@@ -26,13 +27,15 @@ export class Coreply {
   private snapshotRevision = 0;
   private readonly listener: LibCoreplyListener;
   private providerInstance: ProviderInstance;
+  private readonly options: ProviderInstanceOptions | undefined;
   private fetchSuggestionDebounced: DebouncedFunction<
     (typing: string, store: ContextStore) => void
   >;
 
-  constructor(listener: LibCoreplyListener) {
+  constructor(listener: LibCoreplyListener, options?: ProviderInstanceOptions) {
     this.listener = listener;
-    this.providerInstance = createProviderInstance(this.settings.providerId);
+    this.options = options;
+    this.providerInstance = createProviderInstance(this.settings.providerId, this.options);
     this.fetchSuggestionDebounced = this.createFetchSuggestionDebounced(350);
     this.listener.onInit();
   }
@@ -53,15 +56,12 @@ export class Coreply {
 
     this.settings = next;
 
-    if (!deepEqual(previous.profiles, next.profiles) || !deepEqual(previous.selectedApps, next.selectedApps)) {
-      this.reset();
-    }
-
     if (
       previous.providerId !== next.providerId ||
       !deepEqual(previous.providerConfig, next.providerConfig)
     ) {
-      this.providerInstance = createProviderInstance(next.providerId);
+      this.providerInstance.dispose?.();
+      this.providerInstance = createProviderInstance(next.providerId, this.options);
     }
 
     if (
@@ -81,15 +81,6 @@ export class Coreply {
     }
     this.currentTyping = currentTyping;
     this.emitSuggestion();
-  }
-
-  reset() {
-    this.snapshotRevision += 1;
-    this.fetchSuggestionDebounced.clear();
-    this.currentTyping = null;
-    this.store.clearAll();
-    this.providerInstance = createProviderInstance(this.settings.providerId);
-    this.listener.onSuggestionCleared();
   }
 
   // ** Implemented snapshotUpdated method to process snapshots and create contexts

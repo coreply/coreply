@@ -1,8 +1,10 @@
 import Mustache from "mustache";
-import type { providerDefinitions } from "./index";
-import type { ChatContext, CoreplyContext } from "../context";
-import { TypingInfo } from "../context";
-import { ChatContents } from "../context/legacy-chat";
+import { z } from "zod";
+import { DEFAULT_ADVANCED_BODY } from "../../settings";
+import { StatelessProviderInstance } from "../stateless";
+import type { ChatContext, CoreplyContext } from "../../context";
+import { TypingInfo } from "../../context";
+import { ChatContents } from "../../context/legacy-chat";
 
 function buildChatContents(chatContexts: ChatContext[]): ChatContents {
   const chatContents = new ChatContents();
@@ -37,14 +39,45 @@ export function buildAdvancedContextMap(
   };
 }
 
+const settingsSchema = z.object({
+  provider: z.object({
+    requestUrl: z.httpUrl().describe("Request URL that will receive the generated payload"),
+    authorizationBearer: z.string().optional()
+      .describe("Bearer token sent in the Authorization header")
+      .meta({ feature: "password" }),
+  }),
+  templates: z.object({
+    bodyTemplate: z.string().describe("Mustache template used to build the outbound request body")
+      .meta({ control: "textarea" }),
+    suggestionTemplate: z.string()
+      .describe("Mustache template used to extract the final suggestion from the response"),
+  }),
+});
+
+export const advancedProvider = {
+  name: "Advanced Mode",
+  stateful: false,
+  settingsSchema,
+  settingsDefaults: {
+    provider: {},
+    templates: {
+      bodyTemplate: DEFAULT_ADVANCED_BODY,
+      suggestionTemplate: "{{assistantMessage}}",
+    },
+  },
+  createInstance() {
+    return new StatelessProviderInstance((contexts, typing, config) =>
+      generateWithAdvanced(settingsSchema.parse(config), contexts, typing),
+    );
+  },
+};
+
 // ** Updated to use TypingInfo.contextMap (v2-compatible) with v3 fields on top
 export async function generateWithAdvanced(
-  providerDefinition: typeof providerDefinitions.advanced,
-  settingsByReference: any,
+  settings: z.output<typeof settingsSchema>,
   contexts: CoreplyContext[],
   currentTyping: string,
 ): Promise<string> {
-  const settings = providerDefinition.settingsSchema.parse(settingsByReference);
   const pkgName = "";
 
   const contextMap = buildAdvancedContextMap(contexts, currentTyping, pkgName);

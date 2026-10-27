@@ -1,34 +1,19 @@
 import { generateText, type LanguageModel } from "ai";
 import Mustache from "mustache";
-import type { ProviderDefinition } from "./index";
+import type { z } from "zod";
+import type { createAISettingsSchema } from "./settings";
 import type { CoreplyContext } from "../context";
-
-export type AISDKProviderDefinition = Exclude<
-  ProviderDefinition,
-  { factoryFunc: null }
->;
 
 // ** Updated to accept contexts and currentTyping instead of typingInfo
 // Constructs prompts from context data using utils functions
-export async function generateWithAIProvider(
-  providerDefinition: AISDKProviderDefinition,
-  settingsByReference: unknown,
+export async function generateStatelessSuggestion(
+  model: LanguageModel,
+  settings: z.output<ReturnType<typeof createAISettingsSchema>>,
   contexts: CoreplyContext[],
   currentTyping: string,
 ): Promise<string> {
-  const settings = providerDefinition.settingsSchema.parse(settingsByReference);
   const { instructions: instructionsTemplate, ...generateTextSettings } =
     settings.generateText;
-  const providerSettings =
-    "name" in settings && typeof settings.name === "string"
-      ? { ...settings.provider, name: settings.name }
-      : settings.provider;
-
-  const createModel = providerDefinition.factoryFunc as (
-    settings: typeof providerSettings,
-  ) => (modelId: string) => LanguageModel;
-  // Registry guarantees each AI provider definition pairs the matching schema and factory.
-  const provider = createModel(providerSettings);
 
   const contextPrompt = contexts.map((context) => context.renderPrompt()).join("");
   const instructions = Mustache.render(
@@ -50,9 +35,8 @@ export async function generateWithAIProvider(
     userPrompt += `The reply should start with '${currentTyping.replace(/\s+/g, " ")}'\n`;
   }
 
-  const model = provider(settings.model);
   const result = await generateText({
-    model: model,
+    model,
     prompt: userPrompt,
     ...generateTextSettings,
     instructions,

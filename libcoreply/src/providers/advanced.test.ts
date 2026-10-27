@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import Mustache from "mustache";
 
-import { buildAdvancedContextMap } from "./advanced";
+import { buildAdvancedContextMap } from "./definitions/advanced";
 import type { ChatContext, CoreplyContext } from "../context";
 import { ChatContextImpl } from "../context/chat";
 import type { ScreenContext, ScreenContextData } from "../context/screen";

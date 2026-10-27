@@ -90,7 +90,8 @@ describe("StatefulAIProviderInstance", () => {
     ]);
 
     expect(provider.stateful).toBe(true);
-    expect(provider.factoryFunc).toBe(statelessProvider.factoryFunc);
+    expect(provider.name).toBe(statelessProvider.name);
+    expect(statelessProvider.stateful).toBe(false);
     expect(provider.settingsSchema.safeParse(config).success).toBe(true);
     expect(instance).toBeInstanceOf(StatefulAIProviderInstance);
 

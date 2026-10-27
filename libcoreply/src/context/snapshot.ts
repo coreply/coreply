@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export interface AndroidSnapshot {
   platform: "android";
   snapshot: AndroidSnapshotNode;
@@ -20,13 +22,13 @@ export interface Bounds {
 
 // Android snapshot node structure
 export interface AndroidSnapshotNode {
-  id: string;
-  className: string | null;
-  viewIdResourceName: string | null;
-  text: string | null;
-  contentDescription: string | null;
-  hintText: string | null;
-  packageName: string | null;
+  id?: string;
+  className?: string;
+  viewIdResourceName?: string;
+  text?: string;
+  contentDescription?: string;
+  hintText?: string;
+  packageName?: string;
   isEditable: boolean;
   isFocused: boolean;
   isVisibleToUser: boolean;
@@ -51,3 +53,42 @@ export interface WebSnapshotNode {
   isVisible: boolean;
   children: WebSnapshotNode[];
 }
+
+const boundsSchema = z.object({ left: z.number(), top: z.number(), right: z.number(), bottom: z.number() });
+
+export const androidSnapshotNodeSchema: z.ZodType<AndroidSnapshotNode> = z.lazy(() => z.object({
+  id: z.string().optional(),
+  className: z.string().optional(),
+  viewIdResourceName: z.string().optional(),
+  text: z.string().optional(),
+  contentDescription: z.string().optional(),
+  hintText: z.string().optional(),
+  packageName: z.string().optional(),
+  isEditable: z.boolean(),
+  isFocused: z.boolean(),
+  isVisibleToUser: z.boolean(),
+  isShowingHintText: z.boolean(),
+  bounds: boundsSchema,
+  children: z.array(androidSnapshotNodeSchema),
+}));
+
+export const webSnapshotNodeSchema: z.ZodType<WebSnapshotNode> = z.lazy(() => z.object({
+  id: z.string(),
+  tagName: z.string(),
+  text: z.string().nullable(),
+  ariaLabel: z.string().nullable(),
+  placeholder: z.string().nullable(),
+  name: z.string().nullable(),
+  className: z.string().nullable(),
+  attributes: z.record(z.string(), z.string()),
+  isEditable: z.boolean(),
+  isContentEditable: z.boolean(),
+  isFocused: z.boolean(),
+  isVisible: z.boolean(),
+  children: z.array(webSnapshotNodeSchema),
+}));
+
+export const snapshotSchema = z.discriminatedUnion("platform", [
+  z.object({ platform: z.literal("android"), snapshot: androidSnapshotNodeSchema }),
+  z.object({ platform: z.literal("web"), url: z.url(), snapshot: webSnapshotNodeSchema }),
+]);

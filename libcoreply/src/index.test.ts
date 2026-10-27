@@ -232,22 +232,44 @@ describe("Coreply provider instance continuity", () => {
     coreply.updateSettings({ selectedApps: ["com.example.app"] });
     coreply.updateSettings({ globalSettings: createDefaultGlobalSettings() });
     expect(coreply["fetchSuggestionDebounced"]).toBe(previous);
-    expect(clear).toHaveBeenCalledTimes(1);
+    expect(clear).not.toHaveBeenCalled();
 
     const settings = createDefaultGlobalSettings();
     settings.fetchControl.debounceMs = 100;
     coreply.updateSettings({ globalSettings: settings });
     expect(coreply["fetchSuggestionDebounced"]).not.toBe(previous);
-    expect(clear).toHaveBeenCalledTimes(2);
+    expect(clear).toHaveBeenCalledTimes(1);
     clear.mockRestore();
   });
 
-  it("reuses an instance across requests and replaces it when provider config changes or reset is called", async () => {
+  it("retains contexts, typing, and the provider when profiles or selected apps change", () => {
+    const dispose = vi.fn();
+    const createInstance = vi.fn(() => ({ request: vi.fn(), dispose }));
+    (providerDefinitions as Record<string, unknown>)[TEST_PROVIDER_ID] = { createInstance };
+    const coreply = new Coreply(createListener([], []));
+    coreply.updateSettings({ providerId: TEST_PROVIDER_ID });
+    const context = new ScreenContextImpl(testProfile, { text: "retained context", children: [] });
+    coreply["store"].addContext(context);
+    coreply["currentTyping"] = "Hi";
+    const revision = coreply["snapshotRevision"];
+    const clearSuggestion = vi.spyOn(coreply["listener"], "onSuggestionCleared");
+
+    coreply.updateSettings({ selectedApps: [testProfile.id], profiles: [testProfile] });
+    coreply.updateSettings({ selectedApps: [], profiles: [] });
+
+    expect(coreply["store"].getContexts()).toEqual([context]);
+    expect(coreply["currentTyping"]).toBe("Hi");
+    expect(coreply["snapshotRevision"]).toBe(revision);
+    expect(createInstance).toHaveBeenCalledTimes(1);
+    expect(dispose).not.toHaveBeenCalled();
+    expect(clearSuggestion).not.toHaveBeenCalled();
+  });
+
+  it("reuses an instance across requests and replaces it when provider config changes", async () => {
     const instanceRequest = vi
       .fn()
       .mockResolvedValueOnce("Hi there")
-      .mockResolvedValueOnce("Hi again")
-      .mockResolvedValueOnce("Hi reset");
+      .mockResolvedValueOnce("Hi again");
     const createInstance = vi.fn(() => ({
       request: instanceRequest,
     }));
@@ -290,7 +312,5 @@ describe("Coreply provider instance continuity", () => {
     coreply.updateSettings({ providerConfig: { a: 2 } });
     expect(createInstance).toHaveBeenCalledTimes(2);
 
-    coreply.reset();
-    expect(createInstance).toHaveBeenCalledTimes(3);
   });
 });

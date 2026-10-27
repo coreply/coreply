@@ -1,14 +1,41 @@
-import type { providerDefinitions } from "./index";
-import type { CoreplyContext } from "../context";
+import { z } from "zod";
+import type { CoreplyContext } from "../../context";
+import { StatelessProviderInstance } from "../stateless";
+
+const settingsSchema = z.object({
+  provider: z.object({
+    apiKey: z.string().describe("API key for the FIM provider").meta({ feature: "password" }),
+    baseURL: z.httpUrl().default("https://api.mistral.ai/v1/fim/")
+      .describe("Base URL of the Fill-in-the-Middle API endpoint"),
+  }),
+  request: z.object({
+    model: z.string().describe("Model ID to use for fill-in-the-middle generation"),
+    temperature: z.number().min(0).max(1).optional()
+      .describe("Controls randomness for fill-in-the-middle generation"),
+  }),
+});
+
+export const fimProvider = {
+  name: "Mistral FIM",
+  stateful: false,
+  settingsSchema,
+  settingsDefaults: {
+    provider: { baseURL: "https://api.mistral.ai/v1/fim/" },
+    request: { model: "codestral-latest", temperature: 1.0 },
+  },
+  createInstance() {
+    return new StatelessProviderInstance((contexts, typing, config) =>
+      generateWithFIM(settingsSchema.parse(config), contexts, typing),
+    );
+  },
+};
 
 // ** Updated to use contexts and currentTyping instead of typingInfo
 export async function generateWithFIM(
-  providerDefinition: typeof providerDefinitions.fim,
-  settingsByReference: any,
+  settings: z.output<typeof settingsSchema>,
   contexts: CoreplyContext[],
   currentTyping: string,
 ): Promise<string> {
-  const settings = providerDefinition.settingsSchema.parse(settingsByReference);
   let baseURL = settings.provider.baseURL;
   if (!baseURL.endsWith("/")) {
     baseURL += "/";

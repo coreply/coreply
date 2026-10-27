@@ -11,9 +11,9 @@ vi.mock(import("ai"), async (importOriginal) => ({
   generateText: generateTextMock,
 }));
 
-import { generateText } from "ai";
+import { createGateway, generateText } from "ai";
 
-import { generateWithAIProvider } from "./base";
+import { generateStatelessSuggestion } from "./base";
 import { providerDefinitions } from "./index";
 import { ChatContextImpl } from "../context/chat";
 import type { Profile } from "../profile";
@@ -34,7 +34,49 @@ afterEach(() => {
   generateTextMock.mockClear();
 });
 
-describe("generateWithAIProvider", () => {
+const model = createGateway({ apiKey: "secret" })("test-model");
+
+describe("stateless AI provider construction", () => {
+  it.each([
+    "openai", "openaiCompatible", "openrouter", "azure", "xai", "mistral",
+    "groq", "google", "googleVertex", "minimax", "gateway",
+  ] as const)("creates the model from %s settings", async (id) => {
+    const definition = providerDefinitions[id];
+    const instance = definition.createInstance();
+
+    await instance.request([], "Hi", {
+      ...definition.settingsDefaults,
+      model: "test-model",
+      provider: {
+        ...definition.settingsDefaults.provider,
+        apiKey: "test-key",
+        baseURL: "https://example.com/v1",
+      },
+      generateText: { instructions: "Test instructions" },
+    });
+
+    expect(generateText).toHaveBeenCalledWith(expect.objectContaining({
+      model: expect.objectContaining({ modelId: "test-model" }),
+      instructions: "Test instructions",
+      prompt: expect.stringContaining("The reply should start with 'Hi'"),
+    }));
+  });
+
+  it("passes the OpenAI Compatible namespace to model creation", async () => {
+    await providerDefinitions.openaiCompatible.createInstance().request([], "", {
+      ...providerDefinitions.openaiCompatible.settingsDefaults,
+      name: "customNamespace",
+      model: "test-model",
+      provider: { apiKey: "test-key", baseURL: "https://example.com/v1" },
+    });
+
+    expect(generateText).toHaveBeenCalledWith(expect.objectContaining({
+      model: expect.objectContaining({ provider: "customNamespace.chat" }),
+    }));
+  });
+});
+
+describe("generateStatelessSuggestion", () => {
   it("renders instructions from the latest context profile system prompt only", async () => {
     const contexts = [
       new ChatContextImpl(
@@ -55,8 +97,8 @@ describe("generateWithAIProvider", () => {
       ),
     ];
 
-    await generateWithAIProvider(
-      providerDefinitions.gateway,
+    await generateStatelessSuggestion(
+      model,
       {
         model: "test-model",
         provider: {
@@ -84,8 +126,8 @@ describe("generateWithAIProvider", () => {
   });
 
   it("omits optional profile instructions when the latest context profile has none", async () => {
-    await generateWithAIProvider(
-      providerDefinitions.gateway,
+    await generateStatelessSuggestion(
+      model,
       {
         model: "test-model",
         provider: {
@@ -114,8 +156,8 @@ describe("generateWithAIProvider", () => {
   });
 
   it("does not let the raw instruction template overwrite the rendered instructions", async () => {
-    await generateWithAIProvider(
-      providerDefinitions.gateway,
+    await generateStatelessSuggestion(
+      model,
       {
         model: "test-model",
         provider: {
