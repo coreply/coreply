@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "../components/ui/text";
 import { createSchemaUiSchema } from "./schema-rules";
+import { useLingui } from "@lingui/react";
 
 function hasTextContent(value: string | undefined): value is string {
   return typeof value === "string" && value.length > 0;
@@ -29,6 +30,7 @@ const FormControl = ({
   renderers,
   cells,
 }: ControlProps) => {
+  const { i18n } = useLingui();
   const nestedUiSchema = useMemo(
     () => createSchemaUiSchema(schema),
     [rootSchema, schema],
@@ -61,7 +63,7 @@ const FormControl = ({
         <Text className="text-xs text-destructive font-sans">{errors}</Text>
       ) : hasTextContent(schema.description) ? (
         <Text className="text-xs text-muted-foreground font-sans">
-          {schema.description}
+          {i18n._(schema.description)}
         </Text>
       ) : null}
     </View>

@@ -3,8 +3,10 @@ import { withJsonFormsControlProps } from "@jsonforms/react";
 import { View } from "react-native";
 import { Input } from "../components/ui/input";
 import { Text } from "../components/ui/text";
+import { useLingui } from "@lingui/react";
 
 function JsonControl({ data, label, path, handleChange, errors, schema, enabled, visible }: ControlProps) {
+  const { i18n } = useLingui();
   if (!visible) return null;
   return (
     <View className="mb-4 gap-1.5">
@@ -17,7 +19,7 @@ function JsonControl({ data, label, path, handleChange, errors, schema, enabled,
           handleChange(path, text);
         }
       }} />
-      {schema.description ? <Text className="text-xs text-muted-foreground">{schema.description}</Text> : null}
+      {schema.description ? <Text className="text-xs text-muted-foreground">{i18n._(schema.description)}</Text> : null}
       {errors ? <Text className="text-xs text-destructive">{errors}</Text> : null}
     </View>
   );

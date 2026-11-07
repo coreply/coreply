@@ -8,6 +8,7 @@ import {
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import { View } from "react-native";
 import { Text, TextClassContext } from "../components/ui/text";
+import { useLingui } from "@lingui/react";
 import {
   Select,
   SelectTrigger,
@@ -53,6 +54,7 @@ const SelectControl = ({
   enabled,
   visible,
 }: ControlProps & { label?: string; required?: boolean }) => {
+  const { i18n } = useLingui();
   const options = getStringOptions(schema as Record<string, any>);
   const selectedOption =
     typeof data === "string"
@@ -105,7 +107,7 @@ const SelectControl = ({
           </Select>
           {hasTextContent(schema.description) ? (
             <Text className="text-xs text-muted-foreground">
-              {schema.description}
+              {i18n._(schema.description)}
             </Text>
           ) : null}
           {hasTextContent(errors) ? (

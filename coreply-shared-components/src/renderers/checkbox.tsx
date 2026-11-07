@@ -3,6 +3,7 @@ import { withJsonFormsControlProps, type ControlProps } from "@jsonforms/react";
 import { View } from "react-native";
 import { Text } from "../components/ui/text";
 import { Checkbox } from "../components/ui/checkbox";
+import { useLingui } from "@lingui/react";
 
 function hasTextContent(value: string | undefined): value is string {
   return typeof value === "string" && value.length > 0;
@@ -18,6 +19,7 @@ const CheckboxControl = ({
   errors,
   enabled,
 }: ControlProps & { label?: string; required?: boolean }) => {
+  const { i18n } = useLingui();
   const hasErrors = Boolean(errors);
   const isEnabled = enabled !== false;
 
@@ -46,7 +48,7 @@ const CheckboxControl = ({
       </View>
       {hasTextContent(schema.description) ? (
         <Text className="text-xs text-muted-foreground ml-6 font-sans">
-          {schema.description}
+          {i18n._(schema.description)}
         </Text>
       ) : null}
       {hasTextContent(errors) ? (

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Power } from "lucide-react-native";
+import { useLingui } from "@lingui/react/macro";
 
 type ToggleButtonProps = {
   isOn: boolean;
@@ -8,6 +9,7 @@ type ToggleButtonProps = {
 };
 
 export function ToggleButton({ isOn, onPress }: ToggleButtonProps) {
+  const { t } = useLingui();
   return (
     <Button
       variant={isOn ? "default" : "outline"}
@@ -17,7 +19,7 @@ export function ToggleButton({ isOn, onPress }: ToggleButtonProps) {
       ].join(" ")}
       style={{ transform: [{ rotate: isOn ? "0deg" : "180deg" }] }}
       onPress={onPress}
-      aria-label={isOn ? "Turn Coreply off" : "Turn Coreply on"}
+      aria-label={isOn ? t`Turn Coreply off` : t`Turn Coreply on`}
     >
       <Icon
         as={Power}

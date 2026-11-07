@@ -10,6 +10,7 @@ import { withJsonFormsControlProps } from "@jsonforms/react";
 import { View } from "react-native";
 import { Slider } from "../components/ui/slider";
 import { Text } from "../components/ui/text";
+import { useLingui } from "@lingui/react";
 
 type NumericJsonSchema = JsonSchema & {
   minimum?: number;
@@ -85,6 +86,7 @@ const SliderControl = ({
   errors,
   enabled,
 }: ControlProps & { label?: string; required?: boolean; data: number }) => {
+  const { i18n } = useLingui();
   const numericSchema = schema as NumericJsonSchema;
   const isInteger = numericSchema.type === "integer";
   const minimum = numericSchema.minimum as number;
@@ -129,7 +131,7 @@ const SliderControl = ({
 
       {numericSchema.description ? (
         <Text className="text-xs text-muted-foreground font-sans">
-          {numericSchema.description}
+          {i18n._(numericSchema.description)}
         </Text>
       ) : null}
       {errors ? (
