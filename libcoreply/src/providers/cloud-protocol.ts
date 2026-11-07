@@ -38,8 +38,7 @@ export const cloudSuggestSchema = cloudSuggestionInputSchema.extend({
   id: z.string().min(1).max(128),
 });
 
-export const cloudPostResponseSchema = z.object({ completion: z.string() });
-export const cloudHttpErrorSchema = z.object({ error: z.string() });
+export const cloudTokenSchema = z.object({ token: z.string().regex(/^[a-zA-Z0-9_-]{32}$/) });
 
 export const cloudResponseSchema = z.discriminatedUnion("type", [
   z.object({

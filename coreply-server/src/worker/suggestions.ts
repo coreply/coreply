@@ -1,14 +1,187 @@
 import { Hono } from "hono";
+import { Autumn } from "autumn-js";
+import type { User } from "better-auth";
+import type { ExecutionContext } from "hono";
 import { upgradeWebSocket } from "hono/cloudflare-workers";
 import { HTTPException } from "hono/http-exception";
+import {
+  createProviderInstance,
+  deserializeContext,
+  generateGenericProfile,
+  providerDefinitions,
+} from "libcoreply";
+import type { ProviderInstanceOptions } from "libcoreply";
 import {
   cloudSuggestionInputSchema,
   cloudSuggestSchema,
   type CloudResponse,
 } from "libcoreply/src/providers/cloud-protocol";
-import type { auth } from "./auth";
+import { z } from "zod";
+import { auth } from "./auth";
+import { featureId } from "./billing";
 import { cloudOrigins } from "./origins";
-import { requireSession } from "./session-middleware";
+
+const billingProviders = {
+  openaiStateful: "openai",
+  openaiCompatibleStateful: "custom",
+  openrouterStateful: "openrouter",
+  azureStateful: "azure",
+  xaiStateful: "xai",
+  mistralStateful: "mistral",
+  groqStateful: "groq",
+  googleStateful: "google",
+  googleVertexStateful: "google-vertex",
+  minimaxStateful: "minimax",
+} as const;
+
+const settingsSchema = z.object({
+  providerId: z.enum([
+    "openaiStateful",
+    "openaiCompatibleStateful",
+    "openrouterStateful",
+    "azureStateful",
+    "xaiStateful",
+    "mistralStateful",
+    "groqStateful",
+    "googleStateful",
+    "googleVertexStateful",
+    "minimaxStateful",
+  ]),
+  providerConfig: z.record(z.string(), z.unknown()),
+});
+
+function createSessionRuntime(env: Env) {
+  const config = settingsSchema.parse(JSON.parse(env.COREPLY_CLOUD_SETTINGS));
+  const settings = providerDefinitions[config.providerId].settingsSchema.parse(
+    config.providerConfig,
+  );
+  return {
+    provider: createProviderInstance(config.providerId),
+    settings,
+    modelId: `${billingProviders[config.providerId]}/${settings.model}`,
+    autumn: new Autumn({
+      secretKey: env.AUTUMN_SECRET_KEY,
+      xApiVersion: "2.3.0",
+    }),
+    profile: generateGenericProfile("coreply-cloud", "Coreply Cloud"),
+  };
+}
+
+async function trackModelResponse(
+  autumn: Autumn,
+  customerId: string,
+  modelId: string,
+  response: Parameters<
+    NonNullable<ProviderInstanceOptions["onModelResponse"]>
+  >[0],
+  generationId: string,
+  attempt: number,
+) {
+  const { inputTokenDetails, outputTokenDetails } = response.usage;
+  // Totals include cached input and reasoning. Autumn expects separate pools.
+  if (
+    inputTokenDetails.noCacheTokens === undefined ||
+    outputTokenDetails.textTokens === undefined
+  ) {
+    throw new Error(
+      "The model did not report separate input and text-output token usage.",
+    );
+  }
+  await autumn.trackTokens({
+    customerId,
+    featureId,
+    modelId,
+    inputTokens: inputTokenDetails.noCacheTokens,
+    outputTokens: outputTokenDetails.textTokens,
+    cacheReadTokens: inputTokenDetails.cacheReadTokens,
+    cacheWriteTokens: inputTokenDetails.cacheWriteTokens,
+    reasoningTokens: outputTokenDetails.reasoningTokens,
+    properties: { generationId, attempt },
+    async: true,
+  });
+  console.info("Cloud token usage accepted", {
+    generationId,
+    attempt,
+    modelId,
+    inputTokens: inputTokenDetails.noCacheTokens,
+    outputTokens: outputTokenDetails.textTokens,
+    cacheReadTokens: inputTokenDetails.cacheReadTokens,
+    cacheWriteTokens: inputTokenDetails.cacheWriteTokens,
+    reasoningTokens: outputTokenDetails.reasoningTokens,
+  });
+}
+
+function createSuggestionHandler(env: Env, ctx: ExecutionContext, user: User) {
+  let runtime: ReturnType<typeof createSessionRuntime> | undefined;
+
+  async function generate(input: z.infer<typeof cloudSuggestionInputSchema>) {
+    const generationId = crypto.randomUUID();
+    let attempt = 0;
+    try {
+      runtime ??= createSessionRuntime(env);
+      const { autumn, provider, settings, modelId, profile } = runtime;
+      // await autumn.customers.getOrCreate({
+      //   customerId: user.id,
+      //   name: user.name,
+      //   email: user.email,
+      // });
+      // // AI credits are dollars, so the default required balance of 1 would
+      // // reject customers with less than $1 even when they have usage left.
+      // const access = await autumn.check({
+      //   customerId: user.id,
+      //   featureId,
+      //   requiredBalance: 0.0001,
+      // });
+      // if (!access.allowed) {
+      //   throw new HTTPException(403, {
+      //     message: "Your usage limit has been reached.",
+      //   });
+      // }
+      const onModelResponse: ProviderInstanceOptions["onModelResponse"] = (response) => {
+        const tracking = trackModelResponse(
+          autumn,
+          user.id,
+          modelId,
+          response,
+          generationId,
+          ++attempt,
+        ).catch((error: unknown) => {
+          console.error("Cloud token tracking failed", {
+            generationId,
+            attempt,
+            modelId,
+            error: error instanceof Error ? error.name : "UnknownError",
+          });
+        });
+        ctx.waitUntil(tracking);
+      };
+      const contexts = input.contexts.map((context) =>
+        deserializeContext(context, profile),
+      );
+      const completion = await provider.request(
+        contexts,
+        input.typing,
+        settings,
+        { onModelResponse },
+      );
+      console.info("Cloud suggestion completed", {
+        generationId,
+        attempts: attempt,
+      });
+      return completion;
+    } catch (error) {
+      console.error("Cloud suggestion failed", {
+        generationId,
+        error: error instanceof Error ? error.name : "UnknownError",
+      });
+      // Never expose provider errors, settings, credentials, or prompt content.
+      if (error instanceof HTTPException) throw error;
+      throw new Error("Couldn't generate a suggestion. Please try again.");
+    }
+  }
+
+  return generate;
+}
 
 export const suggestionWebSocket = new Hono<{
   Bindings: Env;
@@ -23,121 +196,152 @@ export const suggestionWebSocket = new Hono<{
       connectionId,
       origin,
       cookieHeaderPresent: cookie !== undefined,
-      cookieNames: cookie?.split(";").map((entry) => entry.split("=", 1)[0].trim()),
+      cookieNames: cookie
+        ?.split(";")
+        .map((entry) => entry.split("=", 1)[0].trim()),
     });
     if (!origin || !cloudOrigins.includes(origin)) {
       return c.json({ error: "Forbidden" }, 403);
     }
-    if (c.req.method !== "GET" || c.req.header("Upgrade")?.toLowerCase() !== "websocket") {
+    if (
+      c.req.method !== "GET" ||
+      c.req.header("Upgrade")?.toLowerCase() !== "websocket"
+    ) {
       return c.json({ error: "A WebSocket upgrade is required." }, 426);
     }
-    await next();
-    console.info("Cloud WebSocket handshake response", { connectionId, status: c.res.status });
-  })
-  .use("*", requireSession)
-  .get("/", upgradeWebSocket((c) => {
-    const connectionId = c.get("connectionId");
-    // Capture identity at the cookie-authenticated handshake. Open sockets do
-    // not reauthenticate or change identity when the browser's session changes.
-    const user = c.get("session").user;
-    const session = c.env.SUGGESTION_SESSIONS.getByName(user.id);
-    const pendingIds = new Set<string>();
-    let closed = false;
-    return {
-      onMessage(event, ws) {
-        if (closed) return;
-        if (typeof event.data !== "string" || event.data.length > 2 * 1024 * 1024) {
-          closed = true;
-          ws.close(1009, "Invalid message size or type");
-          return;
-        }
-        let request;
-        try {
-          request = cloudSuggestSchema.parse(JSON.parse(event.data));
-        } catch {
-          closed = true;
-          ws.close(1008, "Invalid suggestion request");
-          return;
-        }
-        if (pendingIds.has(request.id)) {
-          closed = true;
-          ws.close(1008, "Duplicate request");
-          return;
-        }
-        pendingIds.add(request.id);
-        const send = (response: CloudResponse) => {
-          if (!closed && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(response));
-        };
-        const task = (async () => {
-          try {
-            const completion = await session.suggest(user, {
-              contexts: request.contexts,
-              typing: request.typing,
-            });
-            send({ type: "completion", id: request.id, completion });
-          } catch (error) {
-            console.error("Cloud WebSocket suggestion failed", { connectionId, requestId: request.id });
-            send({
-              type: "error",
-              id: request.id,
-              message: error instanceof Error ? error.message : "Couldn't generate a suggestion. Please try again.",
-            });
-          } finally {
-            pendingIds.delete(request.id);
-          }
-        })().catch(() => {
-          closed = true;
-          ws.close(1011, "Connection failed");
-        });
-        c.executionCtx.waitUntil(task);
-      },
-      onClose(event) {
-        closed = true;
-        pendingIds.clear();
-        console.info("Cloud WebSocket closed", { connectionId, code: event.code });
-      },
-      onError() {
-        closed = true;
-        pendingIds.clear();
-        console.warn("Cloud WebSocket transport error", { connectionId });
-      },
-    };
-  }))
-  .onError((error, c) => {
-    if (error instanceof HTTPException) return c.json({ error: error.message }, error.status);
-    console.error("Cloud WebSocket connection failed", { connectionId: c.get("connectionId"), error: error.name });
-    return c.json({ error: "Coreply Cloud is unavailable. Please try again." }, 503);
-  });
-
-// Mounted after the Worker's CORS and cookie-session middleware.
-export const suggestions = new Hono<{
-  Bindings: Env;
-  Variables: { session: typeof auth.$Infer.Session };
-}>()
-  .post("/", async (c) => {
-    c.header("Cache-Control", "private, no-store");
-    const origin = c.req.header("Origin");
-    if (origin && !cloudOrigins.includes(origin)) return c.json({ error: "Forbidden" }, 403);
-    // JSON-only requests require a preflight from untrusted browser origins.
-    // Extensions with host permission can legitimately omit the Origin header.
-    if (c.req.header("Content-Type")?.split(";", 1)[0].trim().toLowerCase() !== "application/json") {
-      return c.json({ error: "Content-Type must be application/json." }, 415);
+    const protocols = c.req
+      .header("Sec-WebSocket-Protocol")
+      ?.split(",")
+      .map((value) => value.trim());
+    if (
+      !protocols ||
+      protocols.length !== 2 ||
+      protocols[0] !== "coreply.token" ||
+      !/^[a-zA-Z0-9_-]{32}$/.test(protocols[1])
+    ) {
+      return c.json({ error: "Unauthorized" }, 401);
     }
-    let input;
     try {
-      input = cloudSuggestionInputSchema.parse(await c.req.json());
+      const session = await auth.api.verifyOneTimeToken({
+        body: { token: protocols[1] },
+      });
+      c.set("session", session);
     } catch {
-      return c.json({ error: "Invalid suggestion request." }, 400);
+      return c.json({ error: "Unauthorized" }, 401);
     }
     const user = c.get("session").user;
-    try {
-      const session = c.env.SUGGESTION_SESSIONS.getByName(user.id);
-      const completion = await session.suggest(user, input);
-      return c.json({ completion });
-    } catch (error) {
-      console.error("Cloud HTTP suggestion failed");
-      return c.json({
-        error: error instanceof Error ? error.message : "Couldn't generate a suggestion. Please try again.",
-      }, 502);
+    const autumn = new Autumn({
+      secretKey: c.env.AUTUMN_SECRET_KEY,
+      xApiVersion: "2.3.0",
+    });
+    // AI credits are dollars, so the default required balance of 1 would
+    // reject customers with less than $1 even when they have usage left.
+    const access = await autumn.check({
+      customerId: user.id,
+      featureId,
+      requiredBalance: 0.0001,
+    });
+    if (!access.allowed) {
+      return c.json({ error: "Your usage limit has been reached." }, 403);
     }
+    await next();
+    if (c.res.status === 101)
+      c.res.headers.set("Sec-WebSocket-Protocol", "coreply.token");
+    console.info("Cloud WebSocket handshake response", {
+      connectionId,
+      status: c.res.status,
+    });
+  })
+  .get(
+    "/",
+    upgradeWebSocket((c) => {
+      const connectionId = c.get("connectionId");
+      // Capture identity at the token-authenticated handshake. Open sockets do
+      // not reauthenticate or change identity when the browser's session changes.
+      const user = c.get("session").user;
+      const suggest = createSuggestionHandler(c.env, c.executionCtx, user);
+      const pendingIds = new Set<string>();
+      let closed = false;
+      return {
+        onMessage(event, ws) {
+          if (closed) return;
+          if (typeof event.data !== "string") {
+            closed = true;
+            ws.close(1008, "Invalid message type");
+            return;
+          }
+          let request;
+          try {
+            request = cloudSuggestSchema.parse(JSON.parse(event.data));
+          } catch {
+            closed = true;
+            ws.close(1008, "Invalid suggestion request");
+            return;
+          }
+          if (pendingIds.has(request.id)) {
+            closed = true;
+            ws.close(1008, "Duplicate request");
+            return;
+          }
+          pendingIds.add(request.id);
+          const send = (response: CloudResponse) => {
+            if (!closed && ws.readyState === WebSocket.OPEN)
+              ws.send(JSON.stringify(response));
+          };
+          const task = (async () => {
+            try {
+              const completion = await suggest({
+                contexts: request.contexts,
+                typing: request.typing,
+              });
+              send({ type: "completion", id: request.id, completion });
+            } catch (error) {
+              console.error("Cloud WebSocket suggestion failed", {
+                connectionId,
+                requestId: request.id,
+              });
+              send({
+                type: "error",
+                id: request.id,
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Couldn't generate a suggestion. Please try again.",
+              });
+            } finally {
+              pendingIds.delete(request.id);
+            }
+          })().catch(() => {
+            closed = true;
+            ws.close(1011, "Connection failed");
+          });
+          c.executionCtx.waitUntil(task);
+        },
+        onClose(event) {
+          closed = true;
+          pendingIds.clear();
+          console.info("Cloud WebSocket closed", {
+            connectionId,
+            code: event.code,
+          });
+        },
+        onError() {
+          closed = true;
+          pendingIds.clear();
+          console.warn("Cloud WebSocket transport error", { connectionId });
+        },
+      };
+    }),
+  )
+  .onError((error, c) => {
+    if (error instanceof HTTPException)
+      return c.json({ error: error.message }, error.status);
+    console.error("Cloud WebSocket connection failed", {
+      connectionId: c.get("connectionId"),
+      error: error.name,
+    });
+    return c.json(
+      { error: "Coreply Cloud is unavailable. Please try again." },
+      503,
+    );
   });

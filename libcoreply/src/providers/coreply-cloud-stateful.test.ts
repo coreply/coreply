@@ -8,10 +8,12 @@ class TestWebSocket extends EventTarget {
   readyState = 0;
   readonly sent: string[] = [];
   readonly url: string;
+  readonly protocols: string[];
 
-  constructor(url: string) {
+  constructor(url: string, protocols: string[]) {
     super();
     this.url = url;
+    this.protocols = protocols;
     TestWebSocket.instances.push(this);
   }
 
@@ -50,6 +52,7 @@ function latestSocket() {
 beforeEach(() => {
   TestWebSocket.instances.length = 0;
   vi.stubGlobal("WebSocket", TestWebSocket);
+  vi.stubGlobal("fetch", vi.fn().mockImplementation(async () => Response.json({ token: "a".repeat(32) })));
 });
 
 afterEach(() => {
@@ -57,36 +60,31 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("Coreply Cloud transport selection", () => {
-  it("shares the initial WS attempt and permanently falls back to credentialed POST", async () => {
-    const fetch = vi.fn().mockImplementation(async () => Response.json({ completion: "done" }));
-    vi.stubGlobal("fetch", fetch);
+describe("Coreply Cloud WebSocket transport", () => {
+  it("shares the initial connection and reports a WebSocket failure", async () => {
     const provider = new CoreplyCloudStatefulInstance("http://localhost:5173");
     const first = provider.request([], "one");
     const second = provider.request([], "two");
-    expect(TestWebSocket.instances).toHaveLength(1);
+    const results = Promise.allSettled([first, second]);
+    await vi.waitFor(() => expect(TestWebSocket.instances).toHaveLength(1));
     latestSocket().fail();
-    await expect(Promise.all([first, second])).resolves.toEqual(["done", "done"]);
-    await expect(provider.request([], "three")).resolves.toBe("done");
-    expect(TestWebSocket.instances).toHaveLength(1);
-    expect(fetch).toHaveBeenCalledTimes(3);
-    expect(fetch).toHaveBeenLastCalledWith(new URL("http://localhost:5173/api/suggestions"), {
-      method: "POST",
+    expect((await results).map((result) => result.status)).toEqual(["rejected", "rejected"]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(new URL("http://localhost:5173/api/auth/one-time-token/generate"), {
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contexts: [], typing: "three" }),
+      cache: "no-store",
     });
     provider.dispose();
   });
 
   it("reuses an open socket and matches concurrent responses by request ID", async () => {
-    const fetch = vi.fn();
-    vi.stubGlobal("fetch", fetch);
     const provider = new CoreplyCloudStatefulInstance("https://cloud.example.com");
     const first = provider.request([], "one");
     const second = provider.request([], "two");
+    await vi.waitFor(() => expect(TestWebSocket.instances).toHaveLength(1));
     const socket = latestSocket();
     expect(socket.url).toBe("wss://cloud.example.com/api/suggestions/ws");
+    expect(socket.protocols).toEqual(["coreply.token", "a".repeat(32)]);
     socket.open();
     await vi.waitFor(() => expect(socket.sent).toHaveLength(2));
     const [one, two] = socket.sent.map((data) => cloudSuggestSchema.parse(JSON.parse(data)));
@@ -94,23 +92,22 @@ describe("Coreply Cloud transport selection", () => {
     socket.respond({ type: "completion", id: one.id, completion: "first" });
     await expect(Promise.all([first, second])).resolves.toEqual(["first", "second"]);
     expect(TestWebSocket.instances).toHaveLength(1);
-    expect(fetch).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
     provider.dispose();
   });
 
-  it("does not switch to POST for a suggestion error on an established socket", async () => {
-    const fetch = vi.fn();
-    vi.stubGlobal("fetch", fetch);
+  it("keeps the socket open after a suggestion error", async () => {
     const provider = new CoreplyCloudStatefulInstance("http://localhost:5173");
     const request = provider.request([], "one");
     const rejected = expect(request).rejects.toThrow("Usage limit reached");
+    await vi.waitFor(() => expect(TestWebSocket.instances).toHaveLength(1));
     const socket = latestSocket();
     socket.open();
     await vi.waitFor(() => expect(socket.sent).toHaveLength(1));
     const message = cloudSuggestSchema.parse(JSON.parse(socket.sent[0]));
     socket.respond({ type: "error", id: message.id, message: "Usage limit reached" });
     await rejected;
-    expect(fetch).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
     const next = provider.request([], "two");
     await vi.waitFor(() => expect(socket.sent).toHaveLength(2));
     const nextMessage = cloudSuggestSchema.parse(JSON.parse(socket.sent[1]));
@@ -120,38 +117,33 @@ describe("Coreply Cloud transport selection", () => {
     provider.dispose();
   });
 
-  it("rejects disconnected requests without replay and tries WS again before falling back", async () => {
-    const fetch = vi.fn().mockImplementation(async () => Response.json({ completion: "post" }));
-    vi.stubGlobal("fetch", fetch);
+  it("rejects disconnected requests without replay and obtains a fresh token on reconnect", async () => {
     const provider = new CoreplyCloudStatefulInstance("http://localhost:5173");
     const request = provider.request([], "one");
     const rejected = expect(request).rejects.toThrow("disconnected");
+    await vi.waitFor(() => expect(TestWebSocket.instances).toHaveLength(1));
     const socket = latestSocket();
     socket.open();
     await vi.waitFor(() => expect(socket.sent).toHaveLength(1));
     socket.close();
     await rejected;
-    expect(fetch).not.toHaveBeenCalled();
-    const next = provider.request([], "two");
-    expect(TestWebSocket.instances).toHaveLength(2);
-    latestSocket().fail();
-    await expect(next).resolves.toBe("post");
     expect(fetch).toHaveBeenCalledTimes(1);
+    const next = provider.request([], "two");
+    const rejectedNext = expect(next).rejects.toThrow("disconnected");
+    await vi.waitFor(() => expect(TestWebSocket.instances).toHaveLength(2));
+    latestSocket().fail();
+    await rejectedNext;
+    expect(fetch).toHaveBeenCalledTimes(2);
     provider.dispose();
   });
 
-  it("reports both the WS failure and the POST error", async () => {
+  it("reports token authentication failures without opening a socket", async () => {
     vi.stubGlobal("fetch", vi.fn().mockImplementation(async () =>
       Response.json({ error: "Unauthorized" }, { status: 401 }),
     ));
     const provider = new CoreplyCloudStatefulInstance("http://localhost:5173");
-    const request = provider.request([], "one");
-    latestSocket().fail();
-    await expect(request).rejects.toMatchObject({
-      name: "AggregateError",
-      message: "Coreply Cloud WebSocket connection and HTTP POST failed: Unauthorized",
-      errors: [expect.any(Error), expect.objectContaining({ message: "Unauthorized" })],
-    });
+    await expect(provider.request([], "one")).rejects.toThrow("Couldn't authenticate with Coreply Cloud");
+    expect(TestWebSocket.instances).toHaveLength(0);
     provider.dispose();
   });
 });

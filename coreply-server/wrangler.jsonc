@@ -24,17 +24,6 @@
       "migrations_dir": "drizzle"
     }
   ],
-  "durable_objects": {
-    "bindings": [
-      { "name": "SUGGESTION_SESSIONS", "class_name": "SuggestionSession" }
-    ]
-  },
-  "exports": {
-    "SuggestionSession": {
-      "type": "durable-object",
-      "storage": "sqlite"
-    }
-  },
   "secrets": {
     "required": [
       "BETTER_AUTH_SECRET",
@@ -43,6 +32,8 @@
       "GOOGLE_ANDROID_CLIENT_ID",
       "GOOGLE_EXTENSION_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",
+      "GITHUB_CLIENT_ID",
+      "GITHUB_CLIENT_SECRET",
       "CLOUD_WEB_ORIGIN",
       "AUTUMN_SECRET_KEY",
       "COREPLY_CLOUD_SETTINGS"

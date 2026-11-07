@@ -2,7 +2,7 @@
 
 ## Authentication setup
 
-Google-only Better Auth runs in the Hono Worker, using Drizzle and D1. `/demo`
+Google and GitHub sign-in use Better Auth in the Hono Worker, using Drizzle and D1. `/demo`
 requires a session. `/api/auth/*` stays public; all other `/api/*` routes verify
 the session on the backend. Cached frontend state never authorizes API requests.
 
@@ -16,12 +16,18 @@ Copy `.dev.vars.example` to `.dev.vars` in this package and set:
 | `BETTER_AUTH_URL` | Backend origin, e.g. `http://localhost:5173` locally, your HTTPS origin in production. |
 | `GOOGLE_CLIENT_ID` | Google **Web application** OAuth client ID. |
 | `GOOGLE_CLIENT_SECRET` | Secret for that Web OAuth client. Server only. |
+| `GITHUB_CLIENT_ID` | GitHub OAuth app client ID. |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret. Server only. |
 | `CLOUD_WEB_ORIGIN` | Exact browser frontend origin. Use `http://localhost:5173` for this frontend or `http://localhost:8081` for Expo web. |
 
 Register these Google Web OAuth redirect URIs:
 
 - `http://localhost:5173/api/auth/callback/google`
 - `https://YOUR_CLOUD_HOST/api/auth/callback/google`
+
+Create GitHub OAuth apps for development and production, with callback URLs
+`http://localhost:5173/api/auth/callback/github` and
+`https://YOUR_CLOUD_HOST/api/auth/callback/github`, respectively.
 
 For production, set each variable with `pnpm exec wrangler secret put NAME`.
 This frontend is same-origin. Optionally set `VITE_COREPLY_CLOUD_CALLBACK_URL`
