@@ -18,6 +18,7 @@
     "@lingui/react": "^6.10.1",
     "@react-native-community/slider": "^5.2.0",
     "@rn-primitives/accordion": "^1.4.0",
+    "@rn-primitives/alert-dialog": "^1.5.2",
     "@rn-primitives/checkbox": "^1.4.0",
     "@rn-primitives/progress": "^1.5.2",
     "@rn-primitives/radio-group": "^1.5.2",
@@ -37,14 +38,12 @@
     "lucide-react-native": "^1.18.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-native": "0.85.3",
     "react-native-nitro-google-signin": "^2.3.0",
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-web": "~0.21.2",
     "tailwind-merge": "^3.6.0",
-    "uniwind": "^1.9.0",
     "zod": "^4.0.1"
   },
   "devDependencies": {
@@ -53,10 +52,14 @@
     "@types/react-native-web": "^0.19.2",
     "babel-preset-expo": "^56.0.15",
     "prettier-plugin-tailwindcss": "^0.5.14",
+    "react-native": "0.85.3",
     "tailwindcss": "^4.3.0",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "uniwind": "^1.9.0"
   },
   "peerDependencies": {
-    "@tanstack/react-query": "^5.104.4"
+    "@tanstack/react-query": "^5.104.4",
+    "react-native": "0.85.3",
+    "uniwind": "^1.9.0"
   }
 }

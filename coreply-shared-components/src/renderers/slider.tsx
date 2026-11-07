@@ -85,8 +85,10 @@ const SliderControl = ({
   required,
   errors,
   enabled,
+  visible,
 }: ControlProps & { label?: string; required?: boolean; data: number }) => {
   const { i18n } = useLingui();
+  if (!visible) return null;
   const numericSchema = schema as NumericJsonSchema;
   const isInteger = numericSchema.type === "integer";
   const minimum = numericSchema.minimum as number;

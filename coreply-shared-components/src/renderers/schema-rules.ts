@@ -15,6 +15,7 @@ function resolveSchemaFromScope(
       disabledWhenFieldFalse?: string;
       show?: boolean;
       enabled?: boolean;
+      isAdvancedSettings?: boolean;
     })
   | undefined {
   if (scope === "#") {
@@ -45,6 +46,7 @@ function resolveSchemaFromScope(
         disabledWhenFieldFalse?: string;
         show?: boolean;
         enabled?: boolean;
+        isAdvancedSettings?: boolean;
       })
     : undefined;
 }
@@ -52,11 +54,15 @@ function resolveSchemaFromScope(
 export function applySchemaRules(
   element: UISchemaElement,
   schema: JsonSchema,
+  showAdvancedSettings: boolean,
 ): UISchemaElement {
   if (element.type === "Control") {
     const controlElement = element as ControlElement;
     const propertySchema = resolveSchemaFromScope(schema, controlElement.scope);
-    if (propertySchema?.show === false) {
+    if (
+      propertySchema?.show === false ||
+      (propertySchema?.isAdvancedSettings === true && !showAdvancedSettings)
+    ) {
       return {
         ...element,
         rule: {
@@ -105,7 +111,7 @@ export function applySchemaRules(
     return {
       ...element,
       elements: element.elements.map((child) =>
-        applySchemaRules(child, schema),
+        applySchemaRules(child, schema, showAdvancedSettings),
       ),
     };
   }
@@ -113,6 +119,16 @@ export function applySchemaRules(
   return element;
 }
 
-export function createSchemaUiSchema(schema: JsonSchema) {
-  return applySchemaRules(Generate.uiSchema(schema), schema);
+export function createSchemaUiSchema(
+  schema: JsonSchema,
+  showAdvancedSettings: boolean,
+) {
+  return applySchemaRules(Generate.uiSchema(schema), schema, showAdvancedSettings);
+}
+
+export function hasAdvancedSettings(schema: JsonSchema) {
+  return Object.values(schema.properties ?? {}).some(
+    (property: JsonSchema & { isAdvancedSettings?: boolean; show?: boolean }) =>
+      property.isAdvancedSettings === true && property.show !== false,
+  );
 }

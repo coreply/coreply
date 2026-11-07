@@ -1,14 +1,20 @@
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Platform, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import { z } from "zod";
 import {
   builtInProfiles,
+  dropRuleSchema,
   exactPackageRule,
   profileSchema,
+  providerDefinitions,
+  sharedContextExtractorSchema,
+  sharedProfileSchema,
   type Profile,
+  type ProviderDefinition,
 } from "libcoreply";
+import { ProviderSelector } from "@/components/groups";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { SchemaForm } from "@/components/ui/form";
@@ -23,25 +29,42 @@ import { storageManager } from "@/constants/storage-manager";
 import CoreplyModule from "@/modules/coreply-module/src/CoreplyModule";
 import { syncStoredSettings } from "@/utils/sync-stored-settings";
 
-const androidEditorSchema = profileSchema.extend({
-  displayName: z.string().optional().meta({ enabled: false }),
-});
-
 export default function ProfileScreen() {
+  const { t } = useLingui();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [profile, setProfile] = useState<Profile>();
+  const [profileSettingsSchema, setProfileSettingsSchema] =
+    useState<ProviderDefinition["profileSettingsSchema"]>();
+  const [globalProviderId, setGlobalProviderId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
   const generation = useRef(0);
   const latestProfile = useRef<Profile | undefined>(undefined);
   const savedValue = useRef<string | undefined>(undefined);
   const platform = Platform.OS === "android" ? "android" : "web";
+  const editorSchema = useMemo(() => {
+    if (!profileSettingsSchema) return;
+    return sharedProfileSchema.extend({
+      ...profileSettingsSchema.profile.shape,
+      ...(platform === "android" ? {
+        id: sharedProfileSchema.shape.id.meta({ show: false }),
+        displayName: sharedProfileSchema.shape.displayName.meta({ show: false }),
+        platform: sharedProfileSchema.shape.platform.meta({ show: false }),
+        matchingRule: sharedProfileSchema.shape.matchingRule.meta({ show: false }),
+      } : {}),
+      contextExtractors: sharedContextExtractorSchema.extend(
+        profileSettingsSchema.extractor.shape,
+      ).array(),
+      dropRule: dropRuleSchema,
+    });
+  }, [platform, profileSettingsSchema]);
   const presets = builtInProfiles.filter(
     (entry) => entry.platform === platform,
   );
 
   useEffect(() => {
     async function load() {
+      const providerId = await storageManager.loadProviderId();
       const profiles =
         platform === "android"
           ? await storageManager.prepareAndroidProfiles(
@@ -51,6 +74,8 @@ export default function ProfileScreen() {
       const found = profiles.find((entry) => entry.id === id);
       if (!found) throw new Error("Profile not found");
       setProfile(found);
+      setGlobalProviderId(providerId);
+      setProfileSettingsSchema(providerDefinitions[(found.providerId ?? providerId) as keyof typeof providerDefinitions].profileSettingsSchema);
       latestProfile.current = found;
       savedValue.current = JSON.stringify(profileSchema.parse(found));
     }
@@ -82,12 +107,12 @@ export default function ProfileScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: profile?.displayName ?? "Profile",
+          title: profile?.displayName ?? t`Profile`,
         }}
       />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <View className="w-full max-w-3xl self-center gap-4">
-          {profile ? (
+          {profile && editorSchema ? (
             <>
               <View className="flex-row items-center gap-2">
                 <View className="flex-1">
@@ -101,6 +126,7 @@ export default function ProfileScreen() {
                       void action(async () => {
                         await replace({
                           ...profileSchema.parse(template),
+                          providerId: profile.providerId,
                           id: profile.id,
                           displayName: latestProfile.current?.displayName,
                           matchingRule:
@@ -113,7 +139,7 @@ export default function ProfileScreen() {
                     disabled={busy}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Apply preset" />
+                      <SelectValue placeholder={t`Apply preset`} />
                     </SelectTrigger>
                     <SelectContent portalHost="coreplyPortal">
                       {presets.map((entry) => (
@@ -140,6 +166,9 @@ export default function ProfileScreen() {
                           profile.displayName,
                         );
                         setProfile(next);
+                        if (globalProviderId) {
+                          setProfileSettingsSchema(providerDefinitions[(next.providerId ?? globalProviderId) as keyof typeof providerDefinitions].profileSettingsSchema);
+                        }
                         latestProfile.current = next;
                         savedValue.current = JSON.stringify(
                           profileSchema.parse(next),
@@ -149,7 +178,7 @@ export default function ProfileScreen() {
                       })
                     }
                   >
-                    <Text>Reset to default</Text>
+                    <Text><Trans comment="Resets the app profile to its default settings">Reset to default</Trans></Text>
                   </Button>
                 ) : (
                   <Button
@@ -164,18 +193,33 @@ export default function ProfileScreen() {
                       })
                     }
                   >
-                    <Text className="text-destructive">Delete profile</Text>
+                    <Text className="text-destructive"><Trans>Delete profile</Trans></Text>
                   </Button>
                 )}
               </View>
+              <Text className="font-semibold"><Trans>API Provider</Trans></Text>
+              <ProviderSelector
+                selectedProviderKey={profile.providerId ?? null}
+                allowGlobalDefault
+                onProviderChange={(option) => {
+                  void action(async () => {
+                    const providerId = option?.value ?? globalProviderId;
+                    if (!providerId) return;
+                    await storageManager.ensureProviderConfig(providerId);
+                    setProfileSettingsSchema(providerDefinitions[providerId as keyof typeof providerDefinitions].profileSettingsSchema);
+                    const current = latestProfile.current;
+                    if (!current) return;
+                    await replace({ ...current, providerId: option?.value ?? null });
+                  });
+                }}
+              />
               <SchemaForm
                 key={revision}
-                schema={
-                  platform === "android" ? androidEditorSchema : profileSchema
-                }
+                schema={editorSchema}
                 data={profile}
                 onChange={(draft) => {
                   if (revision !== generation.current) return;
+                  // Validate the full draft so settings absent from the editor schema survive.
                   const parsed = profileSchema.safeParse(draft);
                   if (!parsed.success) return;
                   latestProfile.current = parsed.data;

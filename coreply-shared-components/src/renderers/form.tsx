@@ -9,10 +9,9 @@ import {
   ResolvedJsonFormsDispatch,
   withJsonFormsControlProps,
 } from "@jsonforms/react";
-import { useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "../components/ui/text";
-import { createSchemaUiSchema } from "./schema-rules";
+import { SchemaFields } from "../components/groups/schema-fields";
 import { useLingui } from "@lingui/react";
 
 function hasTextContent(value: string | undefined): value is string {
@@ -27,15 +26,13 @@ const FormControl = ({
   required,
   errors,
   enabled,
+  visible,
   renderers,
   cells,
 }: ControlProps) => {
   const { i18n } = useLingui();
-  const nestedUiSchema = useMemo(
-    () => createSchemaUiSchema(schema),
-    [rootSchema, schema],
-  );
   const hasErrors = Boolean(errors);
+  if (!visible) return null;
 
   return (
     <View className="my-2 gap-1.5">
@@ -50,14 +47,18 @@ const FormControl = ({
           hasErrors ? "border-destructive" : "border-border",
         ].join(" ")}
       >
-        <ResolvedJsonFormsDispatch
-          schema={schema}
-          uischema={nestedUiSchema}
-          path={path}
-          enabled={enabled}
-          renderers={renderers}
-          cells={cells}
-        />
+        <SchemaFields schema={schema}>
+          {(nestedUiSchema) => (
+            <ResolvedJsonFormsDispatch
+              schema={schema}
+              uischema={nestedUiSchema}
+              path={path}
+              enabled={enabled}
+              renderers={renderers}
+              cells={cells}
+            />
+          )}
+        </SchemaFields>
       </View>
       {hasTextContent(errors) ? (
         <Text className="text-xs text-destructive font-sans">{errors}</Text>

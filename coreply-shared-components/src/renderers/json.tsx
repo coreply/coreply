@@ -11,7 +11,7 @@ function JsonControl({ data, label, path, handleChange, errors, schema, enabled,
   return (
     <View className="mb-4 gap-1.5">
       <Text className="text-sm font-medium">{label}</Text>
-      <Input value={typeof data === "string" ? data : data === undefined ? "" : JSON.stringify(data)} editable={enabled} onChangeText={(text) => {
+      <Input className="font-sans" value={typeof data === "string" ? data : data === undefined ? "" : JSON.stringify(data)} editable={enabled} onChangeText={(text) => {
         try {
           const value: unknown = JSON.parse(text);
           handleChange(path, value);

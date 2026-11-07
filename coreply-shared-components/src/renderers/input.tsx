@@ -74,6 +74,7 @@ const InputControl = ({
   required,
   errors,
   enabled,
+  visible,
 }: ControlProps & {
   schema: ControlProps["schema"] & {
     feature?: string;
@@ -83,6 +84,7 @@ const InputControl = ({
 }) => {
   const { t } = useLinguiMacro();
   const [passwordVisible, setPasswordVisible] = useState(false);
+  if (!visible) return null;
   const isEnabled = enabled !== false;
   const isNumeric = schema.type === "number" || schema.type === "integer";
   const isInteger = schema.type === "integer";
@@ -123,7 +125,7 @@ const InputControl = ({
         handleChange(path, Number.isNaN(nextValue) ? undefined : nextValue);
       }}
       className={[
-        "shadow-none",
+        "font-sans shadow-none",
         isPassword ? "pr-9" : undefined,
         isMultiline && (!isPassword || passwordVisible)
           ? multilineClassName

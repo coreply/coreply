@@ -5,7 +5,7 @@ import { View } from "react-native";
 import { Text } from "./text";
 import { z, type ZodSchema } from "zod";
 import { customRenderers } from "../../renderers";
-import { createSchemaUiSchema } from "../../renderers/schema-rules";
+import { SchemaFields } from "../groups/schema-fields";
 import debounce from "debounce";
 
 function safeParseWithCustomStringErrors<T extends Record<string, any>>(
@@ -84,10 +84,6 @@ export function SchemaForm<T extends Record<string, any>>({
     }) as JsonSchema;
   }, [schema]);
 
-  const resolvedUiSchema = useMemo(() => {
-    return createSchemaUiSchema(jsonSchema);
-  }, [jsonSchema]);
-
   useEffect(() => {
     setDraftData(data);
   }, [data]);
@@ -95,15 +91,19 @@ export function SchemaForm<T extends Record<string, any>>({
   return (
     <View className={className || ""}>
       {title && <Text className="mb-5 text-base font-medium">{title}</Text>}
-      <JsonForms
-        schema={jsonSchema}
-        uischema={uiSchema ?? resolvedUiSchema}
-        data={draftData}
-        onChange={({ data: newData }) => emitChange(newData)}
-        renderers={customRenderers}
-        additionalErrors={additionalErrors}
-        validationMode="NoValidation"
-      />
+      <SchemaFields schema={jsonSchema}>
+        {(resolvedUiSchema) => (
+          <JsonForms
+            schema={jsonSchema}
+            uischema={uiSchema ?? resolvedUiSchema}
+            data={draftData}
+            onChange={({ data: newData }) => emitChange(newData)}
+            renderers={customRenderers}
+            additionalErrors={additionalErrors}
+            validationMode="NoValidation"
+          />
+        )}
+      </SchemaFields>
     </View>
   );
 }

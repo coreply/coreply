@@ -18,10 +18,12 @@ const CheckboxControl = ({
   required,
   errors,
   enabled,
+  visible,
 }: ControlProps & { label?: string; required?: boolean }) => {
   const { i18n } = useLingui();
   const hasErrors = Boolean(errors);
   const isEnabled = enabled !== false;
+  if (!visible) return null;
 
   return (
     <View className="mb-4 gap-1.5">
