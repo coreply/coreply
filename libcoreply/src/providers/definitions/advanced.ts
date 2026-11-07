@@ -1,6 +1,7 @@
 import Mustache from "mustache";
 import { z } from "zod";
 import { DEFAULT_ADVANCED_BODY } from "../../settings";
+import { structuredContextProfileSettingsSchema } from "../definition";
 import { StatelessProviderInstance } from "../stateless";
 import type { ChatContext, CoreplyContext } from "../../context";
 import { TypingInfo } from "../../context";
@@ -41,22 +42,23 @@ export function buildAdvancedContextMap(
 
 const settingsSchema = z.object({
   provider: z.object({
-    requestUrl: z.httpUrl().describe("Request URL that will receive the generated payload"),
+    requestUrl: z.httpUrl().describe("Request URL that will receive the generated payload").meta({ isAdvancedSettings: true }),
     authorizationBearer: z.string().optional()
       .describe("Bearer token sent in the Authorization header")
-      .meta({ feature: "password" }),
+      .meta({ feature: "password", isAdvancedSettings: true }),
   }),
   templates: z.object({
     bodyTemplate: z.string().describe("Mustache template used to build the outbound request body")
-      .meta({ control: "textarea" }),
+      .meta({ control: "textarea", isAdvancedSettings: true }),
     suggestionTemplate: z.string()
-      .describe("Mustache template used to extract the final suggestion from the response"),
+      .describe("Mustache template used to extract the final suggestion from the response").meta({ isAdvancedSettings: true }),
   }),
 });
 
 export const advancedProvider = {
   name: "Advanced Mode",
   stateful: false,
+  profileSettingsSchema: structuredContextProfileSettingsSchema,
   settingsSchema,
   settingsDefaults: {
     provider: {},

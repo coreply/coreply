@@ -23,6 +23,7 @@ export class ContextStore {
       ) {
         const existingContext = this.contexts[i];
         if (existingContext.tryUpdate(context)) {
+          existingContext.profile = context.profile;
           // Move the updated element to the end of the array
           const [updatedContext] = this.contexts.splice(i, 1);
           this.contexts.push(updatedContext);

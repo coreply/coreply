@@ -46,19 +46,25 @@ export class CoreplyStorageManager {
     return value === null ? undefined : JSON.parse(value) as unknown;
   }
 
-  async loadSettings() {
+  async loadProviderId() {
     const providerId = await this.persistence.getItem(STORAGE_KEYS.providerId) ?? "coreplyCloud";
-    const provider = providerDefinitions[providerId as keyof typeof providerDefinitions];
-    if (!provider) throw new Error(`Unknown provider: ${providerId}`);
-    const [globalSettings, providerConfig, selectedApps, profiles] = await Promise.all([
+    if (!Object.prototype.hasOwnProperty.call(providerDefinitions, providerId)) {
+      throw new Error(`Unknown provider: ${providerId}`);
+    }
+    return providerId as keyof typeof providerDefinitions;
+  }
+
+  async loadSettings() {
+    const providerId = await this.loadProviderId();
+    const [globalSettings, selectedApps, profiles, configs] = await Promise.all([
       this.readJson(STORAGE_KEYS.globalSettings),
-      this.readJson(providerConfigKey(providerId)),
       this.loadSelectedApps(),
       this.loadProfiles(),
+      Promise.all(Object.keys(providerDefinitions).map(async (id) => [id, await this.loadProviderConfig(id)] as const)),
     ]);
     return {
       providerId,
-      providerConfig: providerConfig === undefined ? z.record(z.string(), z.unknown()).parse(JSON.parse(JSON.stringify(provider.settingsDefaults))) : z.record(z.string(), z.unknown()).parse(providerConfig),
+      providerConfigs: Object.fromEntries(configs),
       globalSettings: globalSettings === undefined ? createDefaultGlobalSettings() : globalSettingsSchema.parse(globalSettings),
       selectedApps,
       profiles,
@@ -83,6 +89,17 @@ export class CoreplyStorageManager {
     if (!provider) throw new Error(`Unknown provider: ${id}`);
     const value = await this.readJson(providerConfigKey(id));
     return value === undefined ? z.record(z.string(), z.unknown()).parse(JSON.parse(JSON.stringify(provider.settingsDefaults))) : z.record(z.string(), z.unknown()).parse(value);
+  }
+
+  ensureProviderConfig(id: string) {
+    return this.mutate(async () => {
+      const provider = providerDefinitions[id as keyof typeof providerDefinitions];
+      if (!provider) throw new Error(`Unknown provider: ${id}`);
+      const key = providerConfigKey(id);
+      if (await this.persistence.getItem(key) === null) {
+        await this.persistence.setItem(key, JSON.stringify(provider.settingsDefaults));
+      }
+    });
   }
 
   saveProviderConfig(id: string, config: Record<string, unknown>) {

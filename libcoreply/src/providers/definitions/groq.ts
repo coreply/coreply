@@ -11,7 +11,7 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("Groq API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom Groq API base URL (optional)"),
+  baseURL: z.httpUrl().optional().describe("Custom Groq API base URL (optional)").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema('Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"groq": {...}}'));
 
 const config = {

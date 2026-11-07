@@ -18,7 +18,7 @@ export class Coreply {
   private settings: CoreplySettings = {
     globalSettings: DEFAULT_GLOBAL_SETTINGS,
     providerId: "openaiCompatible",
-    providerConfig: {},
+    providerConfigs: {},
     selectedApps: [],
     profiles: [],
   };
@@ -26,7 +26,7 @@ export class Coreply {
   private currentTyping: string | null = null;
   private snapshotRevision = 0;
   private readonly listener: LibCoreplyListener;
-  private providerInstance: ProviderInstance;
+  private readonly providerInstances = new Map<string, ProviderInstance>();
   private readonly options: ProviderInstanceOptions | undefined;
   private fetchSuggestionDebounced: DebouncedFunction<
     (typing: string, store: ContextStore) => void
@@ -35,7 +35,6 @@ export class Coreply {
   constructor(listener: LibCoreplyListener, options?: ProviderInstanceOptions) {
     this.listener = listener;
     this.options = options;
-    this.providerInstance = createProviderInstance(this.settings.providerId, this.options);
     this.fetchSuggestionDebounced = this.createFetchSuggestionDebounced(350);
     this.listener.onInit();
   }
@@ -56,12 +55,11 @@ export class Coreply {
 
     this.settings = next;
 
-    if (
-      previous.providerId !== next.providerId ||
-      !deepEqual(previous.providerConfig, next.providerConfig)
-    ) {
-      this.providerInstance.dispose?.();
-      this.providerInstance = createProviderInstance(next.providerId, this.options);
+    for (const [id, instance] of this.providerInstances) {
+      if (!deepEqual(previous.providerConfigs[id], next.providerConfigs[id])) {
+        this.providerInstances.set(id, createProviderInstance(id, this.options));
+        instance.dispose?.();
+      }
     }
 
     if (
@@ -261,23 +259,32 @@ export class Coreply {
   private async fetchSuggestion(typing: string, store: ContextStore) {
     const startTime = Date.now();
     const contexts = [...store.getContexts()];
+    const activeContext = store.getLatestContext();
+    const profile = this.settings.profiles.find((entry) => entry.id === activeContext?.profile.id);
+    const providerId = profile?.providerId ?? this.settings.providerId;
+    let provider = this.providerInstances.get(providerId);
+    if (!provider) {
+      provider = createProviderInstance(providerId, this.options);
+      this.providerInstances.set(providerId, provider);
+    }
+    const providerConfig = this.settings.providerConfigs[providerId];
 
     try {
-      store.setSuggestionPending(typing);
-      const suggestion = await this.providerInstance.request(
+      activeContext?.setSuggestionPending(typing);
+      const suggestion = await provider.request(
         contexts,
         typing,
-        this.settings.providerConfig,
+        providerConfig,
       );
       const normalized = suggestion.replace(/\n/g, " ");
       const finalSuggestion = normalized.startsWith(" ")
         ? ` ${normalized.trim()}`
         : normalized.trimEnd();
-      const cached = store.updateSuggestion(typing, finalSuggestion);
+      const cached = activeContext?.updateSuggestion(typing, finalSuggestion) ?? null;
       if (this.settings.globalSettings.troubleshooting.saveLogs) {
         this.listener.onLog({
           type: "suggestionFetch",
-          providerId: this.settings.providerId,
+          providerId,
           currentTyping: typing,
           timestamp: new Date().toISOString(),
           durationMs: Date.now() - startTime,
@@ -298,7 +305,7 @@ export class Coreply {
       if (this.settings.globalSettings.troubleshooting.saveLogs) {
         this.listener.onLog({
           type: "suggestionFetch",
-          providerId: this.settings.providerId,
+          providerId,
           currentTyping: typing,
           timestamp: new Date().toISOString(),
           durationMs: Date.now() - startTime,
@@ -311,7 +318,7 @@ export class Coreply {
       }
       this.listener.onError(resolvedError);
     } finally {
-      store.clearSuggestionPending(typing);
+      activeContext?.clearSuggestionPending(typing);
     }
   }
 }

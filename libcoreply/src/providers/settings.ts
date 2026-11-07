@@ -3,27 +3,27 @@ import { DEFAULT_SYSTEM_PROMPT } from "../settings";
 
 const baseSettingsSchema = z.object({
   maxOutputTokens: z.int().min(1).max(2000).multipleOf(1).optional()
-    .describe("Maximum number of tokens to generate in the reply"),
+    .describe(/* i18n */ "Maximum number of tokens to generate in the reply").meta({ isAdvancedSettings: true }),
   temperature: z.number().min(0).max(1).multipleOf(0.1).optional()
-    .describe("Controls randomness. Lower is more deterministic, higher is more creative"),
+    .describe(/* i18n */ "Controls randomness. Lower is more deterministic, higher is more creative").meta({ isAdvancedSettings: true }),
   topP: z.number().min(0).max(1).multipleOf(0.1).optional()
-    .describe("Nucleus sampling threshold for token selection"),
+    .describe(/* i18n */ "Nucleus sampling threshold for token selection").meta({ isAdvancedSettings: true }),
   topK: z.number().int().min(1).max(100).multipleOf(1).optional()
-    .describe("Limits token selection to the top K candidates at each step"),
+    .describe(/* i18n */ "Limits token selection to the top K candidates at each step").meta({ isAdvancedSettings: true }),
   presencePenalty: z.number().min(-1).max(1).multipleOf(0.1).optional()
-    .describe("Encourages the model to introduce new topics instead of repeating existing ones"),
+    .describe(/* i18n */ "Encourages the model to introduce new topics instead of repeating existing ones").meta({ isAdvancedSettings: true }),
   frequencyPenalty: z.number().min(-1).max(1).multipleOf(0.1).optional()
-    .describe("Reduces repeated tokens and phrases in the generated reply"),
+    .describe(/* i18n */ "Reduces repeated tokens and phrases in the generated reply").meta({ isAdvancedSettings: true }),
   maxRetries: z.number().int().min(0).max(3).multipleOf(1).optional()
-    .describe("Number of times to retry the request on failure"),
+    .describe(/* i18n */ "Number of times to retry the request on failure").meta({ isAdvancedSettings: true }),
   timeout: z.number().min(0).max(5000).optional()
-    .describe("Request timeout in milliseconds"),
+    .describe(/* i18n */ "Request timeout in milliseconds").meta({ isAdvancedSettings: true }),
   seed: z.number().int().optional()
-    .describe("Seed for deterministic outputs (optional)"),
+    .describe(/* i18n */ "Seed for deterministic outputs (optional)").meta({ isAdvancedSettings: true }),
 });
 
 export function createProviderOptionsSchema(
-  description = 'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"openai": {...}}',
+  description = /* i18n */ 'Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"openai": {...}}',
 ) {
   return z.string().optional().describe(description)
     .meta({ control: "textarea", textareaSize: "s" })
@@ -35,12 +35,13 @@ export function createProviderOptionsSchema(
       } catch {
         return false;
       }
-    }, { message: "Invalid JSON format or provider options must be a JSON object" });
+    }, { message: "Invalid JSON format or provider options must be a JSON object" })
+    .meta({ control: "textarea", textareaSize: "s" });
 }
 
 export function createGenerateTextSchema() {
   return z.object({
-    instructions: z.string().describe("Instructions applied before the chat context")
+    instructions: z.string().describe(/* i18n */ "Instructions applied before the chat context")
       .meta({ control: "textarea" }),
     ...baseSettingsSchema.shape,
   });
@@ -49,11 +50,11 @@ export function createGenerateTextSchema() {
 export function createStatefulGenerateTextSchema() {
   return createGenerateTextSchema().extend({
     typingTemplate: z.string()
-      .describe("Mustache template used to build each current-sentence typing update message")
-      .meta({ control: "textarea", textareaSize: "m" }),
+      .describe(/* i18n */ "Mustache template used to build each current-sentence typing update message")
+      .meta({ control: "textarea", textareaSize: "m", isAdvancedSettings: true }),
     contextAppendTemplate: z.string()
-      .describe("Mustache template used to append new context content and completed-sentence replacements")
-      .meta({ control: "textarea" }),
+      .describe(/* i18n */ "Mustache template used to append new context content and completed-sentence replacements")
+      .meta({ control: "textarea", isAdvancedSettings: true }),
   });
 }
 
@@ -62,7 +63,7 @@ export function createAISettingsSchema<ProviderSchema extends z.ZodType>(
   providerOptions: ReturnType<typeof createProviderOptionsSchema>,
 ) {
   return z.object({
-    model: z.string().describe("Model ID to use for text generation"),
+    model: z.string().describe(/* i18n */ "Model ID to use for text generation").meta({ isAdvancedSettings: true }),
     provider,
     generateText: createGenerateTextSchema(),
     providerOptions,

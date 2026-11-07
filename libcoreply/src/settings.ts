@@ -51,26 +51,29 @@ export const DEFAULT_PRESENTATION_SETTINGS: PresentationSettings = {
 
 export const globalSettingsSchema = z.object({
   fetchControl: z.object({
-    typingRegexEnabled: z.boolean().default(false),
+    typingRegexEnabled: z.boolean().default(false)
+      .describe(/* i18n */ "Only suggest when your typing matches the pattern below"),
     typingRegexPattern: z.string().default("^.*[\\s.!?,;:]$").meta({
       disabledWhenFieldFalse: "typingRegexEnabled",
-    }),
-    debounceMs: z.number().int().min(0).max(1000).default(350),
+    }).describe(/* i18n */ "Suggestions are only requested when your typing matches this pattern"),
+    debounceMs: z.number().int().min(0).max(1000).default(350)
+      .describe(/* i18n */ "How long to wait after typing before requesting another suggestion, in milliseconds"),
   }),
   presentation: z.object({
     showErrors: z
       .boolean()
       .default(true)
-      .describe("Whether to show errors in the UI"),
+      .describe(/* i18n */ "Whether to show errors in the UI"),
     suggestionPresentationType: z
       .enum(["inline", "overlay", "both"])
-      .default("both"),
+      .default("both")
+      .describe(/* i18n */ "Choose where suggestions appear"),
   }),
   troubleshooting: z.object({
     saveLogs: z
       .boolean()
       .default(false)
-      .describe("Save the 10 most recent suggestion requests on this device"),
+      .describe(/* i18n */ "Save the 10 most recent suggestion requests on this device"),
   }),
 });
 
@@ -83,7 +86,7 @@ export const presentationSettingsSchema =
 export const coreplySettingsSchema = z.object({
   globalSettings: globalSettingsSchema,
   providerId: z.string(),
-  providerConfig: z.record(z.string(), z.unknown()),
+  providerConfigs: z.record(z.string(), z.record(z.string(), z.unknown())),
   selectedApps: z.array(z.string()).default([]),
   profiles: z.array(profileSchema),
 });

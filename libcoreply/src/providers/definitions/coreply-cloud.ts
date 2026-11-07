@@ -1,19 +1,21 @@
 import { z } from "zod";
 import type { CoreplyContext } from "../../context";
 import { CoreplyCloudStatefulInstance } from "../coreply-cloud-stateful";
+import { structuredContextProfileSettingsSchema } from "../definition";
 import type { ProviderInstanceOptions } from "../instance";
 import { StatelessProviderInstance } from "../stateless";
 
 const settingsSchema = z.object({
   provider: z.object({
     apiKey: z.string().describe("Coreply Cloud API key").meta({ feature: "password" }),
-    requestUrl: z.httpUrl().describe("Coreply Cloud request URL"),
+    requestUrl: z.httpUrl().describe("Coreply Cloud request URL").meta({ isAdvancedSettings: true }),
   }),
 });
 
 export const coreplyCloudProvider = {
   name: "Coreply Cloud",
   stateful: false,
+  profileSettingsSchema: structuredContextProfileSettingsSchema,
   settingsSchema,
   settingsDefaults: {
     provider: { requestUrl: "https://coreply.p.nadles.com/completion/" },
@@ -28,6 +30,7 @@ export const coreplyCloudProvider = {
 export const coreplyCloudStatefulProvider = {
   name: "Coreply Cloud Preview",
   stateful: true,
+  profileSettingsSchema: structuredContextProfileSettingsSchema,
   settingsSchema: z.object({}),
   settingsDefaults: {},
   createInstance(options?: ProviderInstanceOptions) {

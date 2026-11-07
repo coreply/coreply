@@ -11,8 +11,8 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("AI Gateway API key or Vercel access token").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom AI Gateway URL prefix (optional)"),
-  teamIdOrSlug: z.string().optional().describe("Vercel team ID or slug (optional)"),
+  baseURL: z.httpUrl().optional().describe("Custom AI Gateway URL prefix (optional)").meta({ isAdvancedSettings: true }),
+  teamIdOrSlug: z.string().optional().describe("Vercel team ID or slug (optional)").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema('Raw JSON object for AI SDK providerOptions. Gateway supports multiple namespaces (e.g. {"gateway": {...}, "openai": {...}})'));
 
 const config = {

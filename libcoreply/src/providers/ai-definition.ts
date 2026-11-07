@@ -1,6 +1,7 @@
 import type { LanguageModel } from "ai";
 import type { z } from "zod";
 import { generateStatelessSuggestion } from "./base";
+import { mustacheProfileSettingsSchema } from "../profile/schema";
 import type { ProviderInstanceOptions } from "./instance";
 import type { createAISettingsSchema, createStatefulSettingsSchema } from "./settings";
 import { StatefulAIProviderInstance } from "./stateful";
@@ -20,6 +21,7 @@ export function defineStatelessAIProvider<
   return {
     name: config.name,
     stateful: false,
+    profileSettingsSchema: mustacheProfileSettingsSchema,
     settingsSchema: config.settingsSchema,
     settingsDefaults: config.settingsDefaults,
     createInstance() {
@@ -43,6 +45,7 @@ export function defineStatefulAIProvider<
   return {
     name: config.name,
     stateful: true,
+    profileSettingsSchema: mustacheProfileSettingsSchema,
     settingsSchema: config.settingsSchema,
     settingsDefaults: config.settingsDefaults,
     createInstance(options?: ProviderInstanceOptions) {

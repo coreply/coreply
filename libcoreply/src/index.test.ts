@@ -54,7 +54,7 @@ describe("Coreply suggestion fetch logging", () => {
     coreply.updateSettings({
       globalSettings: settings,
       providerId: TEST_PROVIDER_ID,
-      providerConfig: {},
+      providerConfigs: { [TEST_PROVIDER_ID]: {} },
       selectedApps: [],
     });
     coreply["store"].addContext(
@@ -103,7 +103,7 @@ describe("Coreply suggestion fetch logging", () => {
     coreply.updateSettings({
       globalSettings: settings,
       providerId: TEST_PROVIDER_ID,
-      providerConfig: {},
+      providerConfigs: { [TEST_PROVIDER_ID]: {} },
       selectedApps: [],
     });
     coreply["store"].addContext(
@@ -143,7 +143,7 @@ describe("Coreply suggestion fetch logging", () => {
     coreply.updateSettings({
       globalSettings: settings,
       providerId: TEST_PROVIDER_ID,
-      providerConfig: {},
+      providerConfigs: { [TEST_PROVIDER_ID]: {} },
       selectedApps: [],
     });
 
@@ -183,7 +183,7 @@ describe("Coreply suggestion fetch logging", () => {
     coreply.updateSettings({
       globalSettings: settings,
       providerId: TEST_PROVIDER_ID,
-      providerConfig: {},
+      providerConfigs: { [TEST_PROVIDER_ID]: {} },
       selectedApps: [],
     });
 
@@ -211,15 +211,16 @@ describe("Coreply provider instance continuity", () => {
     const coreply = new Coreply(createListener([], []));
     coreply.updateSettings({
       providerId: TEST_PROVIDER_ID,
-      providerConfig: { model: "test", provider: { apiKey: "key", baseURL: "url" } },
+      providerConfigs: { [TEST_PROVIDER_ID]: { model: "test", provider: { apiKey: "key", baseURL: "url" } } },
     });
+    coreply["providerInstances"].set(TEST_PROVIDER_ID, createInstance());
     coreply.updateSettings({
-      providerConfig: { provider: { baseURL: "url", apiKey: "key" }, model: "test" },
+      providerConfigs: { [TEST_PROVIDER_ID]: { provider: { baseURL: "url", apiKey: "key" }, model: "test" } },
     });
     expect(createInstance).toHaveBeenCalledTimes(1);
 
     coreply.updateSettings({
-      providerConfig: { provider: { baseURL: "url", apiKey: "changed" }, model: "test" },
+      providerConfigs: { [TEST_PROVIDER_ID]: { provider: { baseURL: "url", apiKey: "changed" }, model: "test" } },
     });
     expect(createInstance).toHaveBeenCalledTimes(2);
   });
@@ -248,6 +249,7 @@ describe("Coreply provider instance continuity", () => {
     (providerDefinitions as Record<string, unknown>)[TEST_PROVIDER_ID] = { createInstance };
     const coreply = new Coreply(createListener([], []));
     coreply.updateSettings({ providerId: TEST_PROVIDER_ID });
+    coreply["providerInstances"].set(TEST_PROVIDER_ID, createInstance());
     const context = new ScreenContextImpl(testProfile, { text: "retained context", children: [] });
     coreply["store"].addContext(context);
     coreply["currentTyping"] = "Hi";
@@ -286,7 +288,7 @@ describe("Coreply provider instance continuity", () => {
     coreply.updateSettings({
       globalSettings: settings,
       providerId: TEST_PROVIDER_ID,
-      providerConfig: { a: 1 },
+      providerConfigs: { [TEST_PROVIDER_ID]: { a: 1 } },
       selectedApps: [],
     });
 
@@ -297,19 +299,19 @@ describe("Coreply provider instance continuity", () => {
       expect(instanceRequest).toHaveBeenCalledTimes(1);
     });
 
-    coreply["store"].clearSuggestionPending("Hi");
-    coreply["store"].clearSuggestions();
-    coreply.updateTyping("Hey");
     await vi.waitFor(() => {
-      expect(instanceRequest).toHaveBeenCalledTimes(2);
+      expect(coreply["store"].getSuggestion("Hi")).toBe(" there");
     });
+    coreply["store"].clearSuggestions();
+    await coreply["fetchSuggestion"]("Hey", coreply["store"]);
+    expect(instanceRequest).toHaveBeenCalledTimes(2);
 
     expect(createInstance).toHaveBeenCalledTimes(1);
 
     coreply.updateSettings({ globalSettings: createDefaultGlobalSettings() });
     expect(createInstance).toHaveBeenCalledTimes(1);
 
-    coreply.updateSettings({ providerConfig: { a: 2 } });
+    coreply.updateSettings({ providerConfigs: { [TEST_PROVIDER_ID]: { a: 2 } } });
     expect(createInstance).toHaveBeenCalledTimes(2);
 
   });

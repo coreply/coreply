@@ -63,7 +63,6 @@ class CoreplyStorageManager(context: Context) {
 			it.isBlank()
 		} ?: return null
 		val values = getCoreValues(
-			"$providerId.providerConfig",
 			"globalSettings",
 			SELECTED_APPS_STORAGE_KEY,
 			PROFILES_STORAGE_KEY,
@@ -71,13 +70,20 @@ class CoreplyStorageManager(context: Context) {
 		val globalSettings = parseJsonObject(values["globalSettings"]) ?: return null
 		val selectedApps = parseJsonArray(values[SELECTED_APPS_STORAGE_KEY]) ?: JSONArray()
 		val profiles = parseJsonArray(values[PROFILES_STORAGE_KEY]) ?: JSONArray()
+		val providerIds = mutableSetOf(providerId)
+		for (index in 0 until profiles.length()) {
+			val profileProviderId = profiles.optJSONObject(index)?.optString("providerId")
+			if (!profileProviderId.isNullOrBlank() && profileProviderId != "null") providerIds.add(profileProviderId)
+		}
+		val configValues = getCoreValues(*providerIds.map { "$it.providerConfig" }.toTypedArray())
+		val providerConfigs = JSONObject()
+		for (id in providerIds) {
+			providerConfigs.put(id, parseJsonObject(configValues["$id.providerConfig"]) ?: JSONObject())
+		}
 
 		return JSONObject().apply {
 			put("providerId", providerId)
-			put(
-				"providerConfig",
-				parseJsonObject(values["$providerId.providerConfig"]) ?: JSONObject(),
-			)
+			put("providerConfigs", providerConfigs)
 			put("globalSettings", globalSettings)
 			put("selectedApps", selectedApps)
 			put("profiles", profiles)

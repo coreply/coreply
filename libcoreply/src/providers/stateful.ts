@@ -201,12 +201,13 @@ function compareContexts(
 }
 
 export class StatefulAIProviderInstance<
-  Settings extends z.output<ReturnType<typeof createStatefulSettingsSchema>>,
+  Settings extends z.output<ReturnType<typeof createStatefulSettingsSchema>> & { sessionAffinityHeader?: string },
 > implements ProviderInstance {
   onModelResponse?: ProviderInstanceOptions["onModelResponse"];
   private previousContexts: CoreplyContext[] | null = null;
   private previousCompletedSentences: string | null = null;
-  private responseMessages: ModelMessage[] = [];
+  private responseMessages: (ModelMessage | (ModelMessage & { pending: true; id: string }))[] = [];
+  private readonly sessionAffinityId = crypto.randomUUID();
   private readonly settingsSchema: z.ZodType<Settings>;
   private readonly createModel: (settings: Settings) => LanguageModel;
 
@@ -224,6 +225,7 @@ export class StatefulAIProviderInstance<
     contexts: CoreplyContext[],
     currentTyping: string,
     providerConfig: Record<string, unknown>,
+    options?: ProviderInstanceOptions,
   ): Promise<string> {
     const incomingContexts = contexts.map((context) => {
       const clone = deserializeContext(
@@ -243,10 +245,17 @@ export class StatefulAIProviderInstance<
       ...generateTextSettings
     } = settings.generateText;
 
-    const decision = compareContexts(
+    const contextDecision = compareContexts(
       this.previousContexts,
       incomingContexts,
     );
+    if (contextDecision.reset) this.responseMessages = [];
+    const completedMessages = this.responseMessages.filter(
+      (message) => !("pending" in message),
+    );
+    const decision = completedMessages.length === 0
+      ? compareContexts(null, incomingContexts)
+      : contextDecision;
 
     const typingView = buildTypingTemplateView(activeContext, currentTyping);
     const completedSentencesChanged = decision.reset ||
@@ -263,7 +272,7 @@ export class StatefulAIProviderInstance<
       },
     );
 
-    let messages: ModelMessage[] = decision.reset ? [] : [...this.responseMessages];
+    let messages: ModelMessage[] = completedMessages;
     const renderedContextPrompt = decision.reset
       ? contexts.map((context) => context.renderPrompt()).join("")
       : decision.appendPrompt;
@@ -291,6 +300,15 @@ export class StatefulAIProviderInstance<
       : undefined;
     let suggestion: string | null = null;
 
+    const id = crypto.randomUUID();
+    if (contextPrompt) {
+      this.responseMessages.push({ role: "assistant", content: "", pending: true, id });
+    }
+    this.previousContexts = incomingContexts;
+    this.previousCompletedSentences = typingView.completedSentences;
+    const newMessages: ModelMessage[] = [];
+
+    try {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const renderedTypingPrompt = Mustache.render(
         typingTemplate,
@@ -324,21 +342,32 @@ export class StatefulAIProviderInstance<
         messages: requestMessages,
         ...generateTextSettings,
         providerOptions,
+        headers: settings.sessionAffinityHeader
+          ? { [settings.sessionAffinityHeader]: this.sessionAffinityId }
+          : undefined,
       });
 
-      await this.onModelResponse?.(result);
+      await (options?.onModelResponse ?? this.onModelResponse)?.(result);
 
       messages = [...requestMessages, ...result.responseMessages];
+      newMessages.push(requestMessages[requestMessages.length - 1], ...result.responseMessages);
       suggestion = validateSuggestion(typingView, result.text);
       if (suggestion !== null) {
         break;
       }
     }
 
-    this.previousContexts = incomingContexts;
-    this.previousCompletedSentences = typingView.completedSentences;
-    this.responseMessages = messages;
+    const index = this.responseMessages.findIndex(
+      (message) => "pending" in message && message.id === id,
+    );
+    if (index !== -1) this.responseMessages.splice(index, 1, ...newMessages);
 
     return suggestion ?? "";
+    } finally {
+      const index = this.responseMessages.findIndex(
+        (message) => "pending" in message && message.id === id,
+      );
+      if (index !== -1) this.responseMessages.splice(index, 1);
+    }
   }
 }

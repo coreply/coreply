@@ -11,9 +11,9 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("OpenRouter API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom OpenRouter API base URL (optional)"),
-  appName: z.string().default("Coreply").meta({ enabled: false }),
-  appUrl: z.string().default("https://coreply.app").meta({ enabled: false }),
+  baseURL: z.httpUrl().optional().describe("Custom OpenRouter API base URL (optional)").meta({ isAdvancedSettings: true }),
+  appName: z.string().default("Coreply").meta({ enabled: false, isAdvancedSettings: true }),
+  appUrl: z.string().default("https://coreply.app").meta({ enabled: false, isAdvancedSettings: true }),
 }), createProviderOptionsSchema('Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"openrouter": {...}}'));
 
 const config = {
@@ -32,6 +32,13 @@ const config = {
 export const openrouterProvider = defineStatelessAIProvider(config);
 export const openrouterStatefulProvider = defineStatefulAIProvider({
   ...config,
-  settingsSchema: settingsSchema.extend({ generateText: createStatefulGenerateTextSchema() }),
-  settingsDefaults: { ...config.settingsDefaults, generateText: statefulGenerateTextDefaults },
+  settingsSchema: z.object({
+    ...settingsSchema.omit({ generateText: true, providerOptions: true }).shape,
+    sessionAffinityHeader: z.literal("x-session-id")
+      .describe("HTTP header used to route related requests to the same provider")
+      .meta({ enabled: false, isAdvancedSettings: true }),
+    generateText: createStatefulGenerateTextSchema(),
+    providerOptions: settingsSchema.shape.providerOptions,
+  }),
+  settingsDefaults: { ...config.settingsDefaults, sessionAffinityHeader: "x-session-id", generateText: statefulGenerateTextDefaults },
 });

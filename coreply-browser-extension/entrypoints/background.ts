@@ -7,13 +7,12 @@ import {
   PROFILES_KEY, getProviderConfigKey,
 } from "../runtime/settings";
 import { storageManager } from "../runtime/storage-manager";
+import { providerDefinitions } from "libcoreply";
 import { appendSuggestionFetchLog } from "../runtime/troubleshooting";
 
 export default defineBackground(() => {
   let source: { tabId: number; documentId: string } | undefined;
   let enabled = false;
-  let watchedProviderConfigKey = "";
-  let unwatchProviderConfig = () => {};
   const runtime = createCoreplyRuntime((message) => {
     if (message.type === "log") {
       void appendSuggestionFetchLog(message.payload);
@@ -38,12 +37,7 @@ export default defineBackground(() => {
     ]);
     enabled = masterSwitch;
     runtime.nativeToLib({ type: "settings", payload: settings });
-    const key = getProviderConfigKey(settings.providerId);
-    if (watchedProviderConfigKey !== key) {
-      unwatchProviderConfig();
-      watchedProviderConfigKey = key;
-      unwatchProviderConfig = storage.watch<string>(key, refresh);
-    }
+
   }
 
   const initialization = loadSettings();
@@ -79,6 +73,9 @@ export default defineBackground(() => {
 
   for (const key of [GLOBAL_SETTINGS_KEY, MASTER_SWITCH_KEY, PROVIDER_ID_KEY, SELECTED_APPS_KEY, PROFILES_KEY]) {
     storage.watch<string>(key, refresh);
+  }
+  for (const id of Object.keys(providerDefinitions)) {
+    storage.watch<string>(getProviderConfigKey(id), refresh);
   }
   void initialization.catch(reportError);
 });

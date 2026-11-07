@@ -11,7 +11,7 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("xAI API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom xAI API base URL (optional)"),
+  baseURL: z.httpUrl().optional().describe("Custom xAI API base URL (optional)").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema('Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"xai": {...}}'));
 
 const config = {

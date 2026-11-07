@@ -11,9 +11,9 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("OpenAI API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom API base URL for OpenAI-compatible routing (optional)"),
-  organization: z.string().optional().describe("OpenAI organization ID (optional)"),
-  project: z.string().optional().describe("OpenAI project ID (optional)"),
+  baseURL: z.httpUrl().optional().describe("Custom API base URL for OpenAI-compatible routing (optional)").meta({ isAdvancedSettings: true }),
+  organization: z.string().optional().describe("OpenAI organization ID (optional)").meta({ isAdvancedSettings: true }),
+  project: z.string().optional().describe("OpenAI project ID (optional)").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema());
 
 const config = {

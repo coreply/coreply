@@ -1,23 +1,25 @@
 import { z } from "zod";
 import type { CoreplyContext } from "../../context";
+import { structuredContextProfileSettingsSchema } from "../definition";
 import { StatelessProviderInstance } from "../stateless";
 
 const settingsSchema = z.object({
   provider: z.object({
     apiKey: z.string().describe("API key for the FIM provider").meta({ feature: "password" }),
     baseURL: z.httpUrl().default("https://api.mistral.ai/v1/fim/")
-      .describe("Base URL of the Fill-in-the-Middle API endpoint"),
+      .describe("Base URL of the Fill-in-the-Middle API endpoint").meta({ isAdvancedSettings: true }),
   }),
   request: z.object({
-    model: z.string().describe("Model ID to use for fill-in-the-middle generation"),
+    model: z.string().describe("Model ID to use for fill-in-the-middle generation").meta({ isAdvancedSettings: true }),
     temperature: z.number().min(0).max(1).optional()
-      .describe("Controls randomness for fill-in-the-middle generation"),
+      .describe("Controls randomness for fill-in-the-middle generation").meta({ isAdvancedSettings: true }),
   }),
 });
 
 export const fimProvider = {
   name: "Mistral FIM",
   stateful: false,
+  profileSettingsSchema: structuredContextProfileSettingsSchema,
   settingsSchema,
   settingsDefaults: {
     provider: { baseURL: "https://api.mistral.ai/v1/fim/" },

@@ -13,5 +13,6 @@ export interface ProviderInstance {
     contexts: CoreplyContext[],
     currentTyping: string,
     providerConfig: Record<string, unknown>,
+    options?: ProviderInstanceOptions,
   ): Promise<string>;
 }

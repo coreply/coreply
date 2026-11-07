@@ -11,10 +11,12 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   resourceName: z.string().optional().describe("Azure OpenAI resource name, used when base URL is not provided"),
-  baseURL: z.httpUrl().optional().describe("Full Azure OpenAI base URL (optional)"),
   apiKey: z.string().optional().describe("Azure OpenAI API key").meta({ feature: "password" }),
-  apiVersion: z.string().optional().describe("Azure OpenAI API version to use for requests"),
-}), createProviderOptionsSchema());
+  baseURL: z.httpUrl().optional().describe("Full Azure OpenAI base URL (optional)").meta({ isAdvancedSettings: true }),
+  apiVersion: z.string().optional().describe("Azure OpenAI API version to use for requests").meta({ isAdvancedSettings: true }),
+}), createProviderOptionsSchema()).extend({
+  model: z.string().describe(/* i18n */ "Model ID to use for text generation"),
+});
 
 const config = {
   name: "Azure",

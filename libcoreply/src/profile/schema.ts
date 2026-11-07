@@ -3,22 +3,35 @@ import { z } from "zod";
 const retentionSchema = z.union([
   z.number().int().nonnegative(),
   z.record(z.string(), z.number().int().nonnegative()),
-]).meta({ control: "json" }).describe("A context count, or a JSON object mapping context labels to counts");
+]).meta({ control: "json" }).describe(/* i18n */ "A context count, or a JSON object mapping context labels to counts");
 
 export const dropRuleSchema = z.object({
   differentProfile: retentionSchema,
   sameProfile: retentionSchema,
 });
 
-export const contextExtractorSchema = z.object({
+export const sharedContextExtractorSchema = z.object({
   extractor: z.string().min(1).meta({ control: "textarea" }),
-  contextTemplate: z.string().optional().meta({ control: "textarea", textareaSize: "m" }),
-  contextTemplatePartial: z.string().optional().meta({ control: "textarea", textareaSize: "s" }),
 });
 
-export const profileSchema = z.object({
+export const mustacheProfileSettingsSchema = {
+  profile: z.object({
+    appSpecificInstruction: z.string().optional().meta({ control: "textarea", textareaSize: "s" }),
+  }),
+  extractor: z.object({
+    contextTemplate: z.string().optional().meta({ control: "textarea", textareaSize: "m", isAdvancedSettings: true }),
+    contextTemplatePartial: z.string().optional().meta({ control: "textarea", textareaSize: "s", isAdvancedSettings: true }),
+  }),
+};
+
+export const contextExtractorSchema = sharedContextExtractorSchema.extend(
+  mustacheProfileSettingsSchema.extractor.shape,
+);
+
+export const sharedProfileSchema = z.object({
   id: z.string().min(1).meta({ enabled: false }),
   displayName: z.string().optional(),
+  providerId: z.string().nullable().optional().meta({ show: false }),
   platform: z.enum(["android", "web"]).meta({ enabled: false }),
   matchingRule: z.string().min(1).refine((value) => {
     try {
@@ -28,7 +41,10 @@ export const profileSchema = z.object({
       return false;
     }
   }, "Invalid regular expression"),
-  appSpecificInstruction: z.string().optional().meta({ control: "textarea" }),
+});
+
+export const profileSchema = sharedProfileSchema.extend({
+  ...mustacheProfileSettingsSchema.profile.shape,
   dropRule: dropRuleSchema,
   contextExtractors: z.array(contextExtractorSchema),
 });
