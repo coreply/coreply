@@ -1,0 +1,113 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-02 01:53+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: de\n"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:55
+msgid "Only suggest when your typing matches the pattern below"
+msgstr "Textvorschläge nur anzeigen, wenn deine Eingabe dem folgenden Muster entspricht"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:58
+msgid "Suggestions are only requested when your typing matches this pattern"
+msgstr "Textvorschläge werden nur angefordert, wenn deine Eingabe diesem Muster entspricht"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:60
+msgid "How long to wait after typing before requesting another suggestion, in milliseconds"
+msgstr "Wartezeit nach der letzten Eingabe, bevor ein neuer Vorschlag angefordert wird, in Millisekunden"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:66
+msgid "Whether to show errors in the UI"
+msgstr "Fehlermeldungen in der Oberfläche anzeigen"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:70
+msgid "Choose where suggestions appear"
+msgstr "Wähle, wo Textvorschläge angezeigt werden"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:76
+msgid "Save the 10 most recent suggestion requests on this device"
+msgstr "Die letzten 10 Anfragen für Textvorschläge auf diesem Gerät speichern"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:6
+msgid "Maximum number of tokens to generate in the reply"
+msgstr "Maximale Anzahl an Tokens für die Antwort"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:8
+msgid "Controls randomness. Lower is more deterministic, higher is more creative"
+msgstr "Steuert die Zufälligkeit. Niedrige Werte liefern vorhersehbarere, hohe Werte kreativere Antworten"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:10
+msgid "Nucleus sampling threshold for token selection"
+msgstr "Schwellenwert für die kumulierte Wahrscheinlichkeit bei der Token-Auswahl (Top-p)"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:12
+msgid "Limits token selection to the top K candidates at each step"
+msgstr "Beschränkt die Auswahl bei jedem Schritt auf die K wahrscheinlichsten Tokens"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:14
+msgid "Encourages the model to introduce new topics instead of repeating existing ones"
+msgstr "Regt das Modell an, neue Themen aufzugreifen, statt bestehende zu wiederholen"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:16
+msgid "Reduces repeated tokens and phrases in the generated reply"
+msgstr "Verringert wiederholte Tokens und Formulierungen in der Antwort"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:18
+msgid "Number of times to retry the request on failure"
+msgstr "Anzahl der Wiederholungsversuche bei fehlgeschlagenen Anfragen"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:20
+msgid "Request timeout in milliseconds"
+msgstr "Zeitlimit für Anfragen in Millisekunden"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:22
+msgid "Seed for deterministic outputs (optional)"
+msgstr "Zufallsstartwert für reproduzierbare Ergebnisse (optional)"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:26
+msgid "Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {\"openai\": {...}}"
+msgstr "JSON-Objekt, das direkt an providerOptions des AI SDK übergeben wird. Verwende den Namensraum des Anbieters als Schlüssel, zum Beispiel {\"openai\": {...}}"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:43
+msgid "Instructions applied before the chat context"
+msgstr "Anweisungen, die vor dem Gesprächskontext eingefügt werden"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:52
+msgid "Mustache template used to build each current-sentence typing update message"
+msgstr "Mustache-Vorlage für Aktualisierungsnachrichten bei jeder Änderung am aktuellen Satz"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:55
+msgid "Mustache template used to append new context content and completed-sentence replacements"
+msgstr "Mustache-Vorlage zum Anhängen neuer Kontextinhalte und zum Ersetzen abgeschlossener Sätze"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:65
+msgid "Model ID to use for text generation"
+msgstr "Modell-ID für die Textgenerierung"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/profile/schema.ts:6
+msgid "A context count, or a JSON object mapping context labels to counts"
+msgstr "Anzahl der Kontextelemente oder ein JSON-Objekt, das jeder Kontextbezeichnung eine Anzahl zuordnet"

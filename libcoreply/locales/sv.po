@@ -1,0 +1,113 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-29 16:32+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: sv\n"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:55
+msgid "Only suggest when your typing matches the pattern below"
+msgstr "Visa bara skrivförslag när texten matchar mönstret nedan"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:58
+msgid "Suggestions are only requested when your typing matches this pattern"
+msgstr "Skrivförslag hämtas bara när texten du skriver matchar det här mönstret"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:60
+msgid "How long to wait after typing before requesting another suggestion, in milliseconds"
+msgstr "Väntetid efter att du slutat skriva innan nästa skrivförslag hämtas, i millisekunder"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:66
+msgid "Whether to show errors in the UI"
+msgstr "Visa felmeddelanden i gränssnittet"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:70
+msgid "Choose where suggestions appear"
+msgstr "Välj var skrivförslagen ska visas"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:76
+msgid "Save the 10 most recent suggestion requests on this device"
+msgstr "Spara de 10 senaste förslagsförfrågningarna på den här enheten"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:6
+msgid "Maximum number of tokens to generate in the reply"
+msgstr "Högsta antal token som får genereras i svaret"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:8
+msgid "Controls randomness. Lower is more deterministic, higher is more creative"
+msgstr "Styr hur mycket svaren varierar. Ett lägre värde ger mer förutsägbara svar, ett högre ger mer kreativa svar"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:10
+msgid "Nucleus sampling threshold for token selection"
+msgstr "Gräns för sammanlagd sannolikhet vid val av token (Top-p)"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:12
+msgid "Limits token selection to the top K candidates at each step"
+msgstr "Begränsar urvalet till de K mest sannolika token vid varje steg"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:14
+msgid "Encourages the model to introduce new topics instead of repeating existing ones"
+msgstr "Uppmuntrar modellen att ta upp nya ämnen i stället för att upprepa tidigare innehåll"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:16
+msgid "Reduces repeated tokens and phrases in the generated reply"
+msgstr "Minskar upprepningar av token och fraser i svaret"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:18
+msgid "Number of times to retry the request on failure"
+msgstr "Antal nya försök om förfrågan misslyckas"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:20
+msgid "Request timeout in milliseconds"
+msgstr "Tidsgräns för förfrågan i millisekunder"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:22
+msgid "Seed for deterministic outputs (optional)"
+msgstr "Slumpfrö för reproducerbara resultat (valfritt)"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:26
+msgid "Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {\"openai\": {...}}"
+msgstr "JSON-objekt som skickas direkt till AI SDK:s providerOptions. Använd leverantörens namnrymd som objektnyckel, till exempel {\"openai\": {...}}"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:43
+msgid "Instructions applied before the chat context"
+msgstr "Instruktioner som läggs före samtalskontexten"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:52
+msgid "Mustache template used to build each current-sentence typing update message"
+msgstr "Mustache-mall som används för att skapa uppdateringsmeddelanden när den aktuella meningen ändras"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:55
+msgid "Mustache template used to append new context content and completed-sentence replacements"
+msgstr "Mustache-mall som används för att lägga till ny kontext och ersätta färdiga meningar"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/settings.ts:65
+msgid "Model ID to use for text generation"
+msgstr "Modell-ID för textgenerering"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/profile/schema.ts:6
+msgid "A context count, or a JSON object mapping context labels to counts"
+msgstr "Antal kontextobjekt, eller ett JSON-objekt som anger ett antal för varje kontextetikett"

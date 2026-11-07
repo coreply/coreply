@@ -1,0 +1,499 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-29 15:07+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: zh-TW\n"
+
+#: src/components/groups/coreply-cloud-usage.tsx:32
+msgid "{display}% remaining"
+msgstr "剩餘 {display}%"
+
+#: src/components/groups/coreply-cloud-usage.tsx:37
+msgid "{label}: {display}% remaining"
+msgstr "{label}：剩餘 {display}%"
+
+#. Button below a form that reveals its advanced settings
+#: src/components/groups/schema-fields.tsx:32
+#~ msgid "+ More Settings"
+#~ msgstr ""
+
+#: src/demo-conversations/localized.ts:27
+msgid "actually are you free sunday afternoon? and do you still have those big moving bags?"
+msgstr "對了，星期天下午有空嗎？你還有那幾個搬家用的大袋子嗎？"
+
+#. Adds an item to a settings list
+#: src/renderers/array.tsx:27
+msgid "Add item"
+msgstr "新增項目"
+
+#: src/demo-conversations/localized.ts:28
+msgid "after 2. i'll bring the bags to dinner"
+msgstr "兩點以後有空。吃飯的時候把袋子帶給你"
+
+#: src/demo-conversations/localized.ts:20
+msgid "ahhh congrats! when do you move?"
+msgstr "啊啊恭喜！！什麼時候搬？"
+
+#. Demo conversation with an AI coding agent
+#: src/components/groups/demo-conversation.tsx:23
+msgid "AI"
+msgstr "AI"
+
+#: src/demo-conversations/localized.ts:48
+msgid "Also the umbrella is mine. Please don't let me leave without it again."
+msgstr "對了，雨傘是我的。拜託別讓我又忘記帶走。"
+
+#: src/demo-conversations/localized.ts:53
+msgid "asleep unfortunately. woke up somewhere i'd never heard of with 4% battery 🫠"
+msgstr "不幸的是睡著了。醒來到了一個沒聽過的地方，手機只剩4%的電 🫠"
+
+#: src/demo-conversations/localized.ts:25
+msgid "booked. also i'll bring the charger you left here"
+msgstr "訂好了。你上次忘在我家的充電器我也帶給你"
+
+#: src/demo-conversations/localized.ts:65
+msgid "Bring your charger. I'd rather not spend our first date looking for a carpet shop 😉"
+msgstr "記得帶充電器。我可不想第一次約會就在找便利商店借充電器 😉"
+
+#. Cancel account deletion
+#: src/components/groups/coreply-cloud-delete-account.tsx:128
+msgid "Cancel"
+msgstr "取消"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:33
+msgid "Cancel any active paid subscriptions and remove any scheduled paid plans before deleting your account."
+msgstr "刪除帳號前，請先取消目前的付費訂閱，以及所有已排定生效的付費方案。"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:71
+msgid "Checking subscription..."
+msgstr "正在檢查訂閱狀態..."
+
+#. Close account deletion error dialog
+#. Closes the provider selection modal
+#: src/components/groups/coreply-cloud-delete-account.tsx:124
+#: src/components/groups/provider-selector.tsx:47
+msgid "Close"
+msgstr "關閉"
+
+#: src/demo-conversations/localized.ts:44
+msgid "Company-name fix is in staging."
+msgstr "公司名稱的修正已經上測試環境了。"
+
+#: src/components/groups/github-sign-in-button.tsx:21
+#: src/components/groups/google-sign-in-button.web.tsx:21
+msgid "Connecting..."
+msgstr "連線中..."
+
+#: src/components/groups/github-sign-in-button.tsx:21
+msgid "Continue with GitHub"
+msgstr ""
+
+#: src/components/groups/google-sign-in-button.web.tsx:21
+msgid "Continue with Google"
+msgstr "使用 Google 繼續"
+
+#: src/components/groups/coreply-cloud-sign-in.tsx:31
+msgid "Coreply Cloud sign-in isn't configured for this app."
+msgstr "此應用程式尚未設定 Coreply Cloud 登入功能。"
+
+#. Onboarding chat. Use natural, friendly language, not marketing jargon.
+#: src/demo-conversations/localized.ts:9
+msgid "Coreply helps you finish your messages with suggestions based on your conversation."
+msgstr "Coreply 會根據聊天內容提供建議，幫你把訊息接著寫完。"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:91
+msgid "Couldn't delete account"
+msgstr "無法刪除帳號"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:45
+msgid "Couldn't delete your account. Please try again."
+msgstr "無法刪除帳號，請再試一次。"
+
+#: src/components/groups/coreply-cloud-usage.tsx:65
+msgid "Couldn't load usage. Please try again."
+msgstr "無法載入用量，請再試一次。"
+
+#: src/components/groups/coreply-cloud-usage.tsx:142
+msgid "Daily usage"
+msgstr "每日用量"
+
+#. Demo conversation in a dating app
+#: src/components/groups/demo-conversation.tsx:22
+msgid "Dating"
+msgstr "交友"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:57
+#: src/components/groups/coreply-cloud-delete-account.tsx:72
+msgid "Delete account"
+msgstr "刪除帳號"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:92
+msgid "Delete account?"
+msgstr "確定要刪除帳號？"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:142
+msgid "Deleting account..."
+msgstr "正在刪除帳號..."
+
+#: src/demo-conversations/localized.ts:54
+msgid "Did you get home that night?"
+msgstr "那你當晚有回到家嗎？"
+
+#: src/demo-conversations/localized.ts:55
+msgid "eventually. a man in a carpet shop let me charge my phone"
+msgstr "最後有。一位便利商店店員借我充電器"
+
+#: src/components/groups/provider-selector.tsx:35
+msgid "Follow the provider selected in global settings."
+msgstr ""
+
+#. Name of the free Coreply Cloud plan
+#: src/components/groups/coreply-cloud-usage.tsx:139
+msgid "Free"
+msgstr "免費版"
+
+#: src/components/groups/provider-selector.tsx:42
+msgid "Generates each suggestion from the current context."
+msgstr ""
+
+#: src/components/groups/github-sign-in-button.tsx:14
+msgid "GitHub sign-in failed."
+msgstr ""
+
+#: src/demo-conversations/localized.ts:57
+msgid "good luck with the presentation. and the avoidance"
+msgstr "祝簡報順利。逃避準備也順利"
+
+#: src/components/groups/google-sign-in-button.native.tsx:24
+#: src/components/groups/google-sign-in-button.native.tsx:46
+#: src/components/groups/google-sign-in-button.web.tsx:14
+msgid "Google sign-in failed."
+msgstr "Google 登入失敗。"
+
+#: src/demo-conversations/localized.ts:19
+msgid "got the apartment!! the one with the balcony 🥳"
+msgstr "租到房子了！！就是有陽台的那間 🥳"
+
+#: src/demo-conversations/localized.ts:31
+msgid "he says he's never going to live that down"
+msgstr "他說你們是不是要笑他一輩子"
+
+#: src/demo-conversations/localized.ts:32
+msgid "he tried to pay for noodles with supermarket points 😂"
+msgstr "誰叫他想用超商點數付飯錢 😂"
+
+#. Onboarding chat greeting. Keep the tone warm, casual and lively.
+#: src/demo-conversations/localized.ts:8
+msgid "Hey! Welcome to Coreply 👋"
+msgstr "嗨！歡迎使用 Coreply 👋"
+
+#: src/renderers/input.tsx:175
+msgid "Hide password"
+msgstr "隱藏密碼"
+
+#: src/demo-conversations/localized.ts:58
+msgid "how did it go?"
+msgstr "後來怎麼樣？"
+
+#. A quoted earlier message in a casual chat about helping a friend move.
+#: src/demo-conversations/localized.ts:14
+msgid "i can help pack"
+msgstr "我可以幫忙打包"
+
+#: src/demo-conversations/localized.ts:22
+msgid "i can help pack. no promises i won't borrow things"
+msgstr "我可以幫忙打包，但不保證不會順手借走幾本"
+
+#: src/demo-conversations/localized.ts:43
+msgid "I'll make a ten-row sample."
+msgstr "我做一份十筆資料的範例。"
+
+#: src/demo-conversations/localized.ts:37
+msgid "I'll update the welcome email too. Also, someone's grey umbrella is in the kitchen."
+msgstr "我也會更新歡迎信。另外，有人的灰色雨傘放在茶水間。"
+
+#. Screen reader action; suggestion is the proposed message completion
+#. Screen reader action; suggestion is the proposed message completion
+#: src/components/groups/demo-conversation.tsx:387
+#: src/components/groups/demo-conversation.tsx:422
+msgid "Insert next word of suggestion: {suggestion}"
+msgstr "插入建議的下一個字詞：{suggestion}"
+
+#: src/demo-conversations/localized.ts:49
+msgid "It's next to your laptop now."
+msgstr "已經放在你筆電旁邊了。"
+
+#: src/components/groups/provider-selector.tsx:42
+msgid "Keeps request history when the conversation continues."
+msgstr ""
+
+#: src/demo-conversations/localized.ts:42
+msgid "Let's use fake data with the same columns. Don't want real emails on the recording."
+msgstr "用相同欄位的假資料吧，不想讓真實信箱出現在錄影裡。"
+
+#: src/components/groups/coreply-cloud-usage.tsx:79
+msgid "Loading your usage"
+msgstr "正在載入用量"
+
+#. Message input label; title is the recipient's name
+#: src/components/groups/demo-conversation.tsx:348
+msgid "Message {title}"
+msgstr "傳訊息給 {title}"
+
+#. Message input placeholder; title is the recipient's name
+#: src/components/groups/demo-conversation.tsx:352
+msgid "Message {title}..."
+msgstr "傳訊息給 {title}⋯"
+
+#: src/components/groups/coreply-cloud-usage.tsx:143
+msgid "Monthly usage"
+msgstr "每月用量"
+
+#. Button below a form that reveals its advanced settings
+#: src/components/groups/schema-fields.tsx:38
+msgid "More Settings"
+msgstr ""
+
+#: src/demo-conversations/localized.ts:11
+msgid "Nice! Sign in to bring Coreply to your conversations."
+msgstr "太好了！登入後就能在對話中使用 Coreply。"
+
+#: src/renderers/array.tsx:37
+msgid "No items yet."
+msgstr "目前沒有項目。"
+
+#: src/components/groups/coreply-cloud-sign-in.tsx:23
+msgid "Open Coreply Cloud to sign in"
+msgstr "開啟 Coreply Cloud 以登入"
+
+#: src/demo-conversations/localized.ts:63
+msgid "Perfect. 7?"
+msgstr "太好了，七點？"
+
+#: src/demo-conversations/localized.ts:29
+msgid "perfect. pizza on me sunday 🍕"
+msgstr "太好了，星期天披薩我請 🍕"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:143
+msgid "Permanently delete account"
+msgstr "永久刪除帳號"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:60
+msgid "Permanently delete your Coreply Cloud account and usage data."
+msgstr "永久刪除你的 Coreply Cloud 帳號與使用紀錄。"
+
+#: src/demo-conversations/localized.ts:59
+msgid "Pretty well, except I shared the wrong screen. Everyone saw me googling how to pronounce the client's name 🙈"
+msgstr "還不錯，只是分享錯畫面，大家都看到我在查客戶的名字怎麼念 🙈"
+
+#. Removes an item from a settings list
+#: src/renderers/array.tsx:34
+msgid "Remove"
+msgstr "移除"
+
+#. placeholder {0}: index + 1
+#: src/renderers/array.tsx:34
+msgid "Remove item {0}"
+msgstr "移除項目 {0}"
+
+#: src/demo-conversations/localized.ts:39
+msgid "Reproduced, thanks. I'll fix it this morning."
+msgstr "重現了，謝謝。我今天早上修好。"
+
+#. Indicates that a form field is required
+#: src/renderers/input.tsx:51
+msgid "Required"
+msgstr "必填"
+
+#: src/demo-conversations/localized.ts:45
+msgid "Retested, working now. Can you drive the demo? I'll cover rollout questions."
+msgstr "重測過了，現在正常。展示可以由你操作嗎？上線相關問題我來回答。"
+
+#: src/components/groups/coreply-cloud-usage.tsx:120
+msgid "Retrying..."
+msgstr "正在重試..."
+
+#: src/demo-conversations/localized.ts:71
+msgid "Review the disclosure and enable the service to continue."
+msgstr "請先閱讀資料使用說明，再啟用服務以繼續。"
+
+#: src/components/groups/provider-selector.tsx:30
+msgid "Select a provider"
+msgstr "選擇供應商"
+
+#. Button that sends the drafted chat message
+#: src/components/groups/demo-conversation.tsx:452
+msgid "Send message"
+msgstr "傳送訊息"
+
+#: src/renderers/input.tsx:175
+msgid "Show password"
+msgstr "顯示密碼"
+
+#: src/components/groups/coreply-cloud-sign-in.tsx:12
+msgid "Sign in to Coreply Cloud"
+msgstr "登入 Coreply Cloud"
+
+#: src/components/groups/coreply-cloud-sign-in.tsx:14
+msgid "Sign in to get typing suggestions tailored to your conversations."
+msgstr "登入後，即可取得符合對話內容的回覆建議。"
+
+#: src/components/groups/google-sign-in-button.native.tsx:51
+msgid "Signing in..."
+msgstr "正在登入..."
+
+#: src/components/groups/coreply-cloud-usage.tsx:132
+msgid "Standard usage"
+msgstr "標準用量"
+
+#: src/demo-conversations/localized.ts:23
+msgid "still good for noodles saturday? leo's coming too"
+msgstr "星期六吃麵還是照舊嗎？leo也會來"
+
+#: src/components/groups/demo-conversation.tsx:392
+#: src/components/groups/demo-conversation.tsx:427
+msgid "Tap to insert the next word. Hold to insert the full suggestion."
+msgstr "輕觸可插入下一個字詞，長按可插入整段建議。"
+
+#: src/demo-conversations/localized.ts:30
+msgid "tell leo to bring cash saturday btw"
+msgstr "對了，叫leo星期六記得帶現金哈哈"
+
+#: src/demo-conversations/localized.ts:38
+msgid "Testing onboarding. If I skip invitations and hit browser back twice, the company name disappears."
+msgstr "在測試新手流程。如果跳過邀請，再按兩次瀏覽器的上一頁，公司名稱就會消失。"
+
+#. Demo conversation about texting friends
+#: src/components/groups/demo-conversation.tsx:20
+msgid "Texting"
+msgstr "聊天"
+
+#: src/demo-conversations/localized.ts:61
+msgid "Thank you. Are you free for a drink Thursday?"
+msgstr "謝謝你的肯定。星期四有空喝一杯嗎？"
+
+#: src/demo-conversations/localized.ts:36
+msgid "Thanks. Revised onboarding will be in staging tomorrow."
+msgstr "收到，調整後的新手流程明天會上測試環境。"
+
+#: src/demo-conversations/localized.ts:41
+msgid "Thanks. The customer also sent their staff CSV. Can we use it Thursday?"
+msgstr "謝謝。客戶也寄了員工名單的CSV，星期四可以用嗎？"
+
+#: src/demo-conversations/localized.ts:56
+msgid "That's kind. My weekend was mostly dog sitting and avoiding tomorrow's presentation"
+msgstr "人真好。我的週末都在幫人顧狗，還有逃避準備明天的簡報"
+
+#: src/demo-conversations/localized.ts:60
+msgid "that's preparation. i'd hire you"
+msgstr "這叫準備充分。我要是老闆就錄取你"
+
+#: src/demo-conversations/localized.ts:26
+msgid "THAT'S where it is"
+msgstr "原來在你那裡！！"
+
+#: src/demo-conversations/localized.ts:21
+msgid "the 28th. already regretting how many books i own 😭"
+msgstr "28號。已經開始後悔買了這麼多書 😭"
+
+#: src/demo-conversations/localized.ts:35
+msgid "Thursday's demo moved to 10:30 our time. Calendar updated."
+msgstr "星期四的展示改到我們這邊的10:30，行事曆已更新。"
+
+#: src/components/groups/coreply-cloud-usage.tsx:120
+msgid "Try again"
+msgstr "重試"
+
+#: src/components/groups/toggle-button.tsx:22
+msgid "Turn Coreply off"
+msgstr "關閉 Coreply"
+
+#: src/components/groups/toggle-button.tsx:22
+msgid "Turn Coreply on"
+msgstr "開啟 Coreply"
+
+#: src/components/groups/provider-selector.tsx:25
+#: src/components/groups/provider-selector.tsx:34
+msgid "Use global default"
+msgstr ""
+
+#. Friendly invitation; accurately describe the Android accessibility permission.
+#: src/demo-conversations/localized.ts:70
+msgid "Want suggestions like these in your other apps? Enable Coreply's accessibility service so it can read the conversation and suggest what to write next."
+msgstr "也想在其他 App 裡用這樣的建議嗎？啟用 Coreply 的無障礙服務，讓 Coreply 讀取聊天內容，就能建議你接下來可以寫什麼。"
+
+#: src/demo-conversations/localized.ts:40
+msgid "Welcome email is updated. Left the subject line alone as agreed."
+msgstr "歡迎信更新好了，照說好的沒有改主旨。"
+
+#. Friendly chat prompt inviting the user to try typing suggestions.
+#: src/demo-conversations/localized.ts:10
+msgid "What would you like to use Coreply for? Start typing your reply below and try tapping a suggestion!"
+msgstr "你想用 Coreply 來做什麼呢？在下方開始輸入回覆，再點一下建議試試看吧！"
+
+#. Demo conversation about workplace communication
+#: src/components/groups/demo-conversation.tsx:21
+msgid "Workplace"
+msgstr "工作"
+
+#: src/demo-conversations/localized.ts:64
+msgid "works for me"
+msgstr "沒問題"
+
+#: src/demo-conversations/localized.ts:47
+msgid "Works. Sample CSV is ready too."
+msgstr "可以，CSV範例也準備好了。"
+
+#: src/demo-conversations/localized.ts:46
+msgid "Yep. Rehearsal tomorrow at 3?"
+msgstr "可以。明天下午三點彩排？"
+
+#: src/demo-conversations/localized.ts:62
+msgid "yes 😊 June near the market? been meaning to try it"
+msgstr "有啊 😊 市場附近的June怎麼樣？一直想去試試"
+
+#: src/demo-conversations/localized.ts:24
+msgid "yes! can we do 7? taking dad to pick up his car first"
+msgstr "好啊！可以約七點嗎？我要先陪爸爸去牽車"
+
+#. Name of the current user in a chat
+#. Name of the current user in a chat
+#. Name of the current user in a chat
+#: src/components/groups/demo-conversation.tsx:158
+#: src/components/groups/demo-conversation.tsx:162
+#: src/demo-conversations/localized.ts:15
+msgid "You"
+msgstr "你"
+
+#. Friendly demo chat. Match Profiles to the translated home screen label.
+#: src/demo-conversations/localized.ts:76
+msgid "You're all set! Open 'Profiles' on Coreply's home screen to choose where suggestions appear, then open a website you've enabled Coreply on and give it a try!"
+msgstr "設定好囉！到 Coreply 首頁開啟「設定檔」，選擇要在哪些網站顯示建議，再打開已啟用 Coreply 的網站試試看吧！"
+
+#. Friendly setup success. Match Select Apps to the translated home screen label.
+#: src/demo-conversations/localized.ts:72
+msgid "You're all set! Tap 'Select Apps' on Coreply's home screen to choose where suggestions appear, or open a texting app and give it a try!"
+msgstr "設定好囉！到 Coreply 首頁點選「選擇應用程式」，選擇要在哪些 App 顯示建議，或直接打開通訊 App 試試看吧！"
+
+#: src/components/groups/coreply-cloud-usage.tsx:41
+msgid "You've reached your daily limit."
+msgstr "你已達到每日用量上限。"
+
+#: src/components/groups/coreply-cloud-usage.tsx:41
+msgid "You've reached your monthly limit."
+msgstr "你已達到每月用量上限。"
+
+#: src/components/groups/coreply-cloud-delete-account.tsx:98
+msgid "Your account and access will <0>end immediately</0>, even if your paid subscription hasn't expired. This <1>cannot be undone</1>."
+msgstr "刪除後，你的帳號與使用權限將<0>立即終止</0>，即使付費訂閱尚未到期也一樣。此操作<1>無法復原</1>。"
+
+#: src/components/groups/coreply-cloud-usage.tsx:135
+msgid "Your Coreply Cloud allowance"
+msgstr "你的 Coreply Cloud 額度"
+
+#: src/demo-conversations/localized.ts:52
+msgid "Your profile says you missed your train stop by an hour. Asleep or a really good book?"
+msgstr "你自介說搭車坐過站，還多坐了一個小時？是睡著了還是書太好看？"

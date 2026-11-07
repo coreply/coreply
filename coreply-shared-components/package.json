@@ -6,12 +6,16 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
+    "i18n:extract": "lingui extract --clean",
+    "i18n:compile": "lingui compile",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@jsonforms/core": "^3.7.0",
     "@jsonforms/react": "^3.7.0",
+    "@lingui/core": "^6.10.1",
+    "@lingui/react": "^6.10.1",
     "@react-native-community/slider": "^5.2.0",
     "@rn-primitives/accordion": "^1.4.0",
     "@rn-primitives/checkbox": "^1.4.0",
@@ -44,6 +48,7 @@
     "zod": "^4.0.1"
   },
   "devDependencies": {
+    "@lingui/cli": "^6.11.0",
     "@tanstack/react-query": "^5.104.4",
     "@types/react-native-web": "^0.19.2",
     "babel-preset-expo": "^56.0.15",
