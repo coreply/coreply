@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
-import { View, useColorScheme } from "react-native";
+import { View } from "react-native";
 import {
   GoogleSignInButton as NativeGoogleSignInButton,
   type OneTapSuccessData,
@@ -9,8 +10,8 @@ import { useCloudAuth } from "../../cloud/auth-context";
 import { Text } from "../ui/text";
 
 export function GoogleSignInButton() {
+  const { t } = useLingui();
   const { authClient } = useCloudAuth();
-  const colorScheme = useColorScheme();
   const [googleError, setGoogleError] = useState<string | null>(null);
 
   const signIn = useMutation({
@@ -20,17 +21,18 @@ export function GoogleSignInButton() {
         idToken: { token: data.idToken },
       });
       if (result.error)
-        throw new Error(result.error.message ?? "Google sign-in failed.");
+        throw new Error(result.error.message ?? t`Google sign-in failed.`);
     },
   });
   const error = googleError ?? signIn.error?.message;
 
   return (
-    <View className="gap-2 mx-auto">
+    <View className="w-full items-center gap-2">
       <NativeGoogleSignInButton
-        colorScheme={colorScheme === "dark" ? "dark" : "light"}
+        colorScheme="light"
         size="wide"
-        contentAlignment="leading"
+        style={{ width: "100%" }}
+        contentAlignment="center"
         disabled={signIn.isPending}
         onPress={() => {
           setGoogleError(null);
@@ -41,12 +43,12 @@ export function GoogleSignInButton() {
         }}
         onSignInError={(cause) =>
           setGoogleError(
-            cause instanceof Error ? cause.message : "Google sign-in failed.",
+            cause instanceof Error ? cause.message : t`Google sign-in failed.`,
           )
         }
       />
       {signIn.isPending && (
-        <Text className="text-sm text-muted-foreground">Signing in...</Text>
+        <Text className="text-sm text-muted-foreground"><Trans>Signing in...</Trans></Text>
       )}
       {error && (
         <Text role="alert" className="text-sm text-destructive">
