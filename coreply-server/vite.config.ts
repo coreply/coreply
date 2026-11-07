@@ -8,7 +8,13 @@ import { rnw } from "vite-plugin-rnw";
 import { lingui } from "@lingui/vite-plugin";
 
 export default defineConfig({
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    alias: [
+      // Shared icons use DOM SVGs on the server, not native SVG modules.
+      { find: /^lucide-react-native$/, replacement: "lucide-react" },
+    ],
+  },
 
   optimizeDeps: {
     include: ["coreply-shared-components > react-native-web"],

@@ -4,6 +4,11 @@ import { routeTree } from '../routeTree.gen'
 import { I18nProvider } from '@lingui/react'
 import { i18n } from './i18n'
 
+const savedTheme = localStorage.getItem('theme')
+if (savedTheme === 'light' || savedTheme === 'dark') {
+  document.documentElement.classList.add(savedTheme)
+}
+
 const router = createRouter({
   routeTree,
   defaultPreload: 'intent',

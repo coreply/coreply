@@ -15,5 +15,8 @@
     "components": "@server/components",
     "ui": "@server/components/ui",
     "hooks": "@server/hooks"
+  },
+  "registries": {
+    "@toggles": "https://toggles.dev/r/{name}.json"
   }
 }
