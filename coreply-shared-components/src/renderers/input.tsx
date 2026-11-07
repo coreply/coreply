@@ -7,6 +7,8 @@ import { Button } from "../components/ui/button";
 import { Icon } from "../components/ui/icon";
 import { Eye, EyeOff } from "lucide-react-native";
 import { type ReactNode, useState } from "react";
+import { useLingui } from "@lingui/react";
+import { Trans, useLingui as useLinguiMacro } from "@lingui/react/macro";
 
 function getStringControlType(
   schema: ControlProps["schema"] & { feature?: string; control?: string },
@@ -35,6 +37,7 @@ function FieldShell({
   errors?: string;
   children: ReactNode;
 }) {
+  const { i18n } = useLingui();
   return (
     <View className="mb-4 gap-1.5">
       {hasTextContent(label) ? (
@@ -45,7 +48,7 @@ function FieldShell({
           </Text>
           {required && (
             <Text className="text-xs text-muted-foreground font-sans">
-              Required
+              <Trans comment="Indicates that a form field is required">Required</Trans>
             </Text>
           )}
         </View>
@@ -55,7 +58,7 @@ function FieldShell({
         <Text className="text-xs text-destructive font-sans">{errors}</Text>
       ) : hasTextContent(description) ? (
         <Text className="text-xs text-muted-foreground font-sans">
-          {description}
+          {i18n._(description)}
         </Text>
       ) : null}
     </View>
@@ -78,6 +81,7 @@ const InputControl = ({
     textareaSize?: "s" | "m" | "l";
   };
 }) => {
+  const { t } = useLinguiMacro();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const isEnabled = enabled !== false;
   const isNumeric = schema.type === "number" || schema.type === "integer";
@@ -166,7 +170,7 @@ const InputControl = ({
               .filter(Boolean)
               .join(" ")}
             onPress={() => setPasswordVisible((visible) => !visible)}
-            aria-label={passwordVisible ? "Hide password" : "Show password"}
+            aria-label={passwordVisible ? t`Hide password` : t`Show password`}
             disabled={!isEnabled}
           >
             <Icon
