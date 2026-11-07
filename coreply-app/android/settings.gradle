@@ -34,8 +34,19 @@ plugins {
     id("expo-autolinking-settings")
 }
 
+def billingVariant = System.getenv("variant")
+if (!(billingVariant in ["web", "rc"])) {
+  throw new GradleException('variant must be "web" or "rc"')
+}
+def variantFile = file("build/generated/coreply-billing-variant.txt")
+variantFile.parentFile.mkdirs()
+if (!variantFile.exists() || variantFile.text != billingVariant) {
+  variantFile.text = billingVariant
+}
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
+  ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand, file(".."), files(
+    "../package.json", "../react-native.config.js", "../../pnpm-lock.yaml", variantFile
+  ))
 }
 expoAutolinking.useExpoModules()
 
@@ -45,4 +56,3 @@ rootProject.name = "coreply"
 expoAutolinking.useExpoVersionCatalog()
 include(":app")
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
-

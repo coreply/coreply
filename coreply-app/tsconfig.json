@@ -4,6 +4,7 @@
     "types": ["chrome-types"],
     "strict": true,
     "paths": {
+      "#manage-subscription": ["./src/billing/manageSubscription.d.ts"],
       "@/*": [
         "./src/*",
          "../coreply-shared-components/src/*"

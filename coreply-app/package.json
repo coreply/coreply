@@ -54,6 +54,8 @@
     "react-native-nitro-cookies": "^1.3.1",
     "react-native-nitro-google-signin": "^2.3.0",
     "react-native-nitro-modules": "^0.37.1",
+    "react-native-purchases": "^11.0.0",
+    "react-native-purchases-ui": "^11.0.0",
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",

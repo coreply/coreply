@@ -89,6 +89,7 @@ react {
 }
 
 tasks.withType(com.facebook.react.tasks.BundleHermesCTask).configureEach {
+    inputs.property("billingVariant", providers.environmentVariable("variant"))
     ["libcoreply", "coreply-shared-components"].each { packageName ->
         inputs.files(fileTree(new File(rootDir, "../../${packageName}")) {
             include("src/**")

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useRouter } from "expo-router";
 import { Platform, ScrollView, StyleSheet, useColorScheme } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -51,8 +52,13 @@ import { cloudConfigured } from "@/cloud/config";
 import { createBillingClient } from "coreply-shared-components/src/utils/hc";
 import { CoreplyCloudSignIn } from "@/components/groups/coreply-cloud-sign-in";
 import { CoreplyCloudUsage } from "@/components/groups/coreply-cloud-usage";
+import { CloudSessionError } from "@/components/cloud-session-error";
+import { GetMoreUsageButton } from "@/components/get-more-usage-button";
 import { isBrowserExtension } from "@/utils/extension";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createAsyncStorage } from "@/constants/storage";
+import { syncStoredSettings } from "@/utils/sync-stored-settings";
+
+const onboardingStorage = createAsyncStorage("coreply.onboarding");
 
 const billingClient = createBillingClient(
   process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL!,
@@ -71,19 +77,11 @@ function usePersistedSettings() {
   useEffect(() => {
     storageManager.loadSettings().then((settings) => {
       setProviderId(settings.providerId);
-      setInitialProviderConfig(settings.providerConfig);
+      setInitialProviderConfig(settings.providerConfigs[settings.providerId]);
       setInitialGlobalSettings(settings.globalSettings);
       setIsLoaded(true);
     });
   }, []);
-
-  useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
-
-    void storageManager.saveProviderId(providerId);
-  }, [isLoaded, providerId]);
 
   const saveProviderConfig = (newSettings: Record<string, any>) => {
     const provider =
@@ -94,17 +92,7 @@ function usePersistedSettings() {
       return;
     }
 
-    void storageManager.saveProviderConfig(providerId, parsed.data);
-
-    if (isLoaded && Platform.OS === "android") {
-      Brownfield.sendMessage({
-        type: "settingsUpdated",
-        data: {
-          providerId,
-          providerConfig: parsed.data,
-        },
-      });
-    }
+    void storageManager.saveProviderConfig(providerId, parsed.data).then(syncStoredSettings);
   };
 
   const saveGlobalSettings = (newSettings: GlobalSettings) => {
@@ -138,26 +126,13 @@ function usePersistedSettings() {
 }
 
 export default function SettingsScreen() {
+  const { t } = useLingui();
   const {
     data: session,
     isPending: sessionPending,
     error: sessionError,
     refetch: refetchSession,
   } = authClient.useSession();
-  const queryClient = useQueryClient();
-  const signOut = useMutation({
-    mutationFn: async () => {
-      const result = await authClient.signOut();
-      if (result.error)
-        throw new Error(
-          result.error.message ?? "Couldn't sign out. Please try again.",
-        );
-    },
-    onSuccess: async () => {
-      await queryClient.cancelQueries({ queryKey: ["billing"] });
-      queryClient.removeQueries({ queryKey: ["billing"] });
-    },
-  });
   const colorScheme = useColorScheme();
   const [androidAccessibilityEnabled] =
     Platform.OS === "android"
@@ -172,6 +147,12 @@ export default function SettingsScreen() {
     Outfit_700Bold,
   });
   const router = useRouter();
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    void onboardingStorage.getItem("complete").then((complete) => {
+      if (complete !== "true") router.replace("/onboarding");
+    });
+  }, [router]);
   const {
     isLoaded,
     providerId,
@@ -209,14 +190,20 @@ export default function SettingsScreen() {
     setProviderId(newProviderId);
     setInitialProviderConfig(nextProviderConfig);
 
-    if (isLoaded && Platform.OS === "android") {
-      Brownfield.sendMessage({
-        type: "settingsUpdated",
-        data: {
-          providerId: newProviderId,
-          providerConfig: nextProviderConfig,
-        },
-      });
+    await storageManager.ensureProviderConfig(newProviderId);
+    await storageManager.saveProviderId(newProviderId);
+    await syncStoredSettings();
+  };
+
+  const handleUseApiKey = () => {
+    const provider = Object.entries(providerDefinitions).find(
+      ([key, definition]) =>
+        key !== "coreplyCloudStateful" &&
+        "stateful" in definition && definition.stateful,
+    );
+    if (provider) {
+      const [value, definition] = provider;
+      void handleProviderChange({ value, label: definition.name });
     }
   };
 
@@ -268,16 +255,16 @@ export default function SettingsScreen() {
                   <View className="flex-row justify-between p-3 border-border border-b bg-background">
                     <View className="">
                       <Text className="text-lg font-semibold">
-                        Coreply is {accessibilityEnabled ? "on" : "off"}
+                        {accessibilityEnabled ? t`Coreply is on` : t`Coreply is off`}
                       </Text>
                       <Text className="text-xs text-muted-foreground font-sans">
                         {Platform.OS === "web"
                           ? accessibilityEnabled
-                            ? "Coreply suggestions are enabled in this extension"
-                            : "Tap the toggle to start Coreply in this extension"
+                            ? t`Coreply suggestions are enabled in this extension`
+                            : t`Tap the toggle to start Coreply in this extension`
                           : accessibilityEnabled
-                            ? "Accessibility service is enabled"
-                            : "Tap the toggle to start Coreply"}
+                            ? t`Accessibility service is enabled`
+                            : t`Tap the toggle to start Coreply`}
                       </Text>
                     </View>
                     <ToggleButton
@@ -293,7 +280,7 @@ export default function SettingsScreen() {
                 >
                   <View>
                     <Text className="mb-2 text-lg px-3 font-semibold">
-                      {Platform.OS === "web" ? "Profiles" : "Select Apps"}
+                      {Platform.OS === "web" ? t`Profiles` : t`Select Apps`}
                     </Text>
                     <View className="px-3 pb-3">
                       <Button
@@ -303,12 +290,12 @@ export default function SettingsScreen() {
                       >
                         <View className="h-auto flex-1 gap-1">
                           <Text className="text-left text-base text-foreground font-medium">
-                            {Platform.OS === "web" ? "Profiles" : "Select Apps"}
+                            {Platform.OS === "web" ? t`Profiles` : t`Select Apps`}
                           </Text>
                           <Text className="text-left text-sm text-muted-foreground font-sans">
                             {Platform.OS === "web"
-                              ? "Manage profiles and choose where Coreply runs."
-                              : "Choose apps and customize their profiles."}
+                              ? t`Manage profiles and choose where Coreply runs.`
+                              : t`Choose apps and customize their profiles.`}
                           </Text>
                         </View>
                         <Icon
@@ -320,67 +307,41 @@ export default function SettingsScreen() {
                   </View>
                   <View className="border-t border-border pt-3">
                     <Text className="mb-2 text-lg px-3 font-semibold">
-                      API Provider
+                      {providerId === "coreplyCloudStateful" ? t`Coreply Cloud` : t`API Provider`}
                     </Text>
-                    <View className="px-3">
-                      <ProviderSelector
-                        selectedProviderKey={providerId}
-                        onProviderChange={handleProviderChange}
-                      />
-                    </View>
+                    {providerId !== "coreplyCloudStateful" && (
+                      <View className="mb-4 px-3">
+                        <ProviderSelector
+                          selectedProviderKey={providerId}
+                          onProviderChange={handleProviderChange}
+                        />
+                      </View>
+                    )}
                     {isLoaded ? (
                       <View className="px-3">
                         {providerId === "coreplyCloudStateful" ? (
-                          session ? (
+                          session?.user ? (
                               <View className="gap-4">
                                 <CoreplyCloudUsage
                                   client={billingClient}
                                   userId={session.user.id}
                                 />
-                                <Text className="text-sm text-muted-foreground">
-                                  Signed in as {session.user.email}
-                                </Text>
+                                <GetMoreUsageButton userId={session.user.id} />
                                 <Button
                                   variant="outline"
-                                  onPress={() => signOut.mutate()}
-                                  disabled={signOut.isPending}
+                                  onPress={() => router.push("/cloud-account")}
                                 >
-                                  <Text>
-                                    {signOut.isPending
-                                      ? "Signing out..."
-                                      : "Sign out"}
-                                  </Text>
+                                  <Text><Trans>Manage account</Trans></Text>
                                 </Button>
-                                {signOut.error && (
-                                  <Text
-                                    role="alert"
-                                    className="text-sm text-destructive"
-                                  >
-                                    {signOut.error.message}
-                                  </Text>
-                                )}
                               </View>
+                            ) : session && !session.user ? (
+                              <CloudSessionError onRetry={() => void refetchSession()} />
                             ) : sessionPending ? (
                               <Text className="text-sm text-muted-foreground">
-                                Checking your session...
+                                <Trans>Checking your session...</Trans>
                               </Text>
                             ) : sessionError && sessionError.status !== 401 ? (
-                              <View className="gap-3">
-                                <Text
-                                  role="alert"
-                                  className="text-sm text-destructive"
-                                >
-                                  Couldn't check your session.
-                                </Text>
-                                <Button
-                                  variant="outline"
-                                  onPress={() => {
-                                    void refetchSession();
-                                  }}
-                                >
-                                  <Text>Try again</Text>
-                                </Button>
-                              </View>
+                              <CloudSessionError onRetry={() => void refetchSession()} />
                             ) : (
                               <CoreplyCloudSignIn
                                 configured={cloudConfigured}
@@ -400,6 +361,16 @@ export default function SettingsScreen() {
                         )}
                       </View>
                     ) : null}
+                    {isLoaded && providerId === "coreplyCloudStateful" && (
+                      <View className="px-3">
+                        <Button
+                          variant="ghost"
+                          onPress={handleUseApiKey}
+                        >
+                          <Text><Trans>Use an API key or third-party provider</Trans></Text>
+                        </Button>
+                      </View>
+                    )}
                   </View>
                   <View className="border-t border-border">
                     <View className="pt-3 px-3">
@@ -407,7 +378,7 @@ export default function SettingsScreen() {
                         className="mb-2 text-lg"
                         style={{ fontFamily: "Outfit_600SemiBold" }}
                       >
-                        Coreply Settings
+                        <Trans>Coreply Settings</Trans>
                       </Text>
                       {isLoaded ? (
                         <GlobalSettingsForm
@@ -419,7 +390,7 @@ export default function SettingsScreen() {
                   </View>
                   <View className="border-t border-border pt-3">
                     <Text className="mb-2 text-lg px-3 font-semibold">
-                      Troubleshooting
+                      <Trans>Troubleshooting</Trans>
                     </Text>
                     <View className="px-3 pb-3">
                       <Button
@@ -429,10 +400,10 @@ export default function SettingsScreen() {
                       >
                         <View className="h-auto flex-1 gap-1">
                           <Text className="text-left text-base text-foreground font-medium">
-                            View Logs
+                            <Trans>View Logs</Trans>
                           </Text>
                           <Text className="text-left text-sm text-muted-foreground font-sans">
-                            Review recent suggestion fetch details.
+                            <Trans>Review recent suggestion fetch details.</Trans>
                           </Text>
                         </View>
                         <Icon
