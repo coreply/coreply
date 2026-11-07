@@ -5,6 +5,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { rnw } from "vite-plugin-rnw";
+import { lingui } from "@lingui/vite-plugin";
 
 export default defineConfig({
   resolve: { tsconfigPaths: true },
@@ -13,6 +14,7 @@ export default defineConfig({
     include: ["coreply-shared-components > react-native-web"],
   },
   plugins: [
+    lingui({ macroTransform: true }),
     devtools(),
 
     tailwindcss(),

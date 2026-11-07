@@ -1,6 +1,8 @@
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from '../routeTree.gen'
+import { I18nProvider } from '@lingui/react'
+import { i18n } from './i18n'
 
 const router = createRouter({
   routeTree,
@@ -18,5 +20,5 @@ const rootElement = document.getElementById('app')!
 
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
-  root.render(<RouterProvider router={router} />)
+  root.render(<I18nProvider i18n={i18n}><RouterProvider router={router} /></I18nProvider>)
 }

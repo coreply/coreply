@@ -1,0 +1,212 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-02 01:53+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: de\n"
+
+#. Suffix after a Cloud plan's monthly price
+#: src/react-app/routes/billing.tsx:104
+msgid "/ month"
+msgstr "/ Monat"
+
+#. Suffix after a Cloud plan's annual price
+#: src/react-app/routes/billing.tsx:104
+msgid "/ year"
+msgstr "/ Jahr"
+
+#. Cloud account settings page and sidebar link
+#. Cloud account settings page and sidebar link
+#: src/react-app/components/cloud-layout.tsx:105
+#: src/react-app/routes/account.tsx:13
+msgid "Account"
+msgstr "Konto"
+
+#: src/react-app/routes/billing.tsx:114
+msgid "After subscribing on this website, you can manage your subscription and invoices here."
+msgstr "Sobald du ein Abo auf dieser Website abgeschlossen hast, kannst du es hier verwalten und deine Rechnungen einsehen."
+
+#: src/react-app/routes/billing.tsx:105
+msgid "Basic suggestions with a basic usage allowance."
+msgstr "Einfache Textvorschläge mit einem kleinen Nutzungskontingent."
+
+#. Ratio compares Plus and Free monthly Cloud usage allowances
+#. placeholder {0}: new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.monthlyAllowance / freePlan.monthlyAllowance)
+#: src/react-app/routes/billing.tsx:106
+msgid "Better models and {0}x the monthly usage of Free."
+msgstr "Bessere Modelle und das {0}-fache monatliche Kontingent der kostenlosen Version."
+
+#. Annual billing interval for the Plus subscription
+#: src/react-app/routes/billing.tsx:70
+msgid "Billed annually"
+msgstr "Jährliche Zahlung"
+
+#. Monthly billing interval for the Plus subscription
+#: src/react-app/routes/billing.tsx:69
+msgid "Billed monthly"
+msgstr "Monatliche Zahlung"
+
+#. Cloud subscription and payments page title and sidebar link
+#. Cloud subscription and payments page title and sidebar link
+#: src/react-app/components/cloud-layout.tsx:104
+#: src/react-app/routes/billing.tsx:72
+msgid "Billing"
+msgstr "Abo und Rechnungen"
+
+#. Select monthly or annual billing for Plus
+#: src/react-app/routes/billing.tsx:81
+msgid "Billing frequency"
+msgstr "Zahlungsintervall"
+
+#: src/react-app/components/require-session.tsx:11
+msgid "Checking your session..."
+msgstr "Anmeldung wird geprüft..."
+
+#: src/react-app/routes/billing.tsx:77
+msgid "Choose your Cloud plan. All prices are in <0>USD</0>."
+msgstr "Wähle das passende Cloud-Abo. Alle Preise sind in <0>USD</0>."
+
+#. Accessible label for the Cloud sidebar navigation
+#: src/react-app/components/cloud-layout.tsx:88
+msgid "Cloud navigation"
+msgstr "Cloud-Navigation"
+
+#: src/react-app/routes/billing.tsx:28
+msgid "Couldn't load billing. Please try again."
+msgstr "Die Abrechnungsdaten konnten nicht geladen werden. Bitte versuche es erneut."
+
+#: src/react-app/routes/billing.tsx:50
+msgid "Couldn't open billing settings. Please try again."
+msgstr "Die Zahlungseinstellungen konnten nicht geöffnet werden. Bitte versuche es erneut."
+
+#: src/react-app/routes/billing.tsx:40
+msgid "Couldn't open checkout. Please try again."
+msgstr "Die Zahlungsseite konnte nicht geöffnet werden. Bitte versuche es erneut."
+
+#: src/react-app/components/cloud-layout.tsx:79
+msgid "Couldn't sign out. Please try again."
+msgstr "Die Abmeldung ist fehlgeschlagen. Bitte versuche es erneut."
+
+#. Badge identifying the user's subscribed Cloud plan
+#: src/react-app/routes/billing.tsx:103
+msgid "Current plan"
+msgstr "Aktuelles Abo"
+
+#. Toggle for the site's dark color theme
+#. Toggle for the site's dark color theme
+#: src/react-app/components/cloud-layout.tsx:61
+#: src/react-app/components/cloud-layout.tsx:62
+msgid "Dark mode"
+msgstr "Dunkler Modus"
+
+#. Sidebar link to Coreply documentation
+#: src/react-app/components/cloud-layout.tsx:133
+msgid "Docs"
+msgstr "Anleitung"
+
+#. Name of the free Coreply Cloud plan
+#: src/react-app/routes/billing.tsx:103
+msgid "Free"
+msgstr "Kostenlos"
+
+#: src/react-app/routes/usage.tsx:29
+msgid "Get the Android app on Google Play"
+msgstr "Android-App bei Google Play herunterladen"
+
+#: src/react-app/routes/usage.tsx:20
+msgid "Keep track of your Coreply Cloud allowance."
+msgstr "Sieh nach, wie viel du in Coreply Cloud verbraucht hast und noch nutzen kannst."
+
+#. Sidebar menu for changing the display language
+#: src/react-app/components/cloud-layout.tsx:140
+msgid "Language"
+msgstr "Sprache"
+
+#: src/react-app/routes/billing.tsx:88
+msgid "Loading your plan..."
+msgstr "Dein Abo wird geladen..."
+
+#. Account menu action to sign out of Coreply Cloud
+#: src/react-app/components/cloud-layout.tsx:179
+msgid "Log out"
+msgstr "Abmelden"
+
+#: src/react-app/routes/billing.tsx:113
+msgid "Manage subscription"
+msgstr "Abo verwalten"
+
+#: src/react-app/routes/billing.tsx:117
+msgid "Manage subscription and invoices"
+msgstr "Abo und Rechnungen verwalten"
+
+#: src/react-app/routes/billing.tsx:114
+msgid "Manage subscriptions purchased on this website and view your invoices."
+msgstr "Verwalte die auf dieser Website abgeschlossenen Abos und sieh deine Rechnungen ein."
+
+#: src/react-app/routes/billing.tsx:115
+msgid "Only subscriptions purchased on this website appear in these billing settings. If you subscribed elsewhere, manage your subscription where you purchased it."
+msgstr "Hier erscheinen nur Abos, die du auf dieser Website abgeschlossen hast. Wenn du dein Abo woanders gekauft hast, verwalte es bitte dort."
+
+#: src/react-app/routes/billing.tsx:117
+msgid "Opening billing..."
+msgstr "Abo-Verwaltung wird geöffnet..."
+
+#: src/react-app/routes/billing.tsx:107
+msgid "Opening checkout..."
+msgstr "Zahlungsseite wird geöffnet..."
+
+#. Heading above available Cloud subscription plans
+#: src/react-app/routes/billing.tsx:76
+msgid "Plans"
+msgstr "Abos"
+
+#. Name of the paid Coreply Cloud plan
+#: src/react-app/routes/billing.tsx:103
+msgid "Plus"
+msgstr "Plus"
+
+#: src/react-app/routes/index.tsx:18
+msgid "Sign in"
+msgstr "Anmelden"
+
+#: src/react-app/components/cloud-layout.tsx:179
+msgid "Signing out..."
+msgstr "Abmeldung läuft..."
+
+#. Button to retry loading billing details
+#: src/react-app/routes/billing.tsx:98
+msgid "Try again"
+msgstr "Erneut versuchen"
+
+#: src/react-app/routes/billing.tsx:107
+msgid "Upgrade to Plus"
+msgstr "Auf Plus upgraden"
+
+#. Cloud usage page title and sidebar link
+#. Cloud usage page title and sidebar link
+#: src/react-app/components/cloud-layout.tsx:103
+#: src/react-app/routes/usage.tsx:16
+msgid "Usage"
+msgstr "Verbrauch"
+
+#: src/react-app/routes/usage.tsx:27
+msgid "Use Coreply Cloud for suggestions in the Coreply Android app and browser extension. Sign in with the same account on each device."
+msgstr "Nutze die Textvorschläge von Coreply Cloud in der Coreply-App für Android und in der Browser-Erweiterung. Melde dich auf allen Geräten mit demselben Konto an."
+
+#: src/react-app/routes/usage.tsx:26
+msgid "Where to use Coreply"
+msgstr "Hier kannst du Coreply nutzen"
+
+#: src/react-app/routes/billing.tsx:100
+msgid "Your payment needs attention. Update it in billing settings."
+msgstr "Bei deiner Zahlung ist ein Problem aufgetreten. Bitte aktualisiere deine Zahlungsdaten in den Zahlungseinstellungen."
+
+#: src/react-app/routes/billing.tsx:101
+msgid "Your subscription is set to cancel. Manage it in billing settings."
+msgstr "Dein Abo ist gekündigt und wird auslaufen. Du kannst das in der Abo-Verwaltung ändern."
+
+#: src/react-app/routes/usage.tsx:19
+msgid "Your usage"
+msgstr "Dein Verbrauch"
