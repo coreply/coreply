@@ -15,6 +15,8 @@
     "@expo/ui": "~56.0.15",
     "@jsonforms/core": "^3.7.0",
     "@jsonforms/react": "^3.7.0",
+    "@lingui/core": "^6.10.1",
+    "@lingui/react": "^6.10.1",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/slider": "^5.2.0",
     "@rn-primitives/portal": "^1.5.3",
@@ -33,6 +35,7 @@
     "expo-image": "~56.0.9",
     "expo-intent-launcher": "^56.0.4",
     "expo-linking": "~56.0.13",
+    "expo-localization": "^56.0.6",
     "expo-network": "~56.0.5",
     "expo-router": "~56.2.8",
     "expo-secure-store": "~56.0.4",
@@ -63,6 +66,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@lingui/babel-plugin-lingui-macro": "^6.10.1",
+    "@lingui/cli": "^6.10.1",
     "@playwright/test": "^1.61.0",
     "@types/node": "^26.0.0",
     "@types/react": "~19.2.2",
@@ -72,6 +77,8 @@
     "vitest": "^4.1.11"
   },
   "scripts": {
+    "i18n:extract": "lingui extract",
+    "i18n:compile": "lingui compile",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -79,7 +86,7 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "build": "expo export --platform web --output-dir ../coreply-browser-extension/entrypoints/popup/ --clear"
+    "build": "pnpm run i18n:compile && expo export --platform web --output-dir ../coreply-browser-extension/entrypoints/popup/ --clear"
   },
   "private": true
 }

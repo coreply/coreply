@@ -5,6 +5,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/outfit";
 import { Image } from "expo-image";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -69,12 +70,13 @@ function AppSelectionRow({
   onToggle: () => void;
   onEdit: () => void;
 }) {
+  const { t } = useLingui();
   return (
     <View className="h-auto w-full flex-row items-center justify-between rounded-none border-x border-b border-border">
       <Button
         variant="ghost"
         className="h-auto flex-1 self-stretch justify-start rounded-none px-3 py-3"
-        accessibilityLabel={`Edit ${app.appName} profile`}
+        accessibilityLabel={t`Edit ${app.appName} profile`}
         onPress={onEdit}
       >
         {app.iconUri ? (
@@ -97,7 +99,7 @@ function AppSelectionRow({
       </Button>
       <View className="px-3 py-3">
         <Switch
-          accessibilityLabel={`Enable ${app.appName}`}
+          accessibilityLabel={t`Enable ${app.appName}`}
           checked={isSelected}
           onCheckedChange={onToggle}
         />
@@ -107,6 +109,7 @@ function AppSelectionRow({
 }
 
 export default function SelectAppsScreen() {
+  const { t } = useLingui();
   const [fontsLoaded] = useFonts({
     Outfit_400Regular,
     Outfit_600SemiBold,
@@ -139,8 +142,8 @@ export default function SelectAppsScreen() {
       setInitialSelectedApps(savedSelectedApps);
     } catch (loadError) {
       const message =
-        loadError instanceof Error ? loadError.message : "Unknown error";
-      setLoadError(`Failed to load apps: ${message}`);
+        loadError instanceof Error ? loadError.message : t`Unknown error`;
+      setLoadError(t`Failed to load apps: ${message}`);
     } finally {
       setIsLoading(false);
     }
@@ -176,8 +179,8 @@ export default function SelectAppsScreen() {
       await triggerSelectedAppsSync(nextSelectedApps);
     } catch (saveError) {
       const message =
-        saveError instanceof Error ? saveError.message : "Unknown error";
-      setSaveError(`Failed to save selected apps: ${message}`);
+        saveError instanceof Error ? saveError.message : t`Unknown error`;
+      setSaveError(t`Failed to save selected apps: ${message}`);
     }
   };
 
@@ -204,7 +207,7 @@ export default function SelectAppsScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-           title: Platform.OS === "web" ? "Profiles" : "Select Apps",
+           title: Platform.OS === "web" ? t`Profiles` : t`Select Apps`,
         }}
       />
       <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
@@ -215,19 +218,19 @@ export default function SelectAppsScreen() {
                 <View style={styles.centeredState}>
                   <ActivityIndicator size="large" />
                   <Text className="text-sm text-muted-foreground font-sans">
-                    Loading installed apps...
+                    <Trans>Loading installed apps...</Trans>
                   </Text>
                 </View>
               ) : loadError ? (
                 <View style={styles.centeredState}>
                   <Text className="text-lg text-destructive font-semibold">
-                    Error
+                    <Trans>Error</Trans>
                   </Text>
                   <Text className="text-center text-sm text-muted-foreground font-sans">
                     {loadError}
                   </Text>
                   <Button onPress={() => void loadApps()}>
-                    <Text className="font-sans">Retry</Text>
+                    <Text className="font-sans"><Trans comment="Retries loading the list of apps">Retry</Trans></Text>
                   </Button>
                 </View>
               ) : (
@@ -244,15 +247,15 @@ export default function SelectAppsScreen() {
                     <View>
                       <View className="mb-2 flex-row items-center justify-between gap-3">
                         <Text className="flex-1 text-lg text-foreground font-semibold">
-                          {Platform.OS === "web" ? "Profiles" : "Coreply Supported Apps"}
+                          {Platform.OS === "web" ? t`Profiles` : t`Coreply Supported Apps`}
                         </Text>
                         {Platform.OS === "web" ? <Button variant="outline" size="sm" onPress={async () => {
                           const profile = { id: crypto.randomUUID(), displayName: "New profile", platform: "web" as const, matchingRule: "^https://example\\.com/", dropRule: { differentProfile: 0, sameProfile: 1 }, contextExtractors: [] };
                           await storageManager.saveProfile(profile);
                           router.push({ pathname: "/profile", params: { id: profile.id } });
-                        }}><Text>New profile</Text></Button> : null}
+                        }}><Text><Trans comment="Creates a new profile">New profile</Trans></Text></Button> : null}
                       </View>
-                      <InfoCard text={Platform.OS === "web" ? "Enable profiles to run their extractors on matching URLs. Changes to profiles are independent of built-in presets." : "Coreply is not affiliated with or endorsed by the apps listed here. Because third-party apps can change at any time, Coreply may stop working or behave differently even for apps shown as supported."} />
+                      <InfoCard text={Platform.OS === "web" ? t`Enable profiles to run their extractors on matching URLs. Changes to profiles are independent of built-in presets.` : t`Coreply is not affiliated with or endorsed by the apps listed here. Because third-party apps can change at any time, Coreply may stop working or behave differently even for apps shown as supported.`} />
                       {supportedApps.map((app) => (
                         <AppSelectionRow
                           key={app.packageName}
@@ -270,9 +273,9 @@ export default function SelectAppsScreen() {
                   {otherApps.length > 0 ? (
                     <View>
                       <Text className="text-lg text-foreground mb-2 font-semibold">
-                        Other Apps
+                        <Trans>Other Apps</Trans>
                       </Text>
-                      <InfoCard text="Coreply may not work in these apps, or may behave unexpectedly, because every app is different. If enabled, on-screen content from these apps may be sent to the API service you configured to generate suggestions." />
+                      <InfoCard text={t`Coreply may not work in these apps, or may behave unexpectedly, because every app is different. If enabled, on-screen content from these apps may be sent to the API service you configured to generate suggestions.`} />
                       {otherApps.map((app) => (
                         <AppSelectionRow
                           key={app.packageName}
@@ -290,7 +293,7 @@ export default function SelectAppsScreen() {
                   {supportedApps.length === 0 && otherApps.length === 0 ? (
                     <View style={styles.centeredEmptyState}>
                       <Text className="text-base text-muted-foreground font-sans">
-                        No apps found
+                        <Trans>No apps found</Trans>
                       </Text>
                     </View>
                   ) : null}

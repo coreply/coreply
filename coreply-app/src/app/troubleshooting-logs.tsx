@@ -12,8 +12,10 @@ import {
 } from "@/constants/troubleshooting-logs";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import type { SuggestionFetchLog } from "libcoreply";
+import { Trans, useLingui } from "@lingui/react/macro";
 
 export default function TroubleshootingLogsScreen() {
+  const { t } = useLingui();
   const [logs, setLogs] = useState<SuggestionFetchLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -26,20 +28,20 @@ export default function TroubleshootingLogsScreen() {
       })
       .catch((error: unknown) => {
         setLoadError(
-          error instanceof Error ? error.message : "Failed to load logs",
+          error instanceof Error ? error.message : t`Failed to load logs`,
         );
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [t]);
 
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen
         options={{
           headerShown: true,
-          title: "Troubleshooting Logs",
+          title: t`Troubleshooting Logs`,
         }}
       />
       <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
@@ -49,13 +51,13 @@ export default function TroubleshootingLogsScreen() {
               <View style={styles.centeredState}>
                 <ActivityIndicator size="large" />
                 <Text className="text-sm text-muted-foreground font-sans">
-                  Loading logs...
+                  <Trans>Loading logs...</Trans>
                 </Text>
               </View>
             ) : loadError ? (
               <View style={styles.centeredState}>
                 <Text className="text-lg text-destructive font-semibold">
-                  Error
+                  <Trans>Error</Trans>
                 </Text>
                 <Text className="text-center text-sm text-muted-foreground font-sans">
                   {loadError}
@@ -64,7 +66,7 @@ export default function TroubleshootingLogsScreen() {
             ) : logs.length === 0 ? (
               <View style={styles.centeredState}>
                 <Text className="text-base text-muted-foreground font-sans">
-                  No logs yet
+                  <Trans>No logs yet</Trans>
                 </Text>
               </View>
             ) : (
@@ -82,21 +84,21 @@ export default function TroubleshootingLogsScreen() {
                   </Text>
                   <View style={styles.logSection}>
                     <Text className="font-sans text-sm text-foreground">
-                      Provider: {log.providerId}
+                      <Trans>Provider: {log.providerId}</Trans>
                     </Text>
                     <Text className="font-sans text-sm text-foreground">
-                      Typing: {log.currentTyping || "(empty)"}
+                      <Trans>Typing: {log.currentTyping || t`(empty)`}</Trans>
                     </Text>
                     <Text className="font-sans text-sm text-foreground">
                       {log.result.type === "success"
-                        ? `Suggestion: ${log.result.suggestion}`
-                        : `Error: ${log.result.message}`}
+                        ? t`Suggestion: ${log.result.suggestion}`
+                        : t`Error: ${log.result.message}`}
                     </Text>
                     <Text className="font-sans text-sm text-foreground">
-                      Duration: {log.durationMs}ms
+                      <Trans>Duration: {log.durationMs}ms</Trans>
                     </Text>
                     <Text className="font-sans text-sm text-foreground">
-                      Good suggestion: {log.isGood ? "Yes" : "No"}
+                      <Trans>Good suggestion: {log.isGood ? t`Yes` : t`No`}</Trans>
                     </Text>
                   </View>
                 </View>
@@ -114,12 +116,12 @@ export default function TroubleshootingLogsScreen() {
                   setLogs([]);
                 } catch (error) {
                   setLoadError(
-                    error instanceof Error ? error.message : "Failed to delete logs",
+                    error instanceof Error ? error.message : t`Failed to delete logs`,
                   );
                 }
               }}
             >
-              <Text className="text-destructive">Delete All Logs</Text>
+              <Text className="text-destructive"><Trans>Delete All Logs</Trans></Text>
             </Button>
           </View>
         </TextClassContext.Provider>

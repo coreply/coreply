@@ -8,6 +8,7 @@ import { ActivityAction, startActivityAsync } from "expo-intent-launcher";
 import { useRouter } from "expo-router";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Trans } from "@lingui/react/macro";
 
 import { ThemedView } from "@/components/themed-view";
 import { Button } from "@/components/ui/button";
@@ -38,11 +39,11 @@ export default function AccessibilityDisclosureScreen() {
                 style={styles.content}
               >
                 <Text className="text-center text-xl font-bold">
-                  Accessibility Service Disclosure
+                  <Trans>Accessibility Service Disclosure</Trans>
                 </Text>
 
                 <Text className="text-center text-muted-foreground">
-                  Please read the following disclosure carefully.
+                  <Trans>Please read the following disclosure carefully.</Trans>
                 </Text>
 
                 <View
@@ -51,28 +52,28 @@ export default function AccessibilityDisclosureScreen() {
                 >
                   <View style={styles.section}>
                     <Text className="text-lg text-foreground font-semibold">
-                      What data is collected
+                      <Trans>What data is collected</Trans>
                     </Text>
                     <Text className="font-sans text-sm text-foreground ">
-                      Coreply&apos;s accessibility service reads on-screen text
+                      <Trans>Coreply&apos;s accessibility service reads on-screen text
                       content, detects active text input fields and reads the
                       text being typed. This app may collect emails, SMS or MMS
                       messages, other in-app messages (e.g. your chat history in
                       messaging apps), and/or other user-generated content (e.g.
-                      things your wrote or stored in different apps).
+                      things your wrote or stored in different apps).</Trans>
                     </Text>
                   </View>
 
                   <View style={styles.section}>
                     <Text className="text-lg text-foreground font-semibold">
-                      How your data is shared
+                      <Trans>How your data is shared</Trans>
                     </Text>
                     <Text className="font-sans text-sm text-foreground">
-                      The data described above will be sent to the API or
+                      <Trans>The data described above will be sent to the API or
                       service according to your setup. The purpose of the data
                       collection/sharing described above is to generate
                       context-aware typing suggestions, which is this app&apos;s
-                      core feature.
+                      core feature.</Trans>
                     </Text>
                   </View>
                 </View>
@@ -92,7 +93,7 @@ export default function AccessibilityDisclosureScreen() {
                       }
                     }}
                   >
-                    <Text className="font-sans">I Agree & Enable</Text>
+                    <Text className="font-sans"><Trans>I Agree &amp; Enable</Trans></Text>
                   </Button>
 
                   <Button
@@ -100,7 +101,7 @@ export default function AccessibilityDisclosureScreen() {
                     className="w-full"
                     onPress={() => router.back()}
                   >
-                    <Text className="font-sans">Not now</Text>
+                    <Text className="font-sans"><Trans comment="Declines enabling the accessibility service for now">Not now</Trans></Text>
                   </Button>
                 </View>
               </View>

@@ -1,0 +1,368 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-29 23:16+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+
+#: src/app/troubleshooting-logs.tsx:90
+msgid "(empty)"
+msgstr "(vide)"
+
+#: src/app/accessibility-disclosure.tsx:42
+msgid "Accessibility Service Disclosure"
+msgstr "Utilisation des données par le service d'accessibilité"
+
+#: src/app/index.tsx:266
+msgid "Accessibility service is enabled"
+msgstr "Le service d'accessibilité est activé"
+
+#: src/app/cloud-account.tsx:59
+msgid "Account"
+msgstr "Compte"
+
+#: src/app/index.tsx:310
+#: src/app/profile.tsx:197
+msgid "API Provider"
+msgstr "Fournisseur d'API"
+
+#: src/app/profile.tsx:142
+msgid "Apply preset"
+msgstr "Appliquer une configuration prédéfinie"
+
+#: src/app/cloud-account.tsx:83
+#: src/app/index.tsx:341
+msgid "Checking your session..."
+msgstr "Vérification de votre connexion..."
+
+#: src/app/index.tsx:298
+msgid "Choose apps and customize their profiles."
+msgstr "Choisissez vos applications et personnalisez leurs profils."
+
+#: src/app/index.tsx:310
+msgid "Coreply Cloud"
+msgstr "Coreply Cloud"
+
+#: src/app/cloud-account.tsx:52
+msgid "Coreply Cloud account"
+msgstr "Compte Coreply Cloud"
+
+#: src/app/select-apps.tsx:258
+msgid "Coreply is not affiliated with or endorsed by the apps listed here. Because third-party apps can change at any time, Coreply may stop working or behave differently even for apps shown as supported."
+msgstr "Coreply n'est ni affilié aux applications de cette liste, ni approuvé par leurs éditeurs. Ces applications peuvent évoluer à tout moment. Coreply peut donc cesser de fonctionner ou se comporter différemment, même dans les applications indiquées comme compatibles."
+
+#: src/app/index.tsx:258
+msgid "Coreply is off"
+msgstr "Coreply est désactivé"
+
+#: src/app/index.tsx:258
+msgid "Coreply is on"
+msgstr "Coreply est activé"
+
+#: src/app/select-apps.tsx:278
+msgid "Coreply may not work in these apps, or may behave unexpectedly, because every app is different. If enabled, on-screen content from these apps may be sent to the API service you configured to generate suggestions."
+msgstr "Chaque application fonctionne différemment. Coreply peut donc ne pas fonctionner dans ces applications ou avoir un comportement inattendu. Si vous l'activez, le contenu affiché à l'écran pourra être envoyé au service d'API que vous avez configuré afin de générer des suggestions."
+
+#: src/app/index.tsx:381
+msgid "Coreply Settings"
+msgstr "Paramètres de Coreply"
+
+#: src/app/index.tsx:263
+msgid "Coreply suggestions are enabled in this extension"
+msgstr "Les suggestions Coreply sont activées dans cette extension"
+
+#: src/app/select-apps.tsx:250
+msgid "Coreply Supported Apps"
+msgstr "Applications compatibles avec Coreply"
+
+#: src/app/accessibility-disclosure.tsx:58
+msgid "Coreply's accessibility service reads on-screen text content, detects active text input fields and reads the text being typed. This app may collect emails, SMS or MMS messages, other in-app messages (e.g. your chat history in messaging apps), and/or other user-generated content (e.g. things your wrote or stored in different apps)."
+msgstr "Le service d'accessibilité de Coreply lit le texte affiché à l'écran, détecte les champs de saisie actifs et lit ce que vous tapez. L'application peut recueillir des e-mails, des SMS ou MMS, des messages dans d'autres applications, par exemple votre historique de conversation, et/ou d'autres contenus que vous avez créés, saisis ou enregistrés dans différentes applications."
+
+#: src/components/cloud-session-error.tsx:14
+msgid "Couldn't check your session."
+msgstr "Impossible de vérifier votre connexion."
+
+#: src/components/get-more-usage-button.tsx:35
+msgid "Couldn't check your subscription"
+msgstr "Impossible de vérifier votre abonnement"
+
+#: src/app/cloud-account.tsx:70
+msgid "Couldn't open subscription management. Please try again."
+msgstr "Impossible d'ouvrir la gestion de votre abonnement. Veuillez réessayer."
+
+#: src/components/get-more-usage-button.tsx:29
+msgid "Couldn't open the upgrade page. Please try again."
+msgstr "Impossible d'ouvrir la page de mise à niveau. Veuillez réessayer."
+
+#: src/app/cloud-account.tsx:42
+msgid "Couldn't sign out. Please try again."
+msgstr "La déconnexion a échoué. Veuillez réessayer."
+
+#: src/app/troubleshooting-logs.tsx:124
+msgid "Delete All Logs"
+msgstr "Supprimer tous les journaux"
+
+#: src/app/profile.tsx:193
+msgid "Delete profile"
+msgstr "Supprimer le profil"
+
+#. placeholder {0}: log.durationMs
+#: src/app/troubleshooting-logs.tsx:98
+msgid "Duration: {0}ms"
+msgstr "Durée : {0} ms"
+
+#. placeholder {0}: app.appName
+#: src/app/select-apps.tsx:79
+msgid "Edit {0} profile"
+msgstr "Modifier le profil de {0}"
+
+#. placeholder {0}: app.appName
+#: src/app/select-apps.tsx:102
+msgid "Enable {0}"
+msgstr "Activer {0}"
+
+#: src/app/select-apps.tsx:258
+msgid "Enable profiles to run their extractors on matching URLs. Changes to profiles are independent of built-in presets."
+msgstr "Activez les profils pour extraire le contenu des pages dont l'URL correspond à leurs critères. Les modifications apportées aux profils n'affectent pas les configurations prédéfinies intégrées."
+
+#: src/app/select-apps.tsx:227
+#: src/app/troubleshooting-logs.tsx:60
+msgid "Error"
+msgstr "Erreur"
+
+#. placeholder {0}: log.result.message
+#: src/app/troubleshooting-logs.tsx:95
+msgid "Error: {0}"
+msgstr "Erreur : {0}"
+
+#: src/app/troubleshooting-logs.tsx:119
+msgid "Failed to delete logs"
+msgstr "Impossible de supprimer les journaux"
+
+#: src/app/select-apps.tsx:146
+msgid "Failed to load apps: {message}"
+msgstr "Impossible de charger les applications : {message}"
+
+#: src/app/troubleshooting-logs.tsx:31
+msgid "Failed to load logs"
+msgstr "Impossible de charger les journaux"
+
+#: src/app/select-apps.tsx:183
+msgid "Failed to save selected apps: {message}"
+msgstr "Impossible d'enregistrer les applications sélectionnées : {message}"
+
+#. Finishes the onboarding process
+#: src/app/onboarding.tsx:42
+msgid "Finish setup"
+msgstr "Terminer la configuration"
+
+#. Button to purchase more Coreply Cloud usage
+#: src/components/get-more-usage-button.tsx:25
+msgid "Get more usage"
+msgstr "Obtenir plus de crédits"
+
+#. placeholder {0}: log.isGood ? t`Yes` : t`No`
+#: src/app/troubleshooting-logs.tsx:101
+msgid "Good suggestion: {0}"
+msgstr "Suggestion pertinente : {0}"
+
+#: src/app/accessibility-disclosure.tsx:69
+msgid "How your data is shared"
+msgstr "Comment vos données sont partagées"
+
+#: src/app/accessibility-disclosure.tsx:96
+msgid "I Agree & Enable"
+msgstr "Accepter et activer"
+
+#: src/app/select-apps.tsx:221
+msgid "Loading installed apps..."
+msgstr "Chargement des applications installées..."
+
+#: src/app/troubleshooting-logs.tsx:54
+msgid "Loading logs..."
+msgstr "Chargement des journaux..."
+
+#: src/app/index.tsx:334
+msgid "Manage account"
+msgstr "Gérer mon compte"
+
+#: src/app/index.tsx:297
+msgid "Manage profiles and choose where Coreply runs."
+msgstr "Gérez vos profils et choisissez les applications où utiliser Coreply."
+
+#: src/app/cloud-account.tsx:67
+msgid "Manage subscription"
+msgstr "Gérer mon abonnement"
+
+#: src/components/get-more-usage-button.tsx:36
+msgid "Manage your existing subscription before purchasing another plan."
+msgstr "Gérez votre abonnement actuel avant d'acheter une autre offre."
+
+#. Creates a new profile
+#: src/app/select-apps.tsx:256
+msgid "New profile"
+msgstr "Nouveau profil"
+
+#: src/app/troubleshooting-logs.tsx:101
+msgid "No"
+msgstr "Non"
+
+#: src/app/select-apps.tsx:296
+msgid "No apps found"
+msgstr "Aucune application trouvée"
+
+#: src/app/troubleshooting-logs.tsx:69
+msgid "No logs yet"
+msgstr "Aucun journal pour le moment"
+
+#. Declines enabling the accessibility service for now
+#: src/app/accessibility-disclosure.tsx:104
+msgid "Not now"
+msgstr "Pas maintenant"
+
+#. Button to dismiss a subscription notice
+#: src/components/get-more-usage-button.tsx:38
+msgid "OK"
+msgstr "OK"
+
+#. Title of the conversation that introduces Coreply
+#: src/app/onboarding.tsx:95
+msgid "Onboarding chat"
+msgstr "Conversation de bienvenue"
+
+#: src/app/select-apps.tsx:276
+msgid "Other Apps"
+msgstr "Autres applications"
+
+#: src/components/get-more-usage-button.tsx:36
+msgid "Please check your connection and try again before purchasing."
+msgstr "Vérifiez votre connexion et réessayez avant de faire un achat."
+
+#: src/app/accessibility-disclosure.tsx:46
+msgid "Please read the following disclosure carefully."
+msgstr "Veuillez lire attentivement les informations suivantes."
+
+#: src/app/profile.tsx:110
+msgid "Profile"
+msgstr "Profil"
+
+#: src/app/index.tsx:283
+#: src/app/index.tsx:293
+#: src/app/select-apps.tsx:210
+#: src/app/select-apps.tsx:250
+msgid "Profiles"
+msgstr "Profils"
+
+#. placeholder {0}: log.providerId
+#: src/app/troubleshooting-logs.tsx:87
+msgid "Provider: {0}"
+msgstr "Fournisseur : {0}"
+
+#. Resets the app profile to its default settings
+#: src/app/profile.tsx:178
+msgid "Reset to default"
+msgstr "Rétablir les paramètres par défaut"
+
+#. Retries loading the list of apps
+#: src/app/select-apps.tsx:233
+msgid "Retry"
+msgstr "Réessayer"
+
+#: src/app/onboarding.tsx:48
+msgid "Review and enable accessibility"
+msgstr "Consulter et activer l'accessibilité"
+
+#: src/app/index.tsx:406
+msgid "Review recent suggestion fetch details."
+msgstr "Consultez les détails des dernières demandes de suggestions."
+
+#: src/app/index.tsx:283
+#: src/app/index.tsx:293
+#: src/app/select-apps.tsx:210
+msgid "Select Apps"
+msgstr "Choisir les applications"
+
+#: src/app/cloud-account.tsx:73
+msgid "Sign out"
+msgstr "Se déconnecter"
+
+#. placeholder {0}: session.user.email
+#: src/app/cloud-account.tsx:61
+msgid "Signed in as {0}"
+msgstr "Compte connecté : {0}"
+
+#: src/app/cloud-account.tsx:73
+msgid "Signing out..."
+msgstr "Déconnexion en cours..."
+
+#. Button that skips onboarding and opens the app
+#: src/app/onboarding.tsx:98
+msgid "Skip"
+msgstr "Passer"
+
+#. placeholder {0}: log.result.suggestion
+#: src/app/troubleshooting-logs.tsx:94
+msgid "Suggestion: {0}"
+msgstr "Suggestion : {0}"
+
+#: src/app/onboarding.tsx:110
+msgid "Tap a suggestion to insert the next word, or hold it to insert the whole suggestion."
+msgstr "Appuyez sur une suggestion pour insérer le mot suivant. Maintenez le doigt dessus pour insérer toute la suggestion."
+
+#: src/app/index.tsx:267
+msgid "Tap the toggle to start Coreply"
+msgstr "Appuyez sur l'interrupteur pour activer Coreply"
+
+#: src/app/index.tsx:264
+msgid "Tap the toggle to start Coreply in this extension"
+msgstr "Appuyez sur l'interrupteur pour activer Coreply dans cette extension"
+
+#: src/app/accessibility-disclosure.tsx:72
+msgid "The data described above will be sent to the API or service according to your setup. The purpose of the data collection/sharing described above is to generate context-aware typing suggestions, which is this app's core feature."
+msgstr "Les données décrites ci-dessus seront envoyées à l'API ou au service que vous avez configuré. Elles sont recueillies et partagées pour générer des suggestions de texte adaptées au contexte de vos conversations, la fonction principale de cette application."
+
+#: src/app/index.tsx:393
+msgid "Troubleshooting"
+msgstr "Dépannage"
+
+#: src/app/troubleshooting-logs.tsx:44
+msgid "Troubleshooting Logs"
+msgstr "Journaux de diagnostic"
+
+#. Retries checking the sign-in session
+#: src/components/cloud-session-error.tsx:19
+msgid "Try again"
+msgstr "Réessayer"
+
+#. placeholder {0}: log.currentTyping || t`(empty)`
+#: src/app/troubleshooting-logs.tsx:90
+msgid "Typing: {0}"
+msgstr "Texte saisi : {0}"
+
+#: src/app/select-apps.tsx:145
+#: src/app/select-apps.tsx:182
+msgid "Unknown error"
+msgstr "Erreur inconnue"
+
+#: src/app/index.tsx:370
+msgid "Use an API key or third-party provider"
+msgstr "Utiliser une clé API ou un fournisseur tiers"
+
+#: src/app/index.tsx:403
+msgid "View Logs"
+msgstr "Voir les journaux"
+
+#: src/app/accessibility-disclosure.tsx:55
+msgid "What data is collected"
+msgstr "Quelles données sont recueillies"
+
+#: src/app/troubleshooting-logs.tsx:101
+msgid "Yes"
+msgstr "Oui"
+
+#: src/components/get-more-usage-button.tsx:35
+msgid "You already have a subscription"
+msgstr "Vous avez déjà un abonnement"
