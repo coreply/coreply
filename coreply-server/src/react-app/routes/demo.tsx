@@ -118,7 +118,7 @@ function ComponentDemo() {
             </p>
           </div>
           <section aria-label="Shared demo conversation" className="w-full max-w-xl">
-            <DemoConversation />
+            <DemoConversation chooseThemes />
           </section>
           <p className="w-full max-w-xl text-xs leading-5 text-muted-foreground">
             This is the same chat component used in the app. Replies are local demo suggestions, not live AI responses.

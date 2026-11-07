@@ -23,12 +23,19 @@
         <activity
             android:exported="true"
             android:name="app.coreply.coreplyapp.RnActivity"
+            android:launchMode="singleTask"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
             android:windowSoftInputMode="adjustResize"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="coreplyapp" />
             </intent-filter>
         </activity>
 
@@ -45,11 +52,6 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_config" />
         </service>
-
-        <activity
-            android:name="app.coreply.coreplyapp.DisclosureActivity"
-            android:label="Disclosure Activity"
-            android:theme="@style/AppThemeNoActionBar" />
 
     </application>
 
