@@ -167,9 +167,13 @@ msgstr "Abonnemang"
 msgid "Plus"
 msgstr "Plus"
 
-#: src/react-app/routes/index.tsx:18
+#: src/react-app/routes/index.tsx:33
 msgid "Sign in"
 msgstr "Logga in"
+
+#: src/react-app/routes/index.tsx:21
+msgid "Signed in. You can close this tab."
+msgstr ""
 
 #: src/react-app/components/cloud-layout.tsx:179
 msgid "Signing out..."

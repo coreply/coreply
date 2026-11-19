@@ -8,34 +8,49 @@ msgstr ""
 "Language: zh-TW\n"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:55
-msgid "Only suggest when your typing matches the pattern below"
-msgstr "只在輸入內容符合下方規則時提供回覆建議"
-
-#. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:58
-msgid "Suggestions are only requested when your typing matches this pattern"
-msgstr "只有輸入內容符合此規則時，才會請求回覆建議"
-
-#. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:60
-msgid "How long to wait after typing before requesting another suggestion, in milliseconds"
-msgstr "停止輸入後，等待多久才再次請求回覆建議，單位為毫秒"
-
-#. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:66
+#: ../libcoreply/src/settings.ts:57
 msgid "Whether to show errors in the UI"
 msgstr "是否在介面中顯示錯誤訊息"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:70
+#: ../libcoreply/src/settings.ts:61
 msgid "Choose where suggestions appear"
 msgstr "選擇回覆建議的顯示位置"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:76
+#: ../libcoreply/src/settings.ts:65
+msgid "Show suggestions in the text field."
+msgstr "在文字輸入欄位顯示建議。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:66
+msgid "Show suggestions in a separate overlay."
+msgstr "在獨立的浮動視窗顯示建議。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:67
+msgid "Show suggestions in the text field and overlay."
+msgstr "在文字輸入欄位和浮動視窗顯示建議。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:75
 msgid "Save the 10 most recent suggestion requests on this device"
 msgstr "在此裝置儲存最近 10 次建議請求"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:79
+msgid "Only suggest when your typing matches the pattern below"
+msgstr "只在輸入內容符合下方規則時提供回覆建議"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:82
+msgid "Suggestions are only requested when your typing matches this pattern"
+msgstr "只有輸入內容符合此規則時，才會請求回覆建議"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:84
+msgid "How long to wait after typing before requesting another suggestion, in milliseconds"
+msgstr "停止輸入後，等待多久才再次請求回覆建議，單位為毫秒"
 
 #. js-lingui-explicit-id
 #: ../libcoreply/src/providers/settings.ts:6
@@ -88,26 +103,187 @@ msgid "Raw JSON object passed directly to AI SDK providerOptions. Include the pr
 msgstr "直接傳入 AI SDK providerOptions 的 JSON 物件。請以供應商命名空間作為物件鍵值，例如 {\"openai\": {...}}"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/providers/settings.ts:43
+#: ../libcoreply/src/providers/settings.ts:44
 msgid "Instructions applied before the chat context"
 msgstr "在對話內容之前套用的指示"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/providers/settings.ts:52
+#: ../libcoreply/src/providers/settings.ts:53
 msgid "Mustache template used to build each current-sentence typing update message"
 msgstr "用來產生目前句子每次輸入更新訊息的 Mustache 範本"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/providers/settings.ts:55
+#: ../libcoreply/src/providers/settings.ts:56
 msgid "Mustache template used to append new context content and completed-sentence replacements"
 msgstr "用來附加新上下文內容及替換已完成句子的 Mustache 範本"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/providers/settings.ts:65
+#: ../libcoreply/src/providers/definitions/azure.ts:18
+#: ../libcoreply/src/providers/settings.ts:66
 msgid "Model ID to use for text generation"
 msgstr "用來產生文字的模型 ID"
 
 #. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/advanced.ts:60
+msgid "Uses custom templates to send requests and extract suggestions."
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/azure.ts:23
+msgid "Use Coreply with an Azure API key."
+msgstr "使用 Azure API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/azure.ts:24
+msgid "Use Coreply with an Azure API key. Use the new Azure provider instead."
+msgstr "使用 Azure API 金鑰搭配 Coreply。 請改用新的 Azure 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/coreply-cloud.ts:17
+msgid "Use Coreply Cloud with a legacy API key. Use the new Coreply Cloud Preview provider instead."
+msgstr "使用舊版 API 金鑰連接 Coreply Cloud。請改用新的 Coreply Cloud Preview 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/coreply-cloud.ts:33
+msgid "Use Coreply Cloud by signing in to your Coreply account."
+msgstr "登入你的 Coreply 帳號以使用 Coreply Cloud。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/fim.ts:21
+msgid "Use a Mistral API key to generate text suggestions with Codestral, a model designed for code completion."
+msgstr "使用 Mistral API 金鑰，透過為程式碼補全而設計的 Codestral 模型產生文字建議。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/gateway.ts:20
+msgid "Use Coreply with a Vercel AI Gateway API key."
+msgstr "使用 Vercel AI Gateway API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/gateway.ts:21
+msgid "Use Coreply with a Vercel AI Gateway API key. Use the new Vercel AI Gateway provider instead."
+msgstr "使用 Vercel AI Gateway API 金鑰搭配 Coreply。 請改用新的 Vercel AI Gateway 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/google-vertex.ts:33
+msgid "Use Coreply with a Google Vertex API key or service account."
+msgstr "使用 Google Vertex API 金鑰或服務帳戶搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/google-vertex.ts:34
+msgid "Use Coreply with Google Vertex. Use the new Google Vertex provider instead."
+msgstr "使用 Google Vertex 搭配 Coreply。請改用新的 Google Vertex 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/google.ts:19
+msgid "Use Coreply with a Google Gemini API key."
+msgstr "使用 Google Gemini API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/google.ts:20
+msgid "Use Coreply with a Google Gemini API key. Use the new Google (Gemini API) provider instead."
+msgstr "使用 Google Gemini API 金鑰搭配 Coreply。 請改用新的 Google (Gemini API) 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/groq.ts:19
+msgid "Use Coreply with a Groq API key."
+msgstr "使用 Groq API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/groq.ts:20
+msgid "Use Coreply with a Groq API key. Use the new Groq provider instead."
+msgstr "使用 Groq API 金鑰搭配 Coreply。 請改用新的 Groq 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/minimax.ts:19
+msgid "Use Coreply with a MiniMax API key."
+msgstr "使用 MiniMax API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/minimax.ts:20
+msgid "Use Coreply with a MiniMax API key. Use the new MiniMax provider instead."
+msgstr "使用 MiniMax API 金鑰搭配 Coreply。 請改用新的 MiniMax 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/mistral.ts:19
+msgid "Use Coreply with a Mistral API key."
+msgstr "使用 Mistral API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/mistral.ts:20
+msgid "Use Coreply with a Mistral API key. Use the new Mistral provider instead."
+msgstr "使用 Mistral API 金鑰搭配 Coreply。 請改用新的 Mistral 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openai-compatible.ts:40
+msgid "Use Coreply with an OpenAI-compatible API endpoint and API key."
+msgstr "使用相容 OpenAI 的 API 端點和 API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openai-compatible.ts:41
+msgid "Use an OpenAI-compatible API. Use the new OpenAI Compatible provider instead."
+msgstr "使用相容 OpenAI 的 API。請改用新的 OpenAI Compatible 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openai.ts:21
+msgid "Use Coreply with an OpenAI API key."
+msgstr "使用 OpenAI API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openai.ts:22
+msgid "Use Coreply with an OpenAI API key. Use the new OpenAI provider instead."
+msgstr "使用 OpenAI API 金鑰搭配 Coreply。 請改用新的 OpenAI 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openrouter.ts:21
+msgid "Use Coreply with an OpenRouter API key."
+msgstr "使用 OpenRouter API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openrouter.ts:22
+msgid "Use Coreply with an OpenRouter API key. Use the new OpenRouter provider instead."
+msgstr "使用 OpenRouter API 金鑰搭配 Coreply。 請改用新的 OpenRouter 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/xai.ts:19
+msgid "Use Coreply with an xAI API key."
+msgstr "使用 xAI API 金鑰搭配 Coreply。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/xai.ts:20
+msgid "Use Coreply with an xAI API key. Use the new xAI provider instead."
+msgstr "使用 xAI API 金鑰搭配 Coreply。 請改用新的 xAI 供應商。"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/profile/schema.ts:11
+msgid "Enter either a number of recent contexts to keep or a JSON object mapping extractor labels to limits, e.g. {\"chat\": 1, \"todoList\": 2}"
+msgstr "輸入要保留的最近上下文數量，或輸入 JSON 物件，為擷取器標籤設定數量上限，例如 {\"chat\": 1, \"todoList\": 2}"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/ai-definition.ts:23
+#~ msgid "Generates each suggestion from the current context."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/ai-definition.ts:48
+#~ msgid "Keeps request history when the conversation continues."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/coreply-cloud.ts:17
+#~ msgid "Legacy Coreply Cloud provider using an API key."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/coreply-cloud.ts:33
+#~ msgid "Coreply Cloud keeps request history when the conversation continues."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/fim.ts:21
+#~ msgid "Uses a fill-in-the-middle model to complete your text."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
 #: ../libcoreply/src/profile/schema.ts:6
-msgid "A context count, or a JSON object mapping context labels to counts"
-msgstr "上下文數量，或以 JSON 物件指定各個上下文標籤對應的數量"
+#~ msgid "A context count, or a JSON object mapping context labels to counts"
+#~ msgstr "上下文數量，或以 JSON 物件指定各個上下文標籤對應的數量"

@@ -23,17 +23,36 @@ msgstr "無障礙服務已啟用"
 msgid "Account"
 msgstr "帳號"
 
-#: src/app/index.tsx:310
-#: src/app/profile.tsx:197
+#: src/app/index.tsx:311
+#: src/app/profile.tsx:191
 msgid "API Provider"
 msgstr "API 供應商"
 
-#: src/app/profile.tsx:142
-msgid "Apply preset"
-msgstr "套用預設設定"
+#: src/app/profile.tsx:140
+#~ msgid "Apply preset"
+#~ msgstr "套用預設設定"
 
-#: src/app/cloud-account.tsx:83
-#: src/app/index.tsx:341
+#. Heading for Android app suggestion settings provided by Coreply
+#: src/app/select-apps.tsx:253
+msgid "Built-in App Profiles"
+msgstr "內建應用程式設定檔"
+
+#. Heading for profiles provided by Coreply
+#: src/app/select-apps.tsx:250
+msgid "Built-in profiles"
+msgstr ""
+
+#: src/app/select-apps.tsx:250
+#~ msgid "Built-in profiles can be customized and restored to their defaults."
+#~ msgstr ""
+
+#. Heading for website suggestion settings provided by Coreply
+#: src/app/select-apps.tsx:251
+msgid "Built-in Website Profiles"
+msgstr "內建網站設定檔"
+
+#: src/app/cloud-account.tsx:84
+#: src/app/index.tsx:352
 msgid "Checking your session..."
 msgstr "正在確認登入狀態..."
 
@@ -41,7 +60,23 @@ msgstr "正在確認登入狀態..."
 msgid "Choose apps and customize their profiles."
 msgstr "選擇應用程式，並自訂各自的設定檔。"
 
-#: src/app/index.tsx:310
+#: src/app/index.tsx:297
+msgid "Choose websites and customize their profiles."
+msgstr ""
+
+#. Copies default settings from a built-in profile
+#. Copies default settings from a built-in profile
+#: src/app/profile.tsx:115
+#: src/app/profile.tsx:116
+msgid "Copy from preset"
+msgstr "從預設設定複製"
+
+#. Section heading for suggestion profiles that ship with Coreply
+#: src/app/select-apps.tsx:250
+msgid "Coreply built-in profiles"
+msgstr "Coreply 內建設定檔"
+
+#: src/app/index.tsx:311
 msgid "Coreply Cloud"
 msgstr "Coreply Cloud"
 
@@ -49,9 +84,13 @@ msgstr "Coreply Cloud"
 msgid "Coreply Cloud account"
 msgstr "Coreply Cloud 帳號"
 
-#: src/app/select-apps.tsx:258
+#: src/app/select-apps.tsx:255
 msgid "Coreply is not affiliated with or endorsed by the apps listed here. Because third-party apps can change at any time, Coreply may stop working or behave differently even for apps shown as supported."
 msgstr "Coreply 與此處列出的應用程式沒有關聯，也未獲其認可或推薦。第三方應用程式可能隨時更新，因此即使標示為支援，Coreply 仍可能無法正常運作，或出現與預期不同的行為。"
+
+#: src/app/select-apps.tsx:255
+msgid "Coreply is not affiliated with or endorsed by the websites listed here. Because third-party websites can change at any time, Coreply may stop working or behave differently even for websites shown as supported."
+msgstr ""
 
 #: src/app/index.tsx:258
 msgid "Coreply is off"
@@ -61,11 +100,15 @@ msgstr "Coreply 已關閉"
 msgid "Coreply is on"
 msgstr "Coreply 已開啟"
 
-#: src/app/select-apps.tsx:278
+#: src/app/select-apps.tsx:286
 msgid "Coreply may not work in these apps, or may behave unexpectedly, because every app is different. If enabled, on-screen content from these apps may be sent to the API service you configured to generate suggestions."
 msgstr "各應用程式的運作方式不同，Coreply 在這些應用程式中可能無法正常運作，或出現非預期的情況。啟用後，這些應用程式的畫面內容可能會傳送至你設定的 API 服務，以產生回覆建議。"
 
-#: src/app/index.tsx:381
+#: src/app/select-apps.tsx:286
+msgid "Coreply may not work on these websites, or may behave unexpectedly, because every website is different. If enabled, on-screen content from these websites may be sent to the API service you configured to generate suggestions."
+msgstr ""
+
+#: src/app/index.tsx:392
 msgid "Coreply Settings"
 msgstr "Coreply 設定"
 
@@ -74,8 +117,8 @@ msgid "Coreply suggestions are enabled in this extension"
 msgstr "已在此擴充功能中啟用 Coreply 回覆建議"
 
 #: src/app/select-apps.tsx:250
-msgid "Coreply Supported Apps"
-msgstr "Coreply 支援的應用程式"
+#~ msgid "Coreply Supported Apps"
+#~ msgstr "Coreply 支援的應用程式"
 
 #: src/app/accessibility-disclosure.tsx:58
 msgid "Coreply's accessibility service reads on-screen text content, detects active text input fields and reads the text being typed. This app may collect emails, SMS or MMS messages, other in-app messages (e.g. your chat history in messaging apps), and/or other user-generated content (e.g. things your wrote or stored in different apps)."
@@ -85,15 +128,15 @@ msgstr "Coreply 的無障礙服務會讀取畫面上的文字、偵測正在使�
 msgid "Couldn't check your session."
 msgstr "無法確認你的登入狀態。"
 
-#: src/components/get-more-usage-button.tsx:35
+#: src/components/get-more-usage-button.tsx:40
 msgid "Couldn't check your subscription"
 msgstr "無法確認你的訂閱"
 
-#: src/app/cloud-account.tsx:70
+#: src/app/cloud-account.tsx:71
 msgid "Couldn't open subscription management. Please try again."
 msgstr "無法開啟訂閱管理頁面，請再試一次。"
 
-#: src/components/get-more-usage-button.tsx:29
+#: src/components/get-more-usage-button.tsx:34
 msgid "Couldn't open the upgrade page. Please try again."
 msgstr "無法開啟升級頁面，請再試一次。"
 
@@ -101,11 +144,30 @@ msgstr "無法開啟升級頁面，請再試一次。"
 msgid "Couldn't sign out. Please try again."
 msgstr "無法登出，請再試一次。"
 
+#. Heading for Android apps without a built-in Coreply preset
+#: src/app/select-apps.tsx:277
+msgid "Custom App Profiles"
+msgstr "自訂應用程式設定檔"
+
+#. Heading for profiles without a built-in preset
+#: src/app/select-apps.tsx:272
+msgid "Custom profiles"
+msgstr ""
+
+#. Heading for website suggestion settings created by the user
+#: src/app/select-apps.tsx:275
+msgid "Custom Website Profiles"
+msgstr "自訂網站設定檔"
+
+#: src/app/select-apps.tsx:278
+#~ msgid "Customize profiles for apps and websites without a built-in profile."
+#~ msgstr ""
+
 #: src/app/troubleshooting-logs.tsx:124
 msgid "Delete All Logs"
 msgstr "刪除所有紀錄"
 
-#: src/app/profile.tsx:193
+#: src/app/profile.tsx:187
 msgid "Delete profile"
 msgstr "刪除設定檔"
 
@@ -114,22 +176,21 @@ msgstr "刪除設定檔"
 msgid "Duration: {0}ms"
 msgstr "耗時：{0} 毫秒"
 
-#. placeholder {0}: app.appName
-#: src/app/select-apps.tsx:79
+#. placeholder {0}: app.name
+#: src/app/select-apps.tsx:77
 msgid "Edit {0} profile"
 msgstr "編輯 {0} 的設定檔"
 
-#. placeholder {0}: app.appName
-#: src/app/select-apps.tsx:102
+#. placeholder {0}: app.name
+#: src/app/select-apps.tsx:98
 msgid "Enable {0}"
 msgstr "啟用 {0}"
 
 #: src/app/select-apps.tsx:258
-msgid "Enable profiles to run their extractors on matching URLs. Changes to profiles are independent of built-in presets."
-msgstr "啟用設定檔後，內容擷取功能就會在符合條件的網址上執行。修改設定檔不會影響內建的預設設定。"
+#~ msgid "Enable profiles to run their extractors on matching URLs. Changes to profiles are independent of built-in presets."
+#~ msgstr "啟用設定檔後，內容擷取功能就會在符合條件的網址上執行。修改設定檔不會影響內建的預設設定。"
 
 #: src/app/select-apps.tsx:227
-#: src/app/troubleshooting-logs.tsx:60
 msgid "Error"
 msgstr "錯誤"
 
@@ -142,7 +203,7 @@ msgstr "錯誤：{0}"
 msgid "Failed to delete logs"
 msgstr "無法刪除紀錄"
 
-#: src/app/select-apps.tsx:146
+#: src/app/select-apps.tsx:144
 msgid "Failed to load apps: {message}"
 msgstr "無法載入應用程式：{message}"
 
@@ -150,7 +211,7 @@ msgstr "無法載入應用程式：{message}"
 msgid "Failed to load logs"
 msgstr "無法載入紀錄"
 
-#: src/app/select-apps.tsx:183
+#: src/app/select-apps.tsx:181
 msgid "Failed to save selected apps: {message}"
 msgstr "無法儲存所選的應用程式：{message}"
 
@@ -160,7 +221,7 @@ msgid "Finish setup"
 msgstr "完成設定"
 
 #. Button to purchase more Coreply Cloud usage
-#: src/components/get-more-usage-button.tsx:25
+#: src/components/get-more-usage-button.tsx:30
 msgid "Get more usage"
 msgstr "取得更多額度"
 
@@ -185,24 +246,24 @@ msgstr "正在載入已安裝的應用程式..."
 msgid "Loading logs..."
 msgstr "正在載入紀錄..."
 
-#: src/app/index.tsx:334
+#: src/app/index.tsx:345
 msgid "Manage account"
 msgstr "管理帳號"
 
 #: src/app/index.tsx:297
-msgid "Manage profiles and choose where Coreply runs."
-msgstr "管理設定檔，並選擇在哪些應用程式中使用 Coreply。"
+#~ msgid "Manage profiles and choose where Coreply runs."
+#~ msgstr "管理設定檔，並選擇在哪些應用程式中使用 Coreply。"
 
-#: src/app/cloud-account.tsx:67
+#: src/app/cloud-account.tsx:68
 msgid "Manage subscription"
 msgstr "管理訂閱"
 
-#: src/components/get-more-usage-button.tsx:36
+#: src/components/get-more-usage-button.tsx:41
 msgid "Manage your existing subscription before purchasing another plan."
 msgstr "購買其他方案前，請先管理現有訂閱。"
 
 #. Creates a new profile
-#: src/app/select-apps.tsx:256
+#: src/app/select-apps.tsx:284
 msgid "New profile"
 msgstr "新增設定檔"
 
@@ -210,7 +271,7 @@ msgstr "新增設定檔"
 msgid "No"
 msgstr "否"
 
-#: src/app/select-apps.tsx:296
+#: src/app/select-apps.tsx:304
 msgid "No apps found"
 msgstr "找不到應用程式"
 
@@ -224,7 +285,7 @@ msgid "Not now"
 msgstr "暫時不要"
 
 #. Button to dismiss a subscription notice
-#: src/components/get-more-usage-button.tsx:38
+#: src/components/get-more-usage-button.tsx:43
 msgid "OK"
 msgstr "確定"
 
@@ -234,10 +295,10 @@ msgid "Onboarding chat"
 msgstr "新手引導對話"
 
 #: src/app/select-apps.tsx:276
-msgid "Other Apps"
-msgstr "其他應用程式"
+#~ msgid "Other Apps"
+#~ msgstr "其他應用程式"
 
-#: src/components/get-more-usage-button.tsx:36
+#: src/components/get-more-usage-button.tsx:41
 msgid "Please check your connection and try again before purchasing."
 msgstr "購買前請檢查網路連線並重試。"
 
@@ -245,14 +306,11 @@ msgstr "購買前請檢查網路連線並重試。"
 msgid "Please read the following disclosure carefully."
 msgstr "請仔細閱讀以下資料使用聲明。"
 
-#: src/app/profile.tsx:110
+#: src/app/profile.tsx:105
 msgid "Profile"
 msgstr "設定檔"
 
-#: src/app/index.tsx:283
-#: src/app/index.tsx:293
 #: src/app/select-apps.tsx:210
-#: src/app/select-apps.tsx:250
 msgid "Profiles"
 msgstr "設定檔"
 
@@ -261,8 +319,8 @@ msgstr "設定檔"
 msgid "Provider: {0}"
 msgstr "供應商：{0}"
 
-#. Resets the app profile to its default settings
-#: src/app/profile.tsx:178
+#. Resets the profile to its default settings
+#: src/app/profile.tsx:172
 msgid "Reset to default"
 msgstr "還原預設設定"
 
@@ -275,17 +333,19 @@ msgstr "重試"
 msgid "Review and enable accessibility"
 msgstr "閱讀說明並啟用無障礙服務"
 
-#: src/app/index.tsx:406
+#: src/app/index.tsx:417
 msgid "Review recent suggestion fetch details."
 msgstr "查看最近取得回覆建議的詳細紀錄。"
 
-#: src/app/index.tsx:283
-#: src/app/index.tsx:293
 #: src/app/select-apps.tsx:210
 msgid "Select Apps"
 msgstr "選擇應用程式"
 
-#: src/app/cloud-account.tsx:73
+#: src/app/select-apps.tsx:210
+msgid "Select Websites"
+msgstr "選擇網站"
+
+#: src/app/cloud-account.tsx:74
 msgid "Sign out"
 msgstr "登出"
 
@@ -294,7 +354,7 @@ msgstr "登出"
 msgid "Signed in as {0}"
 msgstr "已使用 {0} 登入"
 
-#: src/app/cloud-account.tsx:73
+#: src/app/cloud-account.tsx:74
 msgid "Signing out..."
 msgstr "正在登出..."
 
@@ -324,7 +384,7 @@ msgstr "點選開關以在此擴充功能中啟動 Coreply"
 msgid "The data described above will be sent to the API or service according to your setup. The purpose of the data collection/sharing described above is to generate context-aware typing suggestions, which is this app's core feature."
 msgstr "上述資料會依照你的設定傳送至相應的 API 或服務。收集與分享這些資料是為了根據對話內容產生回覆建議，這也是本應用程式的核心功能。"
 
-#: src/app/index.tsx:393
+#: src/app/index.tsx:404
 msgid "Troubleshooting"
 msgstr "疑難排解"
 
@@ -342,16 +402,20 @@ msgstr "重試"
 msgid "Typing: {0}"
 msgstr "輸入內容：{0}"
 
-#: src/app/select-apps.tsx:145
-#: src/app/select-apps.tsx:182
+#: src/app/select-apps.tsx:143
+#: src/app/select-apps.tsx:180
 msgid "Unknown error"
 msgstr "未知錯誤"
 
-#: src/app/index.tsx:370
+#: src/app/index.tsx:381
 msgid "Use an API key or third-party provider"
 msgstr "使用 API 金鑰或第三方供應商"
 
-#: src/app/index.tsx:403
+#: src/app/index.tsx:318
+msgid "Use Coreply Cloud"
+msgstr "使用 Coreply Cloud"
+
+#: src/app/index.tsx:414
 msgid "View Logs"
 msgstr "查看紀錄"
 
@@ -363,6 +427,6 @@ msgstr "會收集哪些資料"
 msgid "Yes"
 msgstr "是"
 
-#: src/components/get-more-usage-button.tsx:35
+#: src/components/get-more-usage-button.tsx:40
 msgid "You already have a subscription"
 msgstr "你已有訂閱"

@@ -8,34 +8,49 @@ msgstr ""
 "Language: de\n"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:55
-msgid "Only suggest when your typing matches the pattern below"
-msgstr "Textvorschläge nur anzeigen, wenn deine Eingabe dem folgenden Muster entspricht"
-
-#. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:58
-msgid "Suggestions are only requested when your typing matches this pattern"
-msgstr "Textvorschläge werden nur angefordert, wenn deine Eingabe diesem Muster entspricht"
-
-#. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:60
-msgid "How long to wait after typing before requesting another suggestion, in milliseconds"
-msgstr "Wartezeit nach der letzten Eingabe, bevor ein neuer Vorschlag angefordert wird, in Millisekunden"
-
-#. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:66
+#: ../libcoreply/src/settings.ts:57
 msgid "Whether to show errors in the UI"
 msgstr "Fehlermeldungen in der Oberfläche anzeigen"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:70
+#: ../libcoreply/src/settings.ts:61
 msgid "Choose where suggestions appear"
 msgstr "Wähle, wo Textvorschläge angezeigt werden"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/settings.ts:76
+#: ../libcoreply/src/settings.ts:65
+msgid "Show suggestions in the text field."
+msgstr "Vorschläge im Textfeld anzeigen."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:66
+msgid "Show suggestions in a separate overlay."
+msgstr "Vorschläge in einer separaten Einblendung anzeigen."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:67
+msgid "Show suggestions in the text field and overlay."
+msgstr "Vorschläge im Textfeld und in einer Einblendung anzeigen."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:75
 msgid "Save the 10 most recent suggestion requests on this device"
 msgstr "Die letzten 10 Anfragen für Textvorschläge auf diesem Gerät speichern"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:79
+msgid "Only suggest when your typing matches the pattern below"
+msgstr "Textvorschläge nur anzeigen, wenn deine Eingabe dem folgenden Muster entspricht"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:82
+msgid "Suggestions are only requested when your typing matches this pattern"
+msgstr "Textvorschläge werden nur angefordert, wenn deine Eingabe diesem Muster entspricht"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/settings.ts:84
+msgid "How long to wait after typing before requesting another suggestion, in milliseconds"
+msgstr "Wartezeit nach der letzten Eingabe, bevor ein neuer Vorschlag angefordert wird, in Millisekunden"
 
 #. js-lingui-explicit-id
 #: ../libcoreply/src/providers/settings.ts:6
@@ -88,26 +103,187 @@ msgid "Raw JSON object passed directly to AI SDK providerOptions. Include the pr
 msgstr "JSON-Objekt, das direkt an providerOptions des AI SDK übergeben wird. Verwende den Namensraum des Anbieters als Schlüssel, zum Beispiel {\"openai\": {...}}"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/providers/settings.ts:43
+#: ../libcoreply/src/providers/settings.ts:44
 msgid "Instructions applied before the chat context"
 msgstr "Anweisungen, die vor dem Gesprächskontext eingefügt werden"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/providers/settings.ts:52
+#: ../libcoreply/src/providers/settings.ts:53
 msgid "Mustache template used to build each current-sentence typing update message"
 msgstr "Mustache-Vorlage für Aktualisierungsnachrichten bei jeder Änderung am aktuellen Satz"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/providers/settings.ts:55
+#: ../libcoreply/src/providers/settings.ts:56
 msgid "Mustache template used to append new context content and completed-sentence replacements"
 msgstr "Mustache-Vorlage zum Anhängen neuer Kontextinhalte und zum Ersetzen abgeschlossener Sätze"
 
 #. js-lingui-explicit-id
-#: ../libcoreply/src/providers/settings.ts:65
+#: ../libcoreply/src/providers/definitions/azure.ts:18
+#: ../libcoreply/src/providers/settings.ts:66
 msgid "Model ID to use for text generation"
 msgstr "Modell-ID für die Textgenerierung"
 
 #. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/advanced.ts:60
+msgid "Uses custom templates to send requests and extract suggestions."
+msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/azure.ts:23
+msgid "Use Coreply with an Azure API key."
+msgstr "Verwende Coreply mit einem Azure API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/azure.ts:24
+msgid "Use Coreply with an Azure API key. Use the new Azure provider instead."
+msgstr "Verwende Coreply mit einem Azure API-Schlüssel. Verwende stattdessen den neuen Anbieter Azure."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/coreply-cloud.ts:17
+msgid "Use Coreply Cloud with a legacy API key. Use the new Coreply Cloud Preview provider instead."
+msgstr "Verwende Coreply Cloud mit einem alten API-Schlüssel. Verwende stattdessen den neuen Anbieter Coreply Cloud Preview."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/coreply-cloud.ts:33
+msgid "Use Coreply Cloud by signing in to your Coreply account."
+msgstr "Verwende Coreply Cloud, indem du dich bei deinem Coreply-Konto anmeldest."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/fim.ts:21
+msgid "Use a Mistral API key to generate text suggestions with Codestral, a model designed for code completion."
+msgstr "Verwende einen Mistral API-Schlüssel, um Textvorschläge mit Codestral zu erstellen, einem Modell für Codevervollständigung."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/gateway.ts:20
+msgid "Use Coreply with a Vercel AI Gateway API key."
+msgstr "Verwende Coreply mit einem Vercel AI Gateway API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/gateway.ts:21
+msgid "Use Coreply with a Vercel AI Gateway API key. Use the new Vercel AI Gateway provider instead."
+msgstr "Verwende Coreply mit einem Vercel AI Gateway API-Schlüssel. Verwende stattdessen den neuen Anbieter Vercel AI Gateway."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/google-vertex.ts:33
+msgid "Use Coreply with a Google Vertex API key or service account."
+msgstr "Verwende Coreply mit einem Google Vertex API-Schlüssel oder Dienstkonto."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/google-vertex.ts:34
+msgid "Use Coreply with Google Vertex. Use the new Google Vertex provider instead."
+msgstr "Verwende Coreply mit Google Vertex. Verwende stattdessen den neuen Anbieter Google Vertex."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/google.ts:19
+msgid "Use Coreply with a Google Gemini API key."
+msgstr "Verwende Coreply mit einem Google Gemini API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/google.ts:20
+msgid "Use Coreply with a Google Gemini API key. Use the new Google (Gemini API) provider instead."
+msgstr "Verwende Coreply mit einem Google Gemini API-Schlüssel. Verwende stattdessen den neuen Anbieter Google (Gemini API)."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/groq.ts:19
+msgid "Use Coreply with a Groq API key."
+msgstr "Verwende Coreply mit einem Groq API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/groq.ts:20
+msgid "Use Coreply with a Groq API key. Use the new Groq provider instead."
+msgstr "Verwende Coreply mit einem Groq API-Schlüssel. Verwende stattdessen den neuen Anbieter Groq."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/minimax.ts:19
+msgid "Use Coreply with a MiniMax API key."
+msgstr "Verwende Coreply mit einem MiniMax API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/minimax.ts:20
+msgid "Use Coreply with a MiniMax API key. Use the new MiniMax provider instead."
+msgstr "Verwende Coreply mit einem MiniMax API-Schlüssel. Verwende stattdessen den neuen Anbieter MiniMax."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/mistral.ts:19
+msgid "Use Coreply with a Mistral API key."
+msgstr "Verwende Coreply mit einem Mistral API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/mistral.ts:20
+msgid "Use Coreply with a Mistral API key. Use the new Mistral provider instead."
+msgstr "Verwende Coreply mit einem Mistral API-Schlüssel. Verwende stattdessen den neuen Anbieter Mistral."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openai-compatible.ts:40
+msgid "Use Coreply with an OpenAI-compatible API endpoint and API key."
+msgstr "Verwende Coreply mit einem OpenAI-kompatiblen API-Endpunkt und API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openai-compatible.ts:41
+msgid "Use an OpenAI-compatible API. Use the new OpenAI Compatible provider instead."
+msgstr "Verwende eine OpenAI-kompatible API. Verwende stattdessen den neuen Anbieter OpenAI Compatible."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openai.ts:21
+msgid "Use Coreply with an OpenAI API key."
+msgstr "Verwende Coreply mit einem OpenAI API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openai.ts:22
+msgid "Use Coreply with an OpenAI API key. Use the new OpenAI provider instead."
+msgstr "Verwende Coreply mit einem OpenAI API-Schlüssel. Verwende stattdessen den neuen Anbieter OpenAI."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openrouter.ts:21
+msgid "Use Coreply with an OpenRouter API key."
+msgstr "Verwende Coreply mit einem OpenRouter API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/openrouter.ts:22
+msgid "Use Coreply with an OpenRouter API key. Use the new OpenRouter provider instead."
+msgstr "Verwende Coreply mit einem OpenRouter API-Schlüssel. Verwende stattdessen den neuen Anbieter OpenRouter."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/xai.ts:19
+msgid "Use Coreply with an xAI API key."
+msgstr "Verwende Coreply mit einem xAI API-Schlüssel."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/xai.ts:20
+msgid "Use Coreply with an xAI API key. Use the new xAI provider instead."
+msgstr "Verwende Coreply mit einem xAI API-Schlüssel. Verwende stattdessen den neuen Anbieter xAI."
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/profile/schema.ts:11
+msgid "Enter either a number of recent contexts to keep or a JSON object mapping extractor labels to limits, e.g. {\"chat\": 1, \"todoList\": 2}"
+msgstr "Gib entweder die Anzahl der letzten zu behaltenden Kontexte oder ein JSON-Objekt mit Grenzwerten für Extraktor-Labels ein, z. B. {\"chat\": 1, \"todoList\": 2}"
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/ai-definition.ts:23
+#~ msgid "Generates each suggestion from the current context."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/ai-definition.ts:48
+#~ msgid "Keeps request history when the conversation continues."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/coreply-cloud.ts:17
+#~ msgid "Legacy Coreply Cloud provider using an API key."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/coreply-cloud.ts:33
+#~ msgid "Coreply Cloud keeps request history when the conversation continues."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: ../libcoreply/src/providers/definitions/fim.ts:21
+#~ msgid "Uses a fill-in-the-middle model to complete your text."
+#~ msgstr ""
+
+#. js-lingui-explicit-id
 #: ../libcoreply/src/profile/schema.ts:6
-msgid "A context count, or a JSON object mapping context labels to counts"
-msgstr "Anzahl der Kontextelemente oder ein JSON-Objekt, das jeder Kontextbezeichnung eine Anzahl zuordnet"
+#~ msgid "A context count, or a JSON object mapping context labels to counts"
+#~ msgstr "Anzahl der Kontextelemente oder ein JSON-Objekt, das jeder Kontextbezeichnung eine Anzahl zuordnet"

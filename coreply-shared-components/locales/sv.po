@@ -7,11 +7,11 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: sv\n"
 
-#: src/components/groups/coreply-cloud-usage.tsx:32
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:33
 msgid "{display}% remaining"
 msgstr "{display} % kvar"
 
-#: src/components/groups/coreply-cloud-usage.tsx:37
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:38
 msgid "{label}: {display}% remaining"
 msgstr "{label}: {display} % kvar"
 
@@ -20,480 +20,504 @@ msgstr "{label}: {display} % kvar"
 #~ msgid "+ More Settings"
 #~ msgstr ""
 
-#: src/demo-conversations/localized.ts:27
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:27
 msgid "actually are you free sunday afternoon? and do you still have those big moving bags?"
 msgstr "förresten är du ledig söndag eftermiddag? och har du kvar de där stora flyttväskorna?"
 
 #. Adds an item to a settings list
-#: src/renderers/array.tsx:27
+#: ../coreply-shared-components/src/renderers/array.tsx:29
 msgid "Add item"
 msgstr "Lägg till objekt"
 
-#: src/demo-conversations/localized.ts:28
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:28
 msgid "after 2. i'll bring the bags to dinner"
 msgstr "efter två ja. tar med väskorna till middagen"
 
-#: src/demo-conversations/localized.ts:20
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:20
 msgid "ahhh congrats! when do you move?"
 msgstr "ååh grattis!! när flyttar du?"
 
 #. Demo conversation with an AI coding agent
-#: src/components/groups/demo-conversation.tsx:23
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:23
 msgid "AI"
 msgstr "AI"
 
-#: src/demo-conversations/localized.ts:48
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:48
 msgid "Also the umbrella is mine. Please don't let me leave without it again."
 msgstr "Paraplyet är förresten mitt. Låt mig inte gå utan det igen."
 
-#: src/demo-conversations/localized.ts:53
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:53
 msgid "asleep unfortunately. woke up somewhere i'd never heard of with 4% battery 🫠"
 msgstr "somnade tyvärr. vaknade på en plats jag aldrig hört talas om med 4 % batteri 🫠"
 
-#: src/demo-conversations/localized.ts:25
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:25
 msgid "booked. also i'll bring the charger you left here"
 msgstr "bokat! tar med laddaren du glömde här också"
 
-#: src/demo-conversations/localized.ts:65
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:65
 msgid "Bring your charger. I'd rather not spend our first date looking for a carpet shop 😉"
 msgstr "Ta med laddaren. Jag vill helst inte ägna vår första dejt åt att leta efter en mobilbutik 😉"
 
 #. Cancel account deletion
-#: src/components/groups/coreply-cloud-delete-account.tsx:128
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:128
 msgid "Cancel"
 msgstr "Avbryt"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:33
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:33
 msgid "Cancel any active paid subscriptions and remove any scheduled paid plans before deleting your account."
 msgstr "Innan du raderar kontot behöver du säga upp alla aktiva betalabonnemang och avboka alla schemalagda betalabonnemang."
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:71
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:71
 msgid "Checking subscription..."
 msgstr "Kontrollerar abonnemanget..."
 
 #. Close account deletion error dialog
-#. Closes the provider selection modal
-#: src/components/groups/coreply-cloud-delete-account.tsx:124
-#: src/components/groups/provider-selector.tsx:47
+#. Closes a selection dialog
+#: ../coreply-shared-components/src/components/groups/advanced-select.tsx:66
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:124
 msgid "Close"
 msgstr "Stäng"
 
-#: src/demo-conversations/localized.ts:44
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:44
 msgid "Company-name fix is in staging."
 msgstr "Fixen för företagsnamnet finns i testmiljön nu."
 
-#: src/components/groups/github-sign-in-button.tsx:21
-#: src/components/groups/google-sign-in-button.web.tsx:21
+#: ../coreply-shared-components/src/components/groups/github-sign-in-button.tsx:21
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.web.tsx:21
 msgid "Connecting..."
 msgstr "Ansluter..."
 
-#: src/components/groups/github-sign-in-button.tsx:21
+#: ../coreply-shared-components/src/components/groups/github-sign-in-button.tsx:21
 msgid "Continue with GitHub"
 msgstr ""
 
-#: src/components/groups/google-sign-in-button.web.tsx:21
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.web.tsx:21
 msgid "Continue with Google"
 msgstr "Fortsätt med Google"
 
-#: src/components/groups/coreply-cloud-sign-in.tsx:31
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:35
 msgid "Coreply Cloud sign-in isn't configured for this app."
 msgstr "Inloggning till Coreply Cloud är inte konfigurerad för den här appen."
 
 #. Onboarding chat. Use natural, friendly language, not marketing jargon.
-#: src/demo-conversations/localized.ts:9
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:9
 msgid "Coreply helps you finish your messages with suggestions based on your conversation."
 msgstr "Coreply hjälper dig att skriva klart dina meddelanden med förslag som passar samtalet."
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:91
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:91
 msgid "Couldn't delete account"
 msgstr "Det gick inte att radera kontot"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:45
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:45
 msgid "Couldn't delete your account. Please try again."
 msgstr "Det gick inte att radera ditt konto. Försök igen."
 
-#: src/components/groups/coreply-cloud-usage.tsx:65
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:68
 msgid "Couldn't load usage. Please try again."
 msgstr "Det gick inte att hämta din förbrukning. Försök igen."
 
-#: src/components/groups/coreply-cloud-usage.tsx:142
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:112
+msgid "Couldn't load your usage. Please try again."
+msgstr "Det gick inte att läsa in din användning. Försök igen."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:164
 msgid "Daily usage"
 msgstr "Daglig förbrukning"
 
 #. Demo conversation in a dating app
-#: src/components/groups/demo-conversation.tsx:22
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:22
 msgid "Dating"
 msgstr "Dejting"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:57
-#: src/components/groups/coreply-cloud-delete-account.tsx:72
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:57
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:72
 msgid "Delete account"
 msgstr "Radera konto"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:92
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:92
 msgid "Delete account?"
 msgstr "Vill du radera ditt konto?"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:142
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:142
 msgid "Deleting account..."
 msgstr "Raderar kontot..."
 
-#: src/demo-conversations/localized.ts:54
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:54
 msgid "Did you get home that night?"
 msgstr "Kom du hem den kvällen?"
 
-#: src/demo-conversations/localized.ts:55
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:55
 msgid "eventually. a man in a carpet shop let me charge my phone"
 msgstr "till slut. fick ladda mobilen i en mobilbutik"
 
-#: src/components/groups/provider-selector.tsx:35
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:29
 msgid "Follow the provider selected in global settings."
 msgstr ""
 
 #. Name of the free Coreply Cloud plan
-#: src/components/groups/coreply-cloud-usage.tsx:139
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:141
 msgid "Free"
 msgstr "Gratis"
 
-#: src/components/groups/provider-selector.tsx:42
-msgid "Generates each suggestion from the current context."
-msgstr ""
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:45
+#~ msgid "Generates each suggestion from the current context."
+#~ msgstr ""
 
-#: src/components/groups/github-sign-in-button.tsx:14
+#: ../coreply-shared-components/src/components/groups/github-sign-in-button.tsx:14
 msgid "GitHub sign-in failed."
 msgstr ""
 
-#: src/demo-conversations/localized.ts:57
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:57
 msgid "good luck with the presentation. and the avoidance"
 msgstr "lycka till med presentationen. och med att undvika den"
 
-#: src/components/groups/google-sign-in-button.native.tsx:24
-#: src/components/groups/google-sign-in-button.native.tsx:46
-#: src/components/groups/google-sign-in-button.web.tsx:14
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.native.tsx:24
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.native.tsx:46
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.web.tsx:14
 msgid "Google sign-in failed."
 msgstr "Det gick inte att logga in med Google."
 
-#: src/demo-conversations/localized.ts:19
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:19
 msgid "got the apartment!! the one with the balcony 🥳"
 msgstr "jag fick lägenheten!! den med balkongen 🥳"
 
-#: src/demo-conversations/localized.ts:31
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:31
 msgid "he says he's never going to live that down"
 msgstr "han säger att ni aldrig kommer låta honom glömma det"
 
-#: src/demo-conversations/localized.ts:32
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:32
 msgid "he tried to pay for noodles with supermarket points 😂"
 msgstr "han försökte betala på restaurangen med bonuspoäng från mataffären 😂"
 
 #. Onboarding chat greeting. Keep the tone warm, casual and lively.
-#: src/demo-conversations/localized.ts:8
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:8
 msgid "Hey! Welcome to Coreply 👋"
 msgstr "Hej! Välkommen till Coreply 👋"
 
-#: src/renderers/input.tsx:175
+#: ../coreply-shared-components/src/renderers/input.tsx:175
 msgid "Hide password"
 msgstr "Dölj lösenord"
 
-#: src/demo-conversations/localized.ts:58
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:58
 msgid "how did it go?"
 msgstr "hur gick det?"
 
 #. A quoted earlier message in a casual chat about helping a friend move.
-#: src/demo-conversations/localized.ts:14
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:14
 msgid "i can help pack"
 msgstr "jag kan hjälpa till att packa"
 
-#: src/demo-conversations/localized.ts:22
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:22
 msgid "i can help pack. no promises i won't borrow things"
 msgstr "jag kan hjälpa till att packa. lovar inte att jag inte lånar nåt bara"
 
-#: src/demo-conversations/localized.ts:43
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:43
 msgid "I'll make a ten-row sample."
 msgstr "Jag gör ett exempel med tio rader."
 
-#: src/demo-conversations/localized.ts:37
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:37
 msgid "I'll update the welcome email too. Also, someone's grey umbrella is in the kitchen."
 msgstr "Jag uppdaterar välkomstmejlet också. Förresten ligger någons grå paraply i köket."
 
 #. Screen reader action; suggestion is the proposed message completion
 #. Screen reader action; suggestion is the proposed message completion
-#: src/components/groups/demo-conversation.tsx:387
-#: src/components/groups/demo-conversation.tsx:422
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:387
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:422
 msgid "Insert next word of suggestion: {suggestion}"
 msgstr "Infoga nästa ord i förslaget: {suggestion}"
 
-#: src/demo-conversations/localized.ts:49
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:49
 msgid "It's next to your laptop now."
 msgstr "Det ligger bredvid din dator nu."
 
-#: src/components/groups/provider-selector.tsx:42
-msgid "Keeps request history when the conversation continues."
-msgstr ""
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:45
+#~ msgid "Keeps request history when the conversation continues."
+#~ msgstr ""
 
-#: src/demo-conversations/localized.ts:42
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:42
 msgid "Let's use fake data with the same columns. Don't want real emails on the recording."
 msgstr "Vi använder testdata med samma kolumner. Vill inte ha riktiga mejladresser i inspelningen."
 
-#: src/components/groups/coreply-cloud-usage.tsx:79
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:82
 msgid "Loading your usage"
 msgstr "Hämtar din förbrukning"
 
 #. Message input label; title is the recipient's name
-#: src/components/groups/demo-conversation.tsx:348
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:348
 msgid "Message {title}"
 msgstr "Meddelande till {title}"
 
 #. Message input placeholder; title is the recipient's name
-#: src/components/groups/demo-conversation.tsx:352
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:352
 msgid "Message {title}..."
 msgstr "Skriv till {title}..."
 
-#: src/components/groups/coreply-cloud-usage.tsx:143
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:165
 msgid "Monthly usage"
 msgstr "Månatlig förbrukning"
 
 #. Button below a form that reveals its advanced settings
 #: src/components/groups/schema-fields.tsx:38
-msgid "More Settings"
-msgstr ""
+#~ msgid "More Settings"
+#~ msgstr ""
 
-#: src/demo-conversations/localized.ts:11
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:11
 msgid "Nice! Sign in to bring Coreply to your conversations."
 msgstr "Härligt! Logga in för att använda Coreply i dina konversationer."
 
-#: src/renderers/array.tsx:37
+#: ../coreply-shared-components/src/renderers/array.tsx:39
 msgid "No items yet."
 msgstr "Inga objekt ännu."
 
-#: src/components/groups/coreply-cloud-sign-in.tsx:23
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:27
 msgid "Open Coreply Cloud to sign in"
 msgstr "Öppna Coreply Cloud för att logga in"
 
-#: src/demo-conversations/localized.ts:63
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:63
 msgid "Perfect. 7?"
 msgstr "Perfekt. Klockan sju?"
 
-#: src/demo-conversations/localized.ts:29
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:29
 msgid "perfect. pizza on me sunday 🍕"
 msgstr "perfekt. jag bjuder på pizza på söndag 🍕"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:143
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:143
 msgid "Permanently delete account"
 msgstr "Radera kontot permanent"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:60
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:60
 msgid "Permanently delete your Coreply Cloud account and usage data."
 msgstr "Radera ditt Coreply Cloud-konto och din användningshistorik permanent."
 
-#: src/demo-conversations/localized.ts:59
+#. Name of the paid Coreply Cloud plan
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:145
+msgid "Plus"
+msgstr "Plus"
+
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:59
 msgid "Pretty well, except I shared the wrong screen. Everyone saw me googling how to pronounce the client's name 🙈"
 msgstr "Ganska bra, förutom att jag delade fel skärm. Alla såg mig googla hur kundens namn uttalas 🙈"
 
+#. Label for the button that reloads Coreply Cloud usage
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:157
+msgid "Refresh usage"
+msgstr "Uppdatera användning"
+
 #. Removes an item from a settings list
-#: src/renderers/array.tsx:34
+#: ../coreply-shared-components/src/renderers/array.tsx:36
 msgid "Remove"
 msgstr "Ta bort"
 
 #. placeholder {0}: index + 1
-#: src/renderers/array.tsx:34
+#: ../coreply-shared-components/src/renderers/array.tsx:36
 msgid "Remove item {0}"
 msgstr "Ta bort objekt {0}"
 
-#: src/demo-conversations/localized.ts:39
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:39
 msgid "Reproduced, thanks. I'll fix it this morning."
 msgstr "Jag kan återskapa det, tack. Fixar det i förmiddag."
 
 #. Indicates that a form field is required
-#: src/renderers/input.tsx:51
+#: ../coreply-shared-components/src/renderers/input.tsx:51
 msgid "Required"
 msgstr "Obligatoriskt"
 
-#: src/demo-conversations/localized.ts:45
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:45
 msgid "Retested, working now. Can you drive the demo? I'll cover rollout questions."
 msgstr "Testat igen, funkar nu. Kan du hålla i demon? Jag tar frågorna om lanseringen."
 
-#: src/components/groups/coreply-cloud-usage.tsx:120
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:123
 msgid "Retrying..."
 msgstr "Försöker igen..."
 
-#: src/demo-conversations/localized.ts:71
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:71
 msgid "Review the disclosure and enable the service to continue."
 msgstr "Läs informationen och aktivera tjänsten för att fortsätta."
 
-#: src/components/groups/provider-selector.tsx:30
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:23
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:24
 msgid "Select a provider"
 msgstr "Välj leverantör"
 
 #. Button that sends the drafted chat message
-#: src/components/groups/demo-conversation.tsx:452
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:452
 msgid "Send message"
 msgstr "Skicka meddelande"
 
-#: src/renderers/input.tsx:175
+#. Button below a form that reveals its advanced settings
+#: ../coreply-shared-components/src/components/groups/schema-fields.tsx:38
+msgid "Show advanced settings"
+msgstr "Visa avancerade inställningar"
+
+#: ../coreply-shared-components/src/renderers/input.tsx:175
 msgid "Show password"
 msgstr "Visa lösenord"
 
-#: src/components/groups/coreply-cloud-sign-in.tsx:12
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:12
 msgid "Sign in to Coreply Cloud"
 msgstr "Logga in på Coreply Cloud"
 
-#: src/components/groups/coreply-cloud-sign-in.tsx:14
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:14
 msgid "Sign in to get typing suggestions tailored to your conversations."
 msgstr "Logga in för att få skrivförslag som passar dina samtal."
 
-#: src/components/groups/google-sign-in-button.native.tsx:51
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.native.tsx:51
 msgid "Signing in..."
 msgstr "Loggar in..."
 
-#: src/components/groups/coreply-cloud-usage.tsx:132
-msgid "Standard usage"
-msgstr "Standardförbrukning"
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:132
+#~ msgid "Standard usage"
+#~ msgstr "Standardförbrukning"
 
-#: src/demo-conversations/localized.ts:23
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:23
 msgid "still good for noodles saturday? leo's coming too"
 msgstr "blir det nudlar på lördag som vi sa? leo kommer också"
 
-#: src/components/groups/demo-conversation.tsx:392
-#: src/components/groups/demo-conversation.tsx:427
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:392
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:427
 msgid "Tap to insert the next word. Hold to insert the full suggestion."
 msgstr "Tryck för att infoga nästa ord. Håll in för att infoga hela förslaget."
 
-#: src/demo-conversations/localized.ts:30
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:30
 msgid "tell leo to bring cash saturday btw"
 msgstr "påminn leo om att ta med bankkortet på lördag förresten"
 
-#: src/demo-conversations/localized.ts:38
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:38
 msgid "Testing onboarding. If I skip invitations and hit browser back twice, the company name disappears."
 msgstr "Testar registreringen. Om jag hoppar över inbjudningar och går tillbaka två gånger i webbläsaren försvinner företagsnamnet."
 
 #. Demo conversation about texting friends
-#: src/components/groups/demo-conversation.tsx:20
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:20
 msgid "Texting"
 msgstr "Chatt"
 
-#: src/demo-conversations/localized.ts:61
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:61
 msgid "Thank you. Are you free for a drink Thursday?"
 msgstr "Tack! Är du ledig för en drink på torsdag?"
 
-#: src/demo-conversations/localized.ts:36
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:36
 msgid "Thanks. Revised onboarding will be in staging tomorrow."
 msgstr "Tack. Den uppdaterade registreringen finns i testmiljön i morgon."
 
-#: src/demo-conversations/localized.ts:41
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:41
 msgid "Thanks. The customer also sent their staff CSV. Can we use it Thursday?"
 msgstr "Tack. Kunden skickade också en CSV med personalen. Kan vi använda den på torsdag?"
 
-#: src/demo-conversations/localized.ts:56
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:56
 msgid "That's kind. My weekend was mostly dog sitting and avoiding tomorrow's presentation"
 msgstr "Vad snällt. Min helg gick mest åt till att passa hund och undvika att förbereda morgondagens presentation"
 
-#: src/demo-conversations/localized.ts:60
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:60
 msgid "that's preparation. i'd hire you"
 msgstr "det kallar jag förberedelse. jag skulle anställa dig"
 
-#: src/demo-conversations/localized.ts:26
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:26
 msgid "THAT'S where it is"
 msgstr "DÄR är den ju"
 
-#: src/demo-conversations/localized.ts:21
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:21
 msgid "the 28th. already regretting how many books i own 😭"
 msgstr "den 28:e. ångrar redan hur många böcker jag äger 😭"
 
-#: src/demo-conversations/localized.ts:35
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:35
 msgid "Thursday's demo moved to 10:30 our time. Calendar updated."
 msgstr "Torsdagens demo är flyttad till 10.30 vår tid. Kalendern är uppdaterad."
 
-#: src/components/groups/coreply-cloud-usage.tsx:120
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:123
 msgid "Try again"
 msgstr "Försök igen"
 
-#: src/components/groups/toggle-button.tsx:22
+#: ../coreply-shared-components/src/components/groups/toggle-button.tsx:22
 msgid "Turn Coreply off"
 msgstr "Stäng av Coreply"
 
-#: src/components/groups/toggle-button.tsx:22
+#: ../coreply-shared-components/src/components/groups/toggle-button.tsx:22
 msgid "Turn Coreply on"
 msgstr "Slå på Coreply"
 
-#: src/components/groups/provider-selector.tsx:25
-#: src/components/groups/provider-selector.tsx:34
+#. Heading for Coreply Cloud's daily and monthly usage limits
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:137
+msgid "Usage limits"
+msgstr "Användningsgränser"
+
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:28
 msgid "Use global default"
-msgstr ""
+msgstr "Använd global standardinställning"
 
 #. Friendly invitation; accurately describe the Android accessibility permission.
-#: src/demo-conversations/localized.ts:70
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:70
 msgid "Want suggestions like these in your other apps? Enable Coreply's accessibility service so it can read the conversation and suggest what to write next."
 msgstr "Vill du ha sådana här förslag i dina andra appar? Slå på Coreplys tillgänglighetstjänst så att Coreply kan läsa samtalet och föreslå vad du kan skriva härnäst."
 
-#: src/demo-conversations/localized.ts:40
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:40
 msgid "Welcome email is updated. Left the subject line alone as agreed."
 msgstr "Välkomstmejlet är uppdaterat. Behöll ämnesraden som vi bestämde."
 
 #. Friendly chat prompt inviting the user to try typing suggestions.
-#: src/demo-conversations/localized.ts:10
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:10
 msgid "What would you like to use Coreply for? Start typing your reply below and try tapping a suggestion!"
 msgstr "Vad vill du använda Coreply till? Börja skriva ditt svar här nedanför och testa att trycka på ett förslag!"
 
 #. Demo conversation about workplace communication
-#: src/components/groups/demo-conversation.tsx:21
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:21
 msgid "Workplace"
 msgstr "Jobb"
 
-#: src/demo-conversations/localized.ts:64
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:64
 msgid "works for me"
 msgstr "passar mig"
 
-#: src/demo-conversations/localized.ts:47
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:47
 msgid "Works. Sample CSV is ready too."
 msgstr "Funkar. Exempel-CSV:n är klar också."
 
-#: src/demo-conversations/localized.ts:46
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:46
 msgid "Yep. Rehearsal tomorrow at 3?"
 msgstr "Japp. Genrep i morgon klockan tre?"
 
-#: src/demo-conversations/localized.ts:62
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:62
 msgid "yes 😊 June near the market? been meaning to try it"
 msgstr "ja 😊 June vid torget? har velat testa det"
 
-#: src/demo-conversations/localized.ts:24
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:24
 msgid "yes! can we do 7? taking dad to pick up his car first"
 msgstr "ja! kan vi säga sju? ska hjälpa pappa hämta bilen först"
 
 #. Name of the current user in a chat
 #. Name of the current user in a chat
 #. Name of the current user in a chat
-#: src/components/groups/demo-conversation.tsx:158
-#: src/components/groups/demo-conversation.tsx:162
-#: src/demo-conversations/localized.ts:15
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:158
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:162
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:15
 msgid "You"
 msgstr "Du"
 
 #. Friendly demo chat. Match Profiles to the translated home screen label.
-#: src/demo-conversations/localized.ts:76
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:76
 msgid "You're all set! Open 'Profiles' on Coreply's home screen to choose where suggestions appear, then open a website you've enabled Coreply on and give it a try!"
 msgstr "Allt är klart! Öppna 'Profiler' på Coreplys startsida för att välja var förslagen ska visas. Öppna sedan en webbplats där du har aktiverat Coreply och testa!"
 
 #. Friendly setup success. Match Select Apps to the translated home screen label.
-#: src/demo-conversations/localized.ts:72
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:72
 msgid "You're all set! Tap 'Select Apps' on Coreply's home screen to choose where suggestions appear, or open a texting app and give it a try!"
 msgstr "Allt är klart! Tryck på 'Välj appar' på Coreplys startsida för att välja var förslagen ska visas, eller öppna en chattapp och testa!"
 
-#: src/components/groups/coreply-cloud-usage.tsx:41
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:42
 msgid "You've reached your daily limit."
 msgstr "Du har nått din dagliga gräns."
 
-#: src/components/groups/coreply-cloud-usage.tsx:41
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:42
 msgid "You've reached your monthly limit."
 msgstr "Du har nått din månadsgräns."
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:98
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:98
 msgid "Your account and access will <0>end immediately</0>, even if your paid subscription hasn't expired. This <1>cannot be undone</1>."
 msgstr "Ditt konto raderas och din åtkomst upphör <0>omedelbart</0>, även om ditt betalabonnemang inte har löpt ut. Det här <1>går inte att ångra</1>."
 
-#: src/components/groups/coreply-cloud-usage.tsx:135
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:150
 msgid "Your Coreply Cloud allowance"
 msgstr "Din tillgängliga användning i Coreply Cloud"
 
-#: src/demo-conversations/localized.ts:52
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:52
 msgid "Your profile says you missed your train stop by an hour. Asleep or a really good book?"
 msgstr "Din profil säger att du åkte en timme för långt på tåget. Somnade du eller var boken för bra?"

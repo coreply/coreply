@@ -7,11 +7,11 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: es\n"
 
-#: src/components/groups/coreply-cloud-usage.tsx:32
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:33
 msgid "{display}% remaining"
 msgstr "Queda un {display} %"
 
-#: src/components/groups/coreply-cloud-usage.tsx:37
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:38
 msgid "{label}: {display}% remaining"
 msgstr "{label}: queda un {display} %"
 
@@ -20,480 +20,504 @@ msgstr "{label}: queda un {display} %"
 #~ msgid "+ More Settings"
 #~ msgstr ""
 
-#: src/demo-conversations/localized.ts:27
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:27
 msgid "actually are you free sunday afternoon? and do you still have those big moving bags?"
 msgstr "oye, ¿el domingo por la tarde estás libre? ¿y todavía tienes esas bolsas grandes de mudanza?"
 
 #. Adds an item to a settings list
-#: src/renderers/array.tsx:27
+#: ../coreply-shared-components/src/renderers/array.tsx:29
 msgid "Add item"
 msgstr "Añadir elemento"
 
-#: src/demo-conversations/localized.ts:28
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:28
 msgid "after 2. i'll bring the bags to dinner"
 msgstr "después de las 2 sí. llevo las bolsas a la cena"
 
-#: src/demo-conversations/localized.ts:20
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:20
 msgid "ahhh congrats! when do you move?"
 msgstr "aaah enhorabuena!! ¿cuándo te mudas?"
 
 #. Demo conversation with an AI coding agent
-#: src/components/groups/demo-conversation.tsx:23
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:23
 msgid "AI"
 msgstr "IA"
 
-#: src/demo-conversations/localized.ts:48
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:48
 msgid "Also the umbrella is mine. Please don't let me leave without it again."
 msgstr "Por cierto, el paraguas es mío. No me dejéis irme sin él otra vez, por favor."
 
-#: src/demo-conversations/localized.ts:53
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:53
 msgid "asleep unfortunately. woke up somewhere i'd never heard of with 4% battery 🫠"
 msgstr "me venció el sueño. me desperté en un sitio que no conocía y con un 4 % de batería 🫠"
 
-#: src/demo-conversations/localized.ts:25
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:25
 msgid "booked. also i'll bring the charger you left here"
 msgstr "reservado. también te llevo el cargador que te dejaste aquí"
 
-#: src/demo-conversations/localized.ts:65
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:65
 msgid "Bring your charger. I'd rather not spend our first date looking for a carpet shop 😉"
 msgstr "Trae el cargador. Prefiero no pasar nuestra primera cita buscando una tienda de móviles 😉"
 
 #. Cancel account deletion
-#: src/components/groups/coreply-cloud-delete-account.tsx:128
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:128
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:33
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:33
 msgid "Cancel any active paid subscriptions and remove any scheduled paid plans before deleting your account."
 msgstr "Antes de eliminar tu cuenta, cancela las suscripciones de pago activas y cualquier plan de pago programado."
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:71
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:71
 msgid "Checking subscription..."
 msgstr "Comprobando la suscripción..."
 
 #. Close account deletion error dialog
-#. Closes the provider selection modal
-#: src/components/groups/coreply-cloud-delete-account.tsx:124
-#: src/components/groups/provider-selector.tsx:47
+#. Closes a selection dialog
+#: ../coreply-shared-components/src/components/groups/advanced-select.tsx:66
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:124
 msgid "Close"
 msgstr "Cerrar"
 
-#: src/demo-conversations/localized.ts:44
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:44
 msgid "Company-name fix is in staging."
 msgstr "La corrección del nombre de empresa ya está en pruebas."
 
-#: src/components/groups/github-sign-in-button.tsx:21
-#: src/components/groups/google-sign-in-button.web.tsx:21
+#: ../coreply-shared-components/src/components/groups/github-sign-in-button.tsx:21
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.web.tsx:21
 msgid "Connecting..."
 msgstr "Conectando..."
 
-#: src/components/groups/github-sign-in-button.tsx:21
+#: ../coreply-shared-components/src/components/groups/github-sign-in-button.tsx:21
 msgid "Continue with GitHub"
 msgstr ""
 
-#: src/components/groups/google-sign-in-button.web.tsx:21
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.web.tsx:21
 msgid "Continue with Google"
 msgstr "Continuar con Google"
 
-#: src/components/groups/coreply-cloud-sign-in.tsx:31
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:35
 msgid "Coreply Cloud sign-in isn't configured for this app."
 msgstr "El inicio de sesión en Coreply Cloud no está configurado para esta app."
 
 #. Onboarding chat. Use natural, friendly language, not marketing jargon.
-#: src/demo-conversations/localized.ts:9
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:9
 msgid "Coreply helps you finish your messages with suggestions based on your conversation."
 msgstr "Coreply te ayuda a completar tus mensajes con sugerencias que encajan con tu conversación."
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:91
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:91
 msgid "Couldn't delete account"
 msgstr "No se pudo eliminar la cuenta"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:45
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:45
 msgid "Couldn't delete your account. Please try again."
 msgstr "No se pudo eliminar tu cuenta. Vuelve a intentarlo."
 
-#: src/components/groups/coreply-cloud-usage.tsx:65
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:68
 msgid "Couldn't load usage. Please try again."
 msgstr "No se pudo cargar tu consumo. Vuelve a intentarlo."
 
-#: src/components/groups/coreply-cloud-usage.tsx:142
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:112
+msgid "Couldn't load your usage. Please try again."
+msgstr "No se pudo cargar tu uso. Inténtalo de nuevo."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:164
 msgid "Daily usage"
 msgstr "Consumo diario"
 
 #. Demo conversation in a dating app
-#: src/components/groups/demo-conversation.tsx:22
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:22
 msgid "Dating"
 msgstr "Citas"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:57
-#: src/components/groups/coreply-cloud-delete-account.tsx:72
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:57
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:72
 msgid "Delete account"
 msgstr "Eliminar cuenta"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:92
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:92
 msgid "Delete account?"
 msgstr "¿Quieres eliminar tu cuenta?"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:142
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:142
 msgid "Deleting account..."
 msgstr "Eliminando la cuenta..."
 
-#: src/demo-conversations/localized.ts:54
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:54
 msgid "Did you get home that night?"
 msgstr "¿Conseguiste llegar a casa esa noche?"
 
-#: src/demo-conversations/localized.ts:55
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:55
 msgid "eventually. a man in a carpet shop let me charge my phone"
 msgstr "al final sí. en una tienda de móviles me dejaron cargar el teléfono"
 
-#: src/components/groups/provider-selector.tsx:35
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:29
 msgid "Follow the provider selected in global settings."
 msgstr ""
 
 #. Name of the free Coreply Cloud plan
-#: src/components/groups/coreply-cloud-usage.tsx:139
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:141
 msgid "Free"
 msgstr "Gratis"
 
-#: src/components/groups/provider-selector.tsx:42
-msgid "Generates each suggestion from the current context."
-msgstr ""
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:45
+#~ msgid "Generates each suggestion from the current context."
+#~ msgstr ""
 
-#: src/components/groups/github-sign-in-button.tsx:14
+#: ../coreply-shared-components/src/components/groups/github-sign-in-button.tsx:14
 msgid "GitHub sign-in failed."
 msgstr ""
 
-#: src/demo-conversations/localized.ts:57
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:57
 msgid "good luck with the presentation. and the avoidance"
 msgstr "suerte con la presentación. y con evitarla"
 
-#: src/components/groups/google-sign-in-button.native.tsx:24
-#: src/components/groups/google-sign-in-button.native.tsx:46
-#: src/components/groups/google-sign-in-button.web.tsx:14
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.native.tsx:24
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.native.tsx:46
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.web.tsx:14
 msgid "Google sign-in failed."
 msgstr "No se pudo iniciar sesión con Google."
 
-#: src/demo-conversations/localized.ts:19
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:19
 msgid "got the apartment!! the one with the balcony 🥳"
 msgstr "me han dado el piso!! el del balcón 🥳"
 
-#: src/demo-conversations/localized.ts:31
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:31
 msgid "he says he's never going to live that down"
 msgstr "dice que no se lo vais a dejar olvidar nunca"
 
-#: src/demo-conversations/localized.ts:32
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:32
 msgid "he tried to pay for noodles with supermarket points 😂"
 msgstr "intentó pagar la cena con puntos del supermercado 😂"
 
 #. Onboarding chat greeting. Keep the tone warm, casual and lively.
-#: src/demo-conversations/localized.ts:8
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:8
 msgid "Hey! Welcome to Coreply 👋"
 msgstr "¡Hola! Te damos la bienvenida a Coreply 👋"
 
-#: src/renderers/input.tsx:175
+#: ../coreply-shared-components/src/renderers/input.tsx:175
 msgid "Hide password"
 msgstr "Ocultar contraseña"
 
-#: src/demo-conversations/localized.ts:58
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:58
 msgid "how did it go?"
 msgstr "¿qué tal salió?"
 
 #. A quoted earlier message in a casual chat about helping a friend move.
-#: src/demo-conversations/localized.ts:14
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:14
 msgid "i can help pack"
 msgstr "puedo ayudarte a hacer cajas"
 
-#: src/demo-conversations/localized.ts:22
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:22
 msgid "i can help pack. no promises i won't borrow things"
 msgstr "puedo ayudarte a hacer cajas. no prometo no llevarme algo prestado"
 
-#: src/demo-conversations/localized.ts:43
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:43
 msgid "I'll make a ten-row sample."
 msgstr "Preparo una muestra de diez filas."
 
-#: src/demo-conversations/localized.ts:37
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:37
 msgid "I'll update the welcome email too. Also, someone's grey umbrella is in the kitchen."
 msgstr "También actualizaré el correo de bienvenida. Por cierto, hay un paraguas gris en la cocina."
 
 #. Screen reader action; suggestion is the proposed message completion
 #. Screen reader action; suggestion is the proposed message completion
-#: src/components/groups/demo-conversation.tsx:387
-#: src/components/groups/demo-conversation.tsx:422
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:387
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:422
 msgid "Insert next word of suggestion: {suggestion}"
 msgstr "Insertar la siguiente palabra de la sugerencia: {suggestion}"
 
-#: src/demo-conversations/localized.ts:49
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:49
 msgid "It's next to your laptop now."
 msgstr "Lo he dejado al lado de tu portátil."
 
-#: src/components/groups/provider-selector.tsx:42
-msgid "Keeps request history when the conversation continues."
-msgstr ""
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:45
+#~ msgid "Keeps request history when the conversation continues."
+#~ msgstr ""
 
-#: src/demo-conversations/localized.ts:42
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:42
 msgid "Let's use fake data with the same columns. Don't want real emails on the recording."
 msgstr "Usemos datos ficticios con las mismas columnas. No quiero correos reales en la grabación."
 
-#: src/components/groups/coreply-cloud-usage.tsx:79
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:82
 msgid "Loading your usage"
 msgstr "Cargando tu consumo"
 
 #. Message input label; title is the recipient's name
-#: src/components/groups/demo-conversation.tsx:348
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:348
 msgid "Message {title}"
 msgstr "Mensaje para {title}"
 
 #. Message input placeholder; title is the recipient's name
-#: src/components/groups/demo-conversation.tsx:352
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:352
 msgid "Message {title}..."
 msgstr "Escribe a {title}..."
 
-#: src/components/groups/coreply-cloud-usage.tsx:143
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:165
 msgid "Monthly usage"
 msgstr "Consumo mensual"
 
 #. Button below a form that reveals its advanced settings
 #: src/components/groups/schema-fields.tsx:38
-msgid "More Settings"
-msgstr ""
+#~ msgid "More Settings"
+#~ msgstr ""
 
-#: src/demo-conversations/localized.ts:11
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:11
 msgid "Nice! Sign in to bring Coreply to your conversations."
 msgstr "¡Genial! Inicia sesión para usar Coreply en tus conversaciones."
 
-#: src/renderers/array.tsx:37
+#: ../coreply-shared-components/src/renderers/array.tsx:39
 msgid "No items yet."
 msgstr "Todavía no hay elementos."
 
-#: src/components/groups/coreply-cloud-sign-in.tsx:23
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:27
 msgid "Open Coreply Cloud to sign in"
 msgstr "Abrir Coreply Cloud para iniciar sesión"
 
-#: src/demo-conversations/localized.ts:63
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:63
 msgid "Perfect. 7?"
 msgstr "Perfecto. ¿A las 8?"
 
-#: src/demo-conversations/localized.ts:29
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:29
 msgid "perfect. pizza on me sunday 🍕"
 msgstr "perfecto. el domingo invito yo a pizza 🍕"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:143
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:143
 msgid "Permanently delete account"
 msgstr "Eliminar cuenta definitivamente"
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:60
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:60
 msgid "Permanently delete your Coreply Cloud account and usage data."
 msgstr "Elimina definitivamente tu cuenta de Coreply Cloud y tus datos de uso."
 
-#: src/demo-conversations/localized.ts:59
+#. Name of the paid Coreply Cloud plan
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:145
+msgid "Plus"
+msgstr "Plus"
+
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:59
 msgid "Pretty well, except I shared the wrong screen. Everyone saw me googling how to pronounce the client's name 🙈"
 msgstr "Bastante bien, salvo que compartí la pantalla equivocada. Todos me vieron buscando cómo se pronunciaba el nombre del cliente 🙈"
 
+#. Label for the button that reloads Coreply Cloud usage
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:157
+msgid "Refresh usage"
+msgstr "Actualizar uso"
+
 #. Removes an item from a settings list
-#: src/renderers/array.tsx:34
+#: ../coreply-shared-components/src/renderers/array.tsx:36
 msgid "Remove"
 msgstr "Eliminar"
 
 #. placeholder {0}: index + 1
-#: src/renderers/array.tsx:34
+#: ../coreply-shared-components/src/renderers/array.tsx:36
 msgid "Remove item {0}"
 msgstr "Eliminar el elemento {0}"
 
-#: src/demo-conversations/localized.ts:39
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:39
 msgid "Reproduced, thanks. I'll fix it this morning."
 msgstr "He podido reproducirlo, gracias. Lo arreglo esta mañana."
 
 #. Indicates that a form field is required
-#: src/renderers/input.tsx:51
+#: ../coreply-shared-components/src/renderers/input.tsx:51
 msgid "Required"
 msgstr "Obligatorio"
 
-#: src/demo-conversations/localized.ts:45
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:45
 msgid "Retested, working now. Can you drive the demo? I'll cover rollout questions."
 msgstr "Probado de nuevo, ya funciona. ¿Puedes llevar la demo? Yo respondo las preguntas sobre el despliegue."
 
-#: src/components/groups/coreply-cloud-usage.tsx:120
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:123
 msgid "Retrying..."
 msgstr "Reintentando..."
 
-#: src/demo-conversations/localized.ts:71
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:71
 msgid "Review the disclosure and enable the service to continue."
 msgstr "Lee la información y activa el servicio para continuar."
 
-#: src/components/groups/provider-selector.tsx:30
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:23
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:24
 msgid "Select a provider"
 msgstr "Elegir proveedor"
 
 #. Button that sends the drafted chat message
-#: src/components/groups/demo-conversation.tsx:452
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:452
 msgid "Send message"
 msgstr "Enviar mensaje"
 
-#: src/renderers/input.tsx:175
+#. Button below a form that reveals its advanced settings
+#: ../coreply-shared-components/src/components/groups/schema-fields.tsx:38
+msgid "Show advanced settings"
+msgstr "Mostrar ajustes avanzados"
+
+#: ../coreply-shared-components/src/renderers/input.tsx:175
 msgid "Show password"
 msgstr "Mostrar contraseña"
 
-#: src/components/groups/coreply-cloud-sign-in.tsx:12
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:12
 msgid "Sign in to Coreply Cloud"
 msgstr "Iniciar sesión en Coreply Cloud"
 
-#: src/components/groups/coreply-cloud-sign-in.tsx:14
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:14
 msgid "Sign in to get typing suggestions tailored to your conversations."
 msgstr "Inicia sesión para recibir sugerencias de texto adaptadas a tus conversaciones."
 
-#: src/components/groups/google-sign-in-button.native.tsx:51
+#: ../coreply-shared-components/src/components/groups/google-sign-in-button.native.tsx:51
 msgid "Signing in..."
 msgstr "Iniciando sesión..."
 
-#: src/components/groups/coreply-cloud-usage.tsx:132
-msgid "Standard usage"
-msgstr "Consumo estándar"
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:132
+#~ msgid "Standard usage"
+#~ msgstr "Consumo estándar"
 
-#: src/demo-conversations/localized.ts:23
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:23
 msgid "still good for noodles saturday? leo's coming too"
 msgstr "¿seguimos con los fideos el sábado? leo también viene"
 
-#: src/components/groups/demo-conversation.tsx:392
-#: src/components/groups/demo-conversation.tsx:427
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:392
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:427
 msgid "Tap to insert the next word. Hold to insert the full suggestion."
 msgstr "Toca para insertar la siguiente palabra. Mantén pulsado para insertar toda la sugerencia."
 
-#: src/demo-conversations/localized.ts:30
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:30
 msgid "tell leo to bring cash saturday btw"
 msgstr "por cierto dile a leo que traiga efectivo el sábado"
 
-#: src/demo-conversations/localized.ts:38
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:38
 msgid "Testing onboarding. If I skip invitations and hit browser back twice, the company name disappears."
 msgstr "Probando el registro. Si salto las invitaciones y retrocedo dos veces en el navegador, desaparece el nombre de la empresa."
 
 #. Demo conversation about texting friends
-#: src/components/groups/demo-conversation.tsx:20
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:20
 msgid "Texting"
 msgstr "Mensajes"
 
-#: src/demo-conversations/localized.ts:61
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:61
 msgid "Thank you. Are you free for a drink Thursday?"
 msgstr "Gracias. ¿Te apetece tomar algo el jueves?"
 
-#: src/demo-conversations/localized.ts:36
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:36
 msgid "Thanks. Revised onboarding will be in staging tomorrow."
 msgstr "Gracias. El registro revisado estará mañana en el entorno de pruebas."
 
-#: src/demo-conversations/localized.ts:41
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:41
 msgid "Thanks. The customer also sent their staff CSV. Can we use it Thursday?"
 msgstr "Gracias. El cliente también mandó un CSV con su personal. ¿Podemos usarlo el jueves?"
 
-#: src/demo-conversations/localized.ts:56
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:56
 msgid "That's kind. My weekend was mostly dog sitting and avoiding tomorrow's presentation"
 msgstr "Qué amable. Yo me pasé el finde cuidando a un perro y evitando preparar la presentación de mañana"
 
-#: src/demo-conversations/localized.ts:60
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:60
 msgid "that's preparation. i'd hire you"
 msgstr "eso es prepararse. yo te contrataría"
 
-#: src/demo-conversations/localized.ts:26
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:26
 msgid "THAT'S where it is"
 msgstr "CONQUE estaba ahí"
 
-#: src/demo-conversations/localized.ts:21
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:21
 msgid "the 28th. already regretting how many books i own 😭"
 msgstr "el 28. ya me arrepiento de tener tantos libros 😭"
 
-#: src/demo-conversations/localized.ts:35
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:35
 msgid "Thursday's demo moved to 10:30 our time. Calendar updated."
 msgstr "La demo del jueves pasa a las 10:30, hora nuestra. Calendario actualizado."
 
-#: src/components/groups/coreply-cloud-usage.tsx:120
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:123
 msgid "Try again"
 msgstr "Reintentar"
 
-#: src/components/groups/toggle-button.tsx:22
+#: ../coreply-shared-components/src/components/groups/toggle-button.tsx:22
 msgid "Turn Coreply off"
 msgstr "Desactivar Coreply"
 
-#: src/components/groups/toggle-button.tsx:22
+#: ../coreply-shared-components/src/components/groups/toggle-button.tsx:22
 msgid "Turn Coreply on"
 msgstr "Activar Coreply"
 
-#: src/components/groups/provider-selector.tsx:25
-#: src/components/groups/provider-selector.tsx:34
+#. Heading for Coreply Cloud's daily and monthly usage limits
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:137
+msgid "Usage limits"
+msgstr "Límites de uso"
+
+#: ../coreply-shared-components/src/components/groups/provider-selector.tsx:28
 msgid "Use global default"
-msgstr ""
+msgstr "Usar el valor predeterminado global"
 
 #. Friendly invitation; accurately describe the Android accessibility permission.
-#: src/demo-conversations/localized.ts:70
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:70
 msgid "Want suggestions like these in your other apps? Enable Coreply's accessibility service so it can read the conversation and suggest what to write next."
 msgstr "¿Quieres sugerencias como estas en tus otras apps? Activa el servicio de accesibilidad de Coreply para que pueda leer la conversación y sugerirte cómo seguir escribiendo."
 
-#: src/demo-conversations/localized.ts:40
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:40
 msgid "Welcome email is updated. Left the subject line alone as agreed."
 msgstr "El correo de bienvenida está actualizado. Dejé el asunto igual, como acordamos."
 
 #. Friendly chat prompt inviting the user to try typing suggestions.
-#: src/demo-conversations/localized.ts:10
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:10
 msgid "What would you like to use Coreply for? Start typing your reply below and try tapping a suggestion!"
 msgstr "¿Para qué te gustaría usar Coreply? Empieza a escribir tu respuesta aquí abajo y toca una sugerencia para probarla."
 
 #. Demo conversation about workplace communication
-#: src/components/groups/demo-conversation.tsx:21
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:21
 msgid "Workplace"
 msgstr "Trabajo"
 
-#: src/demo-conversations/localized.ts:64
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:64
 msgid "works for me"
 msgstr "me viene bien"
 
-#: src/demo-conversations/localized.ts:47
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:47
 msgid "Works. Sample CSV is ready too."
 msgstr "Me va bien. El CSV de muestra también está listo."
 
-#: src/demo-conversations/localized.ts:46
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:46
 msgid "Yep. Rehearsal tomorrow at 3?"
 msgstr "Sí. ¿Ensayamos mañana a las 3?"
 
-#: src/demo-conversations/localized.ts:62
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:62
 msgid "yes 😊 June near the market? been meaning to try it"
 msgstr "sí 😊 ¿el June cerca del mercado? llevo tiempo queriendo probarlo"
 
-#: src/demo-conversations/localized.ts:24
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:24
 msgid "yes! can we do 7? taking dad to pick up his car first"
 msgstr "sí! ¿puede ser a las 8? antes llevo a mi padre a recoger el coche"
 
 #. Name of the current user in a chat
 #. Name of the current user in a chat
 #. Name of the current user in a chat
-#: src/components/groups/demo-conversation.tsx:158
-#: src/components/groups/demo-conversation.tsx:162
-#: src/demo-conversations/localized.ts:15
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:158
+#: ../coreply-shared-components/src/components/groups/demo-conversation.tsx:162
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:15
 msgid "You"
 msgstr "Tú"
 
 #. Friendly demo chat. Match Profiles to the translated home screen label.
-#: src/demo-conversations/localized.ts:76
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:76
 msgid "You're all set! Open 'Profiles' on Coreply's home screen to choose where suggestions appear, then open a website you've enabled Coreply on and give it a try!"
 msgstr "¡Todo listo! Abre 'Perfiles' en la pantalla de inicio de Coreply para elegir dónde ver las sugerencias. Después, abre una web donde hayas activado Coreply y pruébalo."
 
 #. Friendly setup success. Match Select Apps to the translated home screen label.
-#: src/demo-conversations/localized.ts:72
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:72
 msgid "You're all set! Tap 'Select Apps' on Coreply's home screen to choose where suggestions appear, or open a texting app and give it a try!"
 msgstr "¡Todo listo! Toca 'Elegir apps' en la pantalla de inicio de Coreply para elegir dónde ver las sugerencias, o abre una app de mensajería y pruébalo."
 
-#: src/components/groups/coreply-cloud-usage.tsx:41
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:42
 msgid "You've reached your daily limit."
 msgstr "Has alcanzado tu límite diario."
 
-#: src/components/groups/coreply-cloud-usage.tsx:41
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:42
 msgid "You've reached your monthly limit."
 msgstr "Has alcanzado tu límite mensual."
 
-#: src/components/groups/coreply-cloud-delete-account.tsx:98
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-delete-account.tsx:98
 msgid "Your account and access will <0>end immediately</0>, even if your paid subscription hasn't expired. This <1>cannot be undone</1>."
 msgstr "Tu cuenta se eliminará y perderás el acceso <0>de inmediato</0>, aunque tu suscripción de pago no haya vencido. Esta acción <1>no se puede deshacer</1>."
 
-#: src/components/groups/coreply-cloud-usage.tsx:135
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:150
 msgid "Your Coreply Cloud allowance"
 msgstr "Tu cuota de Coreply Cloud"
 
-#: src/demo-conversations/localized.ts:52
+#: ../coreply-shared-components/src/demo-conversations/localized.ts:52
 msgid "Your profile says you missed your train stop by an hour. Asleep or a really good book?"
 msgstr "Tu perfil dice que te pasaste una hora de tu parada de tren. ¿Te dormiste o era un libro muy bueno?"
