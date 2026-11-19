@@ -13,5 +13,6 @@
 /app/release
 /app/debug
 /gradle/wrapper/
+/gradle/gradle-daemon-jvm.properties
 .cxx/
 **/.idea/

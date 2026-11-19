@@ -53,3 +53,5 @@ example
 AGENTS.md
 
 .env
+.env.development
+.env.production

@@ -34,7 +34,7 @@ plugins {
     id("expo-autolinking-settings")
 }
 
-def billingVariant = System.getenv("variant")
+def billingVariant = System.getenv("variant") ?: "rc"
 if (!(billingVariant in ["web", "rc"])) {
   throw new GradleException('variant must be "web" or "rc"')
 }
