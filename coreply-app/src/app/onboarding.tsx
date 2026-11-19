@@ -16,6 +16,7 @@ import { authClient } from "@/cloud/auth-client";
 import { cloudConfigured } from "@/cloud/config";
 import { createAsyncStorage } from "@/constants/storage";
 import * as Brownfield from "@/utils/brownfield-wrapper";
+import { isBrowserExtension, openWebsiteSelectionPopup } from "@/utils/extension";
 import * as SplashScreen from "expo-splash-screen";
 import { Outfit_300Light, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold, useFonts } from "@expo-google-fonts/outfit";
 
@@ -35,13 +36,22 @@ export default function OnboardingScreen() {
     : [false];
   const [reply, setReply] = useState<string>();
   const [visibleMessageIds, setVisibleMessageIds] = useState<string[]>([]);
-  const finishOnboarding = () => {
+  const skipOnboarding = () => {
     void onboardingStorage.setItem("complete", "true").then(() => router.replace("/"));
   };
+  const finishSetup = async () => {
+    await onboardingStorage.setItem("complete", "true");
+    if (isBrowserExtension()) {
+      await openWebsiteSelectionPopup();
+    } else {
+      router.replace("/");
+      router.push("/select-apps");
+    }
+  };
   const conversationId = Platform.OS === "web" ? "onboarding-browser" : "onboarding";
-  const finishAction = <Button onPress={finishOnboarding}><Text><Trans comment="Finishes the onboarding process">Finish setup</Trans></Text></Button>;
+  const finishAction = <Button onPress={finishSetup}><Text><Trans comment="Finishes the onboarding process">Finish setup</Trans></Text></Button>;
   const conversation = createDemoConversation(conversationId, i18n, {
-    signin: <CoreplyCloudSignIn configured={cloudConfigured} />,
+    signin: <CoreplyCloudSignIn configured={cloudConfigured} extensionSignInUrl={isBrowserExtension() ? process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL : undefined} />,
     "finish-action": finishAction,
     "accessibility-action": accessibilityEnabled ? finishAction : (
       <Button onPress={() => router.push("/accessibility-disclosure")}>
@@ -81,9 +91,9 @@ export default function OnboardingScreen() {
   }, [nextMessageId, nextMessageOutgoing]);
 
   return (
-    <View className="flex-1 bg-form">
+    <View className="flex-1 bg-form web:bg-background">
       <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView behavior="padding" className="flex-1">
+        <KeyboardAvoidingView behavior="padding" className="flex-1 bg-form web:w-full web:max-w-2xl web:self-center web:border-x web:border-border">
           <View className="flex-row items-center justify-between border-b border-border bg-form px-4 py-4">
             <View className="flex-row items-center gap-3">
               <Image
@@ -94,7 +104,7 @@ export default function OnboardingScreen() {
               />
               <Text className="font-sans text-xl font-bold"><Trans comment="Title of the conversation that introduces Coreply">Onboarding chat</Trans></Text>
             </View>
-            <Button variant="ghost" onPress={finishOnboarding}>
+            <Button variant="ghost" onPress={skipOnboarding}>
               <Text><Trans comment="Button that skips onboarding and opens the app">Skip</Trans></Text>
             </Button>
           </View>
@@ -102,6 +112,8 @@ export default function OnboardingScreen() {
             <Conversation
               title={conversation.title}
               fullScreen
+              sendColor="#2b9985"
+              sendTextColor="#f8f7f7"
               receiveColor={colorScheme === "dark" ? "#42615d" : "#d4e0dd"}
               receiveTextColor={colorScheme === "dark" ? "#d4e0dd" : "#172d2b"}
               composerTip={
