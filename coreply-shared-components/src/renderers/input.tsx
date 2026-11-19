@@ -39,7 +39,7 @@ function FieldShell({
 }) {
   const { i18n } = useLingui();
   return (
-    <View className="mb-4 gap-1.5">
+    <View className="gap-1.5">
       {hasTextContent(label) ? (
         <View className="flex-row items-center justify-between">
           <Text className="text-sm font-medium">

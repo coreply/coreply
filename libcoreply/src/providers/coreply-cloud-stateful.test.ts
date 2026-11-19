@@ -56,6 +56,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -114,6 +115,50 @@ describe("Coreply Cloud WebSocket transport", () => {
     socket.respond({ type: "completion", id: nextMessage.id, completion: "ok" });
     await expect(next).resolves.toBe("ok");
     expect(TestWebSocket.instances).toHaveLength(1);
+    provider.dispose();
+  });
+
+  it("closes after 30 seconds with no pending requests and reconnects on demand", async () => {
+    const provider = new CoreplyCloudStatefulInstance("http://localhost:5173");
+    const first = provider.request([], "one");
+    const second = provider.request([], "two");
+    await vi.waitFor(() => expect(TestWebSocket.instances).toHaveLength(1));
+    const socket = latestSocket();
+    socket.open();
+    await vi.waitFor(() => expect(socket.sent).toHaveLength(2));
+
+    vi.useFakeTimers();
+    const [one, two] = socket.sent.map((data) => cloudSuggestSchema.parse(JSON.parse(data)));
+    socket.respond({ type: "completion", id: one.id, completion: "first" });
+    vi.advanceTimersByTime(30_000);
+    expect(socket.readyState).toBe(TestWebSocket.OPEN);
+
+    socket.respond({ type: "completion", id: two.id, completion: "second" });
+    await expect(Promise.all([first, second])).resolves.toEqual(["first", "second"]);
+    vi.advanceTimersByTime(29_999);
+    expect(socket.readyState).toBe(TestWebSocket.OPEN);
+
+    const third = provider.request([], "three");
+    await vi.advanceTimersByTimeAsync(1);
+    expect(socket.readyState).toBe(TestWebSocket.OPEN);
+    expect(socket.sent).toHaveLength(3);
+    const three = cloudSuggestSchema.parse(JSON.parse(socket.sent[2]));
+    socket.respond({ type: "completion", id: three.id, completion: "third" });
+    await expect(third).resolves.toBe("third");
+    vi.advanceTimersByTime(30_000);
+    expect(socket.readyState).toBe(3);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+
+    const fourth = provider.request([], "four");
+    await vi.waitFor(() => expect(TestWebSocket.instances).toHaveLength(2));
+    const replacement = latestSocket();
+    replacement.open();
+    await vi.waitFor(() => expect(replacement.sent).toHaveLength(1));
+    const four = cloudSuggestSchema.parse(JSON.parse(replacement.sent[0]));
+    replacement.respond({ type: "completion", id: four.id, completion: "fourth" });
+    await expect(fourth).resolves.toBe("fourth");
+    expect(fetch).toHaveBeenCalledTimes(2);
     provider.dispose();
   });
 

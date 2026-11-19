@@ -6,10 +6,13 @@ import {
 } from "./cloud-protocol";
 import type { ProviderInstance } from "./instance";
 
+const IDLE_TIMEOUT_MS = 30_000;
+
 export class CoreplyCloudStatefulInstance implements ProviderInstance {
   private readonly cloudUrl: string | undefined;
   private socket: WebSocket | undefined;
   private connecting: Promise<WebSocket> | undefined;
+  private idleTimer: ReturnType<typeof setTimeout> | undefined;
   private disposed = false;
   private readonly pending = new Map<string, {
     resolve: (completion: string) => void;
@@ -74,6 +77,15 @@ export class CoreplyCloudStatefulInstance implements ProviderInstance {
           const pending = this.pending.get(message.id);
           if (!pending) return;
           this.pending.delete(message.id);
+          if (this.pending.size === 0) {
+            this.idleTimer = setTimeout(() => {
+              this.idleTimer = undefined;
+              if (this.socket === socket && this.pending.size === 0) {
+                this.socket = undefined;
+                socket.close();
+              }
+            }, IDLE_TIMEOUT_MS);
+          }
           if (message.type === "completion") pending.resolve(message.completion);
           else pending.reject(new Error(message.message));
         } catch {
@@ -88,9 +100,15 @@ export class CoreplyCloudStatefulInstance implements ProviderInstance {
 
   private disconnect(socket: WebSocket, error: Error) {
     if (this.socket !== socket) return;
+    this.clearIdleTimer();
     this.socket = undefined;
     for (const pending of this.pending.values()) pending.reject(error);
     this.pending.clear();
+  }
+
+  private clearIdleTimer() {
+    clearTimeout(this.idleTimer);
+    this.idleTimer = undefined;
   }
 
   async request(contexts: CoreplyContext[], typing: string): Promise<string> {
@@ -107,6 +125,7 @@ export class CoreplyCloudStatefulInstance implements ProviderInstance {
       contexts: structuredClone(contexts.map((context) => context.toJSON())),
       typing,
     });
+    this.clearIdleTimer();
     const socket = await this.connect(baseUrl);
     if (this.disposed) throw new Error("Cloud provider is closed.");
     if (this.socket !== socket || socket.readyState !== WebSocket.OPEN) {

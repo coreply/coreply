@@ -11,13 +11,15 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("OpenAI API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom API base URL for OpenAI-compatible routing (optional)").meta({ isAdvancedSettings: true }),
+  baseURL: z.url({ protocol: /^https?$/ }).optional().describe("Custom API base URL for OpenAI-compatible routing (optional)").meta({ isAdvancedSettings: true }),
   organization: z.string().optional().describe("OpenAI organization ID (optional)").meta({ isAdvancedSettings: true }),
   project: z.string().optional().describe("OpenAI project ID (optional)").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema());
 
 const config = {
   name: "OpenAI",
+  description: /* i18n */ "Use Coreply with an OpenAI API key.",
+  deprecatedDescription: /* i18n */ "Use Coreply with an OpenAI API key. Use the new OpenAI provider instead.",
   settingsSchema,
   settingsDefaults: {
     provider: {},

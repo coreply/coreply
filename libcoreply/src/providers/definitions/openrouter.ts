@@ -11,13 +11,15 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("OpenRouter API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom OpenRouter API base URL (optional)").meta({ isAdvancedSettings: true }),
+  baseURL: z.url({ protocol: /^https?$/ }).optional().describe("Custom OpenRouter API base URL (optional)").meta({ isAdvancedSettings: true }),
   appName: z.string().default("Coreply").meta({ enabled: false, isAdvancedSettings: true }),
   appUrl: z.string().default("https://coreply.app").meta({ enabled: false, isAdvancedSettings: true }),
 }), createProviderOptionsSchema('Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"openrouter": {...}}'));
 
 const config = {
   name: "OpenRouter",
+  description: /* i18n */ "Use Coreply with an OpenRouter API key.",
+  deprecatedDescription: /* i18n */ "Use Coreply with an OpenRouter API key. Use the new OpenRouter provider instead.",
   settingsSchema,
   settingsDefaults: {
     provider: { appName: "Coreply", appUrl: "https://coreply.app" },
@@ -36,7 +38,7 @@ export const openrouterStatefulProvider = defineStatefulAIProvider({
     ...settingsSchema.omit({ generateText: true, providerOptions: true }).shape,
     sessionAffinityHeader: z.literal("x-session-id")
       .describe("HTTP header used to route related requests to the same provider")
-      .meta({ enabled: false, isAdvancedSettings: true }),
+      .meta({ show: false }),
     generateText: createStatefulGenerateTextSchema(),
     providerOptions: settingsSchema.shape.providerOptions,
   }),

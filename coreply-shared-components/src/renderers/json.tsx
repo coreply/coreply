@@ -9,7 +9,7 @@ function JsonControl({ data, label, path, handleChange, errors, schema, enabled,
   const { i18n } = useLingui();
   if (!visible) return null;
   return (
-    <View className="mb-4 gap-1.5">
+    <View className="gap-1.5">
       <Text className="text-sm font-medium">{label}</Text>
       <Input className="font-sans" value={typeof data === "string" ? data : data === undefined ? "" : JSON.stringify(data)} editable={enabled} onChangeText={(text) => {
         try {

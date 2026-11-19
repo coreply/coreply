@@ -56,7 +56,8 @@ const settingsSchema = z.object({
 });
 
 export const advancedProvider = {
-  name: "Advanced Mode",
+  name: "Advanced Mode (Deprecated)",
+  description: /* i18n */ "Uses custom templates to send requests and extract suggestions.",
   stateful: false,
   profileSettingsSchema: structuredContextProfileSettingsSchema,
   settingsSchema,

@@ -19,6 +19,9 @@ export function GlobalSettingsForm({
       schema={globalSettingsSchema}
       data={settings}
       onChange={onChange}
+      immediateChange={(previous, next) =>
+        previous.troubleshooting.saveLogs !== next.troubleshooting.saveLogs
+      }
       className={className}
     />
   );

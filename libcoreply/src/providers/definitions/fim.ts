@@ -6,18 +6,19 @@ import { StatelessProviderInstance } from "../stateless";
 const settingsSchema = z.object({
   provider: z.object({
     apiKey: z.string().describe("API key for the FIM provider").meta({ feature: "password" }),
-    baseURL: z.httpUrl().default("https://api.mistral.ai/v1/fim/")
+    baseURL: z.url({ protocol: /^https?$/ }).default("https://api.mistral.ai/v1/fim/")
       .describe("Base URL of the Fill-in-the-Middle API endpoint").meta({ isAdvancedSettings: true }),
   }),
   request: z.object({
-    model: z.string().describe("Model ID to use for fill-in-the-middle generation").meta({ isAdvancedSettings: true }),
+    model: z.string().describe("Model ID to use for fill-in-the-middle generation"),
     temperature: z.number().min(0).max(1).optional()
       .describe("Controls randomness for fill-in-the-middle generation").meta({ isAdvancedSettings: true }),
   }),
 });
 
 export const fimProvider = {
-  name: "Mistral FIM",
+  name: "Mistral Codestral (FIM)",
+  description: /* i18n */ "Use a Mistral API key to generate text suggestions with Codestral, a model designed for code completion.",
   stateful: false,
   profileSettingsSchema: structuredContextProfileSettingsSchema,
   settingsSchema,

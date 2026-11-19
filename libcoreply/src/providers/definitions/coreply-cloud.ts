@@ -13,7 +13,8 @@ const settingsSchema = z.object({
 });
 
 export const coreplyCloudProvider = {
-  name: "Coreply Cloud",
+  name: "Coreply Cloud (Deprecated)",
+  description: /* i18n */ "Use Coreply Cloud with a legacy API key. Use the new Coreply Cloud Preview provider instead.",
   stateful: false,
   profileSettingsSchema: structuredContextProfileSettingsSchema,
   settingsSchema,
@@ -29,6 +30,7 @@ export const coreplyCloudProvider = {
 
 export const coreplyCloudStatefulProvider = {
   name: "Coreply Cloud Preview",
+  description: /* i18n */ "Use Coreply Cloud by signing in to your Coreply account.",
   stateful: true,
   profileSettingsSchema: structuredContextProfileSettingsSchema,
   settingsSchema: z.object({}),

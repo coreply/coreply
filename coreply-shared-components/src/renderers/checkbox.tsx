@@ -26,7 +26,7 @@ const CheckboxControl = ({
   if (!visible) return null;
 
   return (
-    <View className="mb-4 gap-1.5">
+    <View className="gap-1.5">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Checkbox

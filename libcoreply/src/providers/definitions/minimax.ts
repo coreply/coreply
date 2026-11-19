@@ -11,11 +11,13 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("MiniMax API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom MiniMax API base URL (optional)").meta({ isAdvancedSettings: true }),
+  baseURL: z.url({ protocol: /^https?$/ }).optional().describe("Custom MiniMax API base URL (optional)").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema('Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"minimax": {...}}'));
 
 const config = {
   name: "MiniMax",
+  description: /* i18n */ "Use Coreply with a MiniMax API key.",
+  deprecatedDescription: /* i18n */ "Use Coreply with a MiniMax API key. Use the new MiniMax provider instead.",
   settingsSchema,
   settingsDefaults: {
     provider: {},

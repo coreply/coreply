@@ -98,7 +98,7 @@ const SliderControl = ({
     : getStep(minimum, maximum, numericSchema.multipleOf);
 
   return (
-    <View className="mb-4 gap-1.5">
+    <View className="gap-1.5">
       {label && (
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">

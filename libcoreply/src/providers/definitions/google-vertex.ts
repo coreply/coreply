@@ -30,6 +30,8 @@ const settingsSchema = createAISettingsSchema(
 
 const config = {
   name: "Google Vertex",
+  description: /* i18n */ "Use Coreply with a Google Vertex API key or service account.",
+  deprecatedDescription: /* i18n */ "Use Coreply with Google Vertex. Use the new Google Vertex provider instead.",
   settingsSchema,
   settingsDefaults: {
     provider: {},

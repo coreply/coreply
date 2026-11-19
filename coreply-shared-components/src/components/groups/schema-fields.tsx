@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { type JsonSchema, type UISchemaElement } from "@jsonforms/core";
 import { Trans } from "@lingui/react/macro";
-import { Plus } from "lucide-react-native";
+import { ChevronDown } from "lucide-react-native";
 import { Button } from "../ui/button";
 import { Icon } from "../ui/icon";
 import { Text } from "../ui/text";
@@ -30,13 +30,13 @@ export function SchemaFields({
         <Button
           variant="ghost"
           size="sm"
-          className="self-center"
+          className="self-center mt-2"
           onPress={() => setShowAdvancedSettings(true)}
         >
-          <Icon as={Plus} className="size-4" />
+          <Icon as={ChevronDown} className="size-4" />
           <Text>
             <Trans comment="Button below a form that reveals its advanced settings">
-              More Settings
+              Show advanced settings
             </Trans>
           </Text>
         </Button>

@@ -12,7 +12,7 @@ import {
 const settingsSchema = createAISettingsSchema(z.object({
   resourceName: z.string().optional().describe("Azure OpenAI resource name, used when base URL is not provided"),
   apiKey: z.string().optional().describe("Azure OpenAI API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Full Azure OpenAI base URL (optional)").meta({ isAdvancedSettings: true }),
+  baseURL: z.url({ protocol: /^https?$/ }).optional().describe("Full Azure OpenAI base URL (optional)").meta({ isAdvancedSettings: true }),
   apiVersion: z.string().optional().describe("Azure OpenAI API version to use for requests").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema()).extend({
   model: z.string().describe(/* i18n */ "Model ID to use for text generation"),
@@ -20,6 +20,8 @@ const settingsSchema = createAISettingsSchema(z.object({
 
 const config = {
   name: "Azure",
+  description: /* i18n */ "Use Coreply with an Azure API key.",
+  deprecatedDescription: /* i18n */ "Use Coreply with an Azure API key. Use the new Azure provider instead.",
   settingsSchema,
   settingsDefaults: {
     provider: {},

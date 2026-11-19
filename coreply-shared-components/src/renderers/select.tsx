@@ -9,6 +9,7 @@ import { withJsonFormsControlProps } from "@jsonforms/react";
 import { View } from "react-native";
 import { Text, TextClassContext } from "../components/ui/text";
 import { useLingui } from "@lingui/react";
+import { AdvancedSelect } from "../components/groups/advanced-select";
 import {
   Select,
   SelectTrigger,
@@ -56,6 +57,7 @@ const SelectControl = ({
 }: ControlProps & { label?: string; required?: boolean }) => {
   const { i18n } = useLingui();
   const options = getStringOptions(schema as Record<string, any>);
+  const optionSubtitles = schema.optionSubtitles as Record<string, string> | undefined;
   const selectedOption =
     typeof data === "string"
       ? options.find((option) => option === data)
@@ -65,7 +67,7 @@ const SelectControl = ({
 
   return (
     visible && (
-      <View className="mb-4 gap-1.5">
+      <View className="gap-1.5">
         <TextClassContext.Provider value="font-sans">
           {hasTextContent(label) ? (
             <View className="flex-row items-center justify-between">
@@ -75,7 +77,25 @@ const SelectControl = ({
               </Text>
             </View>
           ) : null}
-          <Select
+          {schema.control === "advanced-select" ? (
+            <AdvancedSelect
+              title={label || "Select an option"}
+              placeholder={label || "Select an option"}
+              options={options.map((option) => ({
+                value: option,
+                title: option,
+                subtitle: optionSubtitles?.[option] !== undefined
+                  ? i18n._(optionSubtitles[option])
+                  : undefined,
+              }))}
+              value={selectedOption}
+              onValueChange={(value) => {
+                if (isEnabled && value !== undefined) handleChange(path, value);
+              }}
+              disabled={!isEnabled}
+              invalid={hasErrors}
+            />
+          ) : <Select
             disabled={!isEnabled}
             value={
               selectedOption
@@ -104,7 +124,7 @@ const SelectControl = ({
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>
+          </Select>}
           {hasTextContent(schema.description) ? (
             <Text className="text-xs text-muted-foreground">
               {i18n._(schema.description)}

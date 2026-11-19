@@ -11,11 +11,13 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("Google AI API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom Google AI API base URL (optional)").meta({ isAdvancedSettings: true }),
+  baseURL: z.url({ protocol: /^https?$/ }).optional().describe("Custom Google AI API base URL (optional)").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema('Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"google": {...}}'));
 
 const config = {
   name: "Google (Gemini API)",
+  description: /* i18n */ "Use Coreply with a Google Gemini API key.",
+  deprecatedDescription: /* i18n */ "Use Coreply with a Google Gemini API key. Use the new Google (Gemini API) provider instead.",
   settingsSchema,
   settingsDefaults: {
     provider: {},

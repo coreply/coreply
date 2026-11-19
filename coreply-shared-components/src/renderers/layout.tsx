@@ -4,7 +4,7 @@ import { View } from 'react-native';
 
 const ViewLayout = (props: any) => {
   return (
-    <View>
+    <View className="gap-4">
       {props.uischema.elements.map((child: any, index: number) => (
         <ResolvedJsonFormsDispatch
           schema={props.schema}

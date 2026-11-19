@@ -1,4 +1,5 @@
 export { ProviderSelector } from './provider-selector';
+export { AdvancedSelect } from './advanced-select';
 export { ProviderSettingsForm } from './provider-settings-form';
 export { FetchControlForm } from './fetch-control-form';
 export { PresentationForm } from './presentation-form';

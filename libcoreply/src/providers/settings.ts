@@ -63,7 +63,7 @@ export function createAISettingsSchema<ProviderSchema extends z.ZodType>(
   providerOptions: ReturnType<typeof createProviderOptionsSchema>,
 ) {
   return z.object({
-    model: z.string().describe(/* i18n */ "Model ID to use for text generation").meta({ isAdvancedSettings: true }),
+    model: z.string().describe(/* i18n */ "Model ID to use for text generation"),
     provider,
     generateText: createGenerateTextSchema(),
     providerOptions,
@@ -82,7 +82,6 @@ export function createStatefulSettingsSchema<ProviderSchema extends z.ZodType>(
 
 export const generateTextDefaults = {
   instructions: DEFAULT_SYSTEM_PROMPT,
-  maxOutputTokens: 50,
 };
 
 export const DEFAULT_STATEFUL_TYPING_TEMPLATE =

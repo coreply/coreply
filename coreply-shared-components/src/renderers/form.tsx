@@ -35,11 +35,16 @@ const FormControl = ({
   if (!visible) return null;
 
   return (
-    <View className="my-2 gap-1.5">
+    <View className="gap-1.5">
       {hasTextContent(label) ? (
         <View className="flex-row items-center justify-between">
           <Text className="text-sm font-medium">{label}</Text>
         </View>
+      ) : null}
+      {hasTextContent(schema.description) ? (
+        <Text className="text-xs text-muted-foreground font-sans">
+          {i18n._(schema.description)}
+        </Text>
       ) : null}
       <View
         className={[
@@ -62,10 +67,6 @@ const FormControl = ({
       </View>
       {hasTextContent(errors) ? (
         <Text className="text-xs text-destructive font-sans">{errors}</Text>
-      ) : hasTextContent(schema.description) ? (
-        <Text className="text-xs text-muted-foreground font-sans">
-          {i18n._(schema.description)}
-        </Text>
       ) : null}
     </View>
   );

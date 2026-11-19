@@ -18,7 +18,6 @@ export const DEFAULT_ADVANCED_BODY = `{
             "content": "Contexts:\n{{{contextsJson}}}\n{{#currentTyping}}Current typing: {{jsonEscaped}}{{/currentTyping}}{{^currentTyping}}Suggest a reply.{{/currentTyping}}"
         }
     ],
-    "max_tokens": 50,
     "stream": false
 }`;
 
@@ -50,15 +49,6 @@ export const DEFAULT_PRESENTATION_SETTINGS: PresentationSettings = {
 };
 
 export const globalSettingsSchema = z.object({
-  fetchControl: z.object({
-    typingRegexEnabled: z.boolean().default(false)
-      .describe(/* i18n */ "Only suggest when your typing matches the pattern below"),
-    typingRegexPattern: z.string().default("^.*[\\s.!?,;:]$").meta({
-      disabledWhenFieldFalse: "typingRegexEnabled",
-    }).describe(/* i18n */ "Suggestions are only requested when your typing matches this pattern"),
-    debounceMs: z.number().int().min(0).max(1000).default(350)
-      .describe(/* i18n */ "How long to wait after typing before requesting another suggestion, in milliseconds"),
-  }),
   presentation: z.object({
     showErrors: z
       .boolean()
@@ -67,14 +57,31 @@ export const globalSettingsSchema = z.object({
     suggestionPresentationType: z
       .enum(["inline", "overlay", "both"])
       .default("both")
-      .describe(/* i18n */ "Choose where suggestions appear"),
+      .describe(/* i18n */ "Choose where suggestions appear")
+      .meta({
+        control: "advanced-select",
+        optionSubtitles: {
+          inline: /* i18n */ "Show suggestions in the text field.",
+          overlay: /* i18n */ "Show suggestions in a separate overlay.",
+          both: /* i18n */ "Show suggestions in the text field and overlay.",
+        },
+      }),
   }),
+  fetchControl: z.object({
+    typingRegexEnabled: z.boolean().default(false)
+      .describe(/* i18n */ "Only suggest when your typing matches the pattern below"),
+    typingRegexPattern: z.string().default("^.*[\\s.!?,;:]$").meta({
+      disabledWhenFieldFalse: "typingRegexEnabled",
+    }).describe(/* i18n */ "Suggestions are only requested when your typing matches this pattern"),
+    debounceMs: z.number().int().min(0).max(1000).default(350)
+      .describe(/* i18n */ "How long to wait after typing before requesting another suggestion, in milliseconds"),
+  }).meta({ isAdvancedSettings: true }),
   troubleshooting: z.object({
     saveLogs: z
       .boolean()
       .default(false)
-      .describe(/* i18n */ "Save the 10 most recent suggestion requests on this device"),
-  }),
+      .describe(/* i18n */ "Save the 10 most recent suggestion requests on this device. Turning this off deletes saved logs."),
+  }).meta({ isAdvancedSettings: true }),
 });
 
 export const fetchControlSettingsSchema =

@@ -15,20 +15,6 @@ import { openrouterProvider, openrouterStatefulProvider } from "./definitions/op
 import { xaiProvider, xaiStatefulProvider } from "./definitions/xai";
 
 export const providerDefinitions = {
-  coreplyCloud: coreplyCloudProvider,
-  openai: openaiProvider,
-  openaiCompatible: openaiCompatibleProvider,
-  openrouter: openrouterProvider,
-  azure: azureProvider,
-  xai: xaiProvider,
-  fim: fimProvider,
-  mistral: mistralProvider,
-  groq: groqProvider,
-  google: googleProvider,
-  googleVertex: googleVertexProvider,
-  minimax: minimaxProvider,
-  gateway: gatewayProvider,
-  advanced: advancedProvider,
   coreplyCloudStateful: coreplyCloudStatefulProvider,
   openaiStateful: openaiStatefulProvider,
   openaiCompatibleStateful: openaiCompatibleStatefulProvider,
@@ -41,6 +27,20 @@ export const providerDefinitions = {
   googleVertexStateful: googleVertexStatefulProvider,
   minimaxStateful: minimaxStatefulProvider,
   gatewayStateful: gatewayStatefulProvider,
+  fim: fimProvider,
+  advanced: advancedProvider,
+  coreplyCloud: coreplyCloudProvider,
+  openai: openaiProvider,
+  openaiCompatible: openaiCompatibleProvider,
+  openrouter: openrouterProvider,
+  azure: azureProvider,
+  xai: xaiProvider,
+  mistral: mistralProvider,
+  groq: groqProvider,
+  google: googleProvider,
+  googleVertex: googleVertexProvider,
+  minimax: minimaxProvider,
+  gateway: gatewayProvider,
 } satisfies Record<string, ProviderDefinition>;
 
 export * from "./definitions/advanced";

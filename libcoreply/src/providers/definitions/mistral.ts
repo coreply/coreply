@@ -11,11 +11,13 @@ import {
 
 const settingsSchema = createAISettingsSchema(z.object({
   apiKey: z.string().describe("Mistral API key").meta({ feature: "password" }),
-  baseURL: z.httpUrl().optional().describe("Custom Mistral API base URL (optional)").meta({ isAdvancedSettings: true }),
+  baseURL: z.url({ protocol: /^https?$/ }).optional().describe("Custom Mistral API base URL (optional)").meta({ isAdvancedSettings: true }),
 }), createProviderOptionsSchema('Raw JSON object passed directly to AI SDK providerOptions. Include the provider namespace in the object key, for example {"mistral": {...}}'));
 
 const config = {
   name: "Mistral",
+  description: /* i18n */ "Use Coreply with a Mistral API key.",
+  deprecatedDescription: /* i18n */ "Use Coreply with a Mistral API key. Use the new Mistral provider instead.",
   settingsSchema,
   settingsDefaults: {
     provider: {},

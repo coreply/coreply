@@ -32,6 +32,7 @@ interface SchemaFormProps<T extends Record<string, any>> {
   uiSchema?: UISchemaElement;
   data: T;
   onChange: (data: T) => void;
+  immediateChange?: (previous: T, next: T) => boolean;
   title?: string;
   className?: string;
 }
@@ -41,6 +42,7 @@ export function SchemaForm<T extends Record<string, any>>({
   uiSchema,
   data,
   onChange,
+  immediateChange,
   title,
   className,
 }: SchemaFormProps<T>) {
@@ -97,7 +99,15 @@ export function SchemaForm<T extends Record<string, any>>({
             schema={jsonSchema}
             uischema={uiSchema ?? resolvedUiSchema}
             data={draftData}
-            onChange={({ data: newData }) => emitChange(newData)}
+            onChange={({ data: newData }) => {
+              if (immediateChange?.(draftData, newData)) {
+                emitChange.clear();
+                setDraftData(newData);
+                onChangeRef.current(newData);
+              } else {
+                emitChange(newData);
+              }
+            }}
             renderers={customRenderers}
             additionalErrors={additionalErrors}
             validationMode="NoValidation"

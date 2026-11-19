@@ -74,6 +74,26 @@ describe("provider settings contract", () => {
       name: "customNamespace",
     }).name).toBe("customNamespace");
   });
+
+  it.each(["openaiCompatible", "openaiCompatibleStateful"] as const)(
+    "%s accepts local HTTP endpoints and displays the base URL by default",
+    (id) => {
+      const provider = providerDefinitions[id];
+      for (const baseURL of ["http://192.168.1.85:11434/v1", "http://localhost:11434/v1", "http://[::1]:11434/v1", "https://example.com/v1"]) {
+        expect(provider.settingsSchema.shape.provider.shape.baseURL.safeParse(baseURL).success).toBe(true);
+      }
+      expect(provider.settingsSchema.shape.provider.shape.baseURL.safeParse("ftp://example.com/v1").success).toBe(false);
+      expect(provider.settingsSchema.shape.provider.shape.baseURL.meta()?.isAdvancedSettings).not.toBe(true);
+    },
+  );
+
+  it.each([
+    "openai", "openrouter", "azure", "xai", "mistral", "groq", "google", "minimax", "gateway", "fim",
+  ] as const)("%s accepts a local base URL", (id) => {
+    const baseURL = providerDefinitions[id].settingsSchema.shape.provider.shape.baseURL;
+    expect(baseURL.safeParse("http://192.168.1.85:11434/v1").success).toBe(true);
+    expect(baseURL.safeParse("ftp://example.com/v1").success).toBe(false);
+  });
 });
 
 describe("FIM settings", () => {

@@ -9,6 +9,8 @@ import { StatelessProviderInstance } from "./stateless";
 
 interface AIProviderConfig<Settings, Defaults> {
   name: string;
+  description: string;
+  deprecatedDescription: string;
   settingsSchema: z.ZodType<Settings>;
   settingsDefaults: Defaults;
   createModel(settings: NoInfer<Settings>): LanguageModel;
@@ -19,7 +21,8 @@ export function defineStatelessAIProvider<
   Defaults extends Record<string, unknown>,
 >(config: AIProviderConfig<Settings, Defaults>) {
   return {
-    name: config.name,
+    name: `${config.name} (Deprecated)`,
+    description: config.deprecatedDescription,
     stateful: false,
     profileSettingsSchema: mustacheProfileSettingsSchema,
     settingsSchema: config.settingsSchema,
@@ -44,6 +47,7 @@ export function defineStatefulAIProvider<
 >(config: AIProviderConfig<Settings, Defaults>) {
   return {
     name: config.name,
+    description: config.description,
     stateful: true,
     profileSettingsSchema: mustacheProfileSettingsSchema,
     settingsSchema: config.settingsSchema,

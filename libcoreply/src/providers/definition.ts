@@ -3,6 +3,7 @@ import type { ProviderInstance, ProviderInstanceOptions } from "./instance";
 
 export interface ProviderDefinition {
   name: string;
+  description: string;
   stateful: boolean;
   profileSettingsSchema: {
     profile: z.ZodObject;
