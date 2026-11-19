@@ -3,12 +3,12 @@ import { z } from "zod";
 const retentionSchema = z.union([
   z.number().int().nonnegative(),
   z.record(z.string(), z.number().int().nonnegative()),
-]).meta({ control: "json" }).describe(/* i18n */ "A context count, or a JSON object mapping context labels to counts");
+]).meta({ control: "json" });
 
 export const dropRuleSchema = z.object({
   differentProfile: retentionSchema,
   sameProfile: retentionSchema,
-});
+}).describe(/* i18n */ 'Enter either a number of recent contexts to keep or a JSON object mapping extractor labels to limits, e.g. {"chat": 1, "todoList": 2}').meta({ isAdvancedSettings: true });
 
 export const sharedContextExtractorSchema = z.object({
   extractor: z.string().min(1).meta({ control: "textarea" }),

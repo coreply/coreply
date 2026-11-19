@@ -9,36 +9,32 @@ import {
   exactPackageRule,
   profileSchema,
   providerDefinitions,
+  resolveAndroidProfile,
   sharedContextExtractorSchema,
   sharedProfileSchema,
   type Profile,
   type ProviderDefinition,
 } from "libcoreply";
-import { ProviderSelector } from "@/components/groups";
+import { AdvancedSelect, ProviderSelector } from "@/components/groups";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { SchemaForm } from "@/components/ui/form";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import { storageManager } from "@/constants/storage-manager";
 import CoreplyModule from "@/modules/coreply-module/src/CoreplyModule";
 import { syncStoredSettings } from "@/utils/sync-stored-settings";
+import { RotateCcw, Trash2 } from "lucide-react-native";
 
 export default function ProfileScreen() {
   const { t } = useLingui();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [profile, setProfile] = useState<Profile>();
+  const [availableProfiles, setAvailableProfiles] = useState<Profile[]>([]);
   const [profileSettingsSchema, setProfileSettingsSchema] =
     useState<ProviderDefinition["profileSettingsSchema"]>();
   const [globalProviderId, setGlobalProviderId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
-  const generation = useRef(0);
   const latestProfile = useRef<Profile | undefined>(undefined);
   const savedValue = useRef<string | undefined>(undefined);
   const platform = Platform.OS === "android" ? "android" : "web";
@@ -46,33 +42,39 @@ export default function ProfileScreen() {
     if (!profileSettingsSchema) return;
     return sharedProfileSchema.extend({
       ...profileSettingsSchema.profile.shape,
+      id: sharedProfileSchema.shape.id.meta({ show: false }),
+      platform: sharedProfileSchema.shape.platform.meta({ show: false }),
       ...(platform === "android" ? {
-        id: sharedProfileSchema.shape.id.meta({ show: false }),
         displayName: sharedProfileSchema.shape.displayName.meta({ show: false }),
-        platform: sharedProfileSchema.shape.platform.meta({ show: false }),
         matchingRule: sharedProfileSchema.shape.matchingRule.meta({ show: false }),
       } : {}),
       contextExtractors: sharedContextExtractorSchema.extend(
         profileSettingsSchema.extractor.shape,
-      ).array(),
+      ).array().meta({ isAdvancedSettings: true }),
       dropRule: dropRuleSchema,
     });
   }, [platform, profileSettingsSchema]);
   const presets = builtInProfiles.filter(
-    (entry) => entry.platform === platform,
+    (entry) => entry.platform === platform && availableProfiles.some((profile) => profile.id === entry.id),
   );
 
   useEffect(() => {
     async function load() {
       const providerId = await storageManager.loadProviderId();
-      const profiles =
-        platform === "android"
-          ? await storageManager.prepareAndroidProfiles(
-              await CoreplyModule.getInstalledAppsAsync(),
-            )
-          : await storageManager.loadProfiles();
+      let profiles: Profile[];
+      if (platform === "android") {
+        const installed = await CoreplyModule.getInstalledAppsAsync();
+        await storageManager.prepareAndroidProfiles(installed);
+        const loaded = await storageManager.loadProfiles();
+        profiles = installed.map((app) =>
+          resolveAndroidProfile(loaded, app.packageName, app.appName),
+        );
+      } else {
+        profiles = await storageManager.loadProfiles();
+      }
       const found = profiles.find((entry) => entry.id === id);
       if (!found) throw new Error("Profile not found");
+      setAvailableProfiles(profiles);
       setProfile(found);
       setGlobalProviderId(providerId);
       setProfileSettingsSchema(providerDefinitions[(found.providerId ?? providerId) as keyof typeof providerDefinitions].profileSettingsSchema);
@@ -83,12 +85,11 @@ export default function ProfileScreen() {
   }, [id, platform]);
 
   async function replace(next: Profile) {
-    generation.current += 1;
     await storageManager.saveProfile(next);
     setProfile(next);
     latestProfile.current = next;
     savedValue.current = JSON.stringify(profileSchema.parse(next));
-    setRevision(generation.current);
+    setRevision((value) => value + 1);
     await syncStoredSettings();
   }
 
@@ -116,11 +117,17 @@ export default function ProfileScreen() {
             <>
               <View className="flex-row items-center gap-2">
                 <View className="flex-1">
-                  <Select
-                    key={revision}
-                    onValueChange={(option) => {
+                  <AdvancedSelect
+                    title={t({ comment: "Copies default settings from a built-in profile", message: "Copy from preset" })}
+                    placeholder={t({ comment: "Copies default settings from a built-in profile", message: "Copy from preset" })}
+                    value={undefined}
+                    options={presets.map((entry) => ({
+                      value: entry.id,
+                      title: availableProfiles.find((profile) => profile.id === entry.id)?.displayName ?? entry.matchingRule,
+                    }))}
+                    onValueChange={(value) => {
                       const template = presets.find(
-                        (entry) => entry.id === option?.value,
+                        (entry) => entry.id === value,
                       );
                       if (!template) return;
                       void action(async () => {
@@ -137,34 +144,15 @@ export default function ProfileScreen() {
                       });
                     }}
                     disabled={busy}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t`Apply preset`} />
-                    </SelectTrigger>
-                    <SelectContent portalHost="coreplyPortal">
-                      {presets.map((entry) => (
-                        <SelectItem
-                          key={entry.id}
-                          value={entry.id}
-                          label={entry.displayName ?? entry.id}
-                        />
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </View>
-                {platform === "android" ? (
+                {platform === "android" || presets.some((entry) => entry.id === profile.id) ? (
                   <Button
                     variant="outline"
                     disabled={busy}
                     onPress={() =>
                       void action(async () => {
-                        generation.current += 1;
-                        if (profile.displayName === undefined)
-                          throw new Error("Installed app name is missing");
-                        const next = await storageManager.resetAndroidProfile(
-                          profile.id,
-                          profile.displayName,
-                        );
+                        const next = await storageManager.resetProfile(profile);
                         setProfile(next);
                         if (globalProviderId) {
                           setProfileSettingsSchema(providerDefinitions[(next.providerId ?? globalProviderId) as keyof typeof providerDefinitions].profileSettingsSchema);
@@ -173,12 +161,13 @@ export default function ProfileScreen() {
                         savedValue.current = JSON.stringify(
                           profileSchema.parse(next),
                         );
-                        setRevision(generation.current);
+                        setRevision((value) => value + 1);
                         await syncStoredSettings();
                       })
                     }
                   >
-                    <Text><Trans comment="Resets the app profile to its default settings">Reset to default</Trans></Text>
+                    <Icon as={RotateCcw} className="size-4" aria-hidden />
+                    <Text><Trans comment="Resets the profile to its default settings">Reset to default</Trans></Text>
                   </Button>
                 ) : (
                   <Button
@@ -187,17 +176,17 @@ export default function ProfileScreen() {
                     disabled={busy}
                     onPress={() =>
                       void action(async () => {
-                        generation.current += 1;
                         await storageManager.deleteProfile(profile.id);
                         router.back();
                       })
                     }
                   >
+                    <Icon as={Trash2} className="size-4 text-destructive" aria-hidden />
                     <Text className="text-destructive"><Trans>Delete profile</Trans></Text>
                   </Button>
                 )}
               </View>
-              <Text className="font-semibold"><Trans>API Provider</Trans></Text>
+              <Text className="text-sm font-medium"><Trans>API Provider</Trans></Text>
               <ProviderSelector
                 selectedProviderKey={profile.providerId ?? null}
                 allowGlobalDefault
@@ -218,7 +207,6 @@ export default function ProfileScreen() {
                 schema={editorSchema}
                 data={profile}
                 onChange={(draft) => {
-                  if (revision !== generation.current) return;
                   // Validate the full draft so settings absent from the editor schema survive.
                   const parsed = profileSchema.safeParse(draft);
                   if (!parsed.success) return;
@@ -231,7 +219,6 @@ export default function ProfileScreen() {
                     .saveProfile(parsed.data)
                     .then(syncStoredSettings)
                     .then(() => {
-                      if (revision !== generation.current) return;
                       savedValue.current = serialized;
                     })
                     .catch(() => {});

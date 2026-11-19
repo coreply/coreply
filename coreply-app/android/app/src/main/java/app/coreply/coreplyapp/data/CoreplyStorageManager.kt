@@ -59,9 +59,8 @@ class CoreplyStorageManager(context: Context) {
 	}
 
 	suspend fun getStoredCoreplySettings(): JSONObject? {
-		val providerId = getCoreValues("providerId")["providerId"]?.takeUnless {
-			it.isBlank()
-		} ?: return null
+		val providerId = getCoreValues("providerId")["providerId"] ?: "coreplyCloudStateful"
+		if (providerId.isBlank()) return null
 		val values = getCoreValues(
 			"globalSettings",
 			SELECTED_APPS_STORAGE_KEY,

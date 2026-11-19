@@ -19,35 +19,33 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedView } from "@/components/themed-view";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { Switch } from "@/components/ui/switch";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import CoreplyModule from "@/modules/coreply-module/src/CoreplyModule";
-import type { InstalledAppInfo } from "@/modules/coreply-module/src/CoreplyModule.types";
 import * as Brownfield from "@/utils/brownfield-wrapper";
 import { builtInProfiles } from "libcoreply";
 import { storageManager } from "@/constants/storage-manager";
 import { syncStoredSettings } from "@/utils/sync-stored-settings";
+import { Plus } from "lucide-react-native";
 
 import "../../global.css";
 
-// Built-in Android presets identify officially supported packages.
-const SUPPORTED_APP_SET = new Set<string>(
-  builtInProfiles.filter((profile) => profile.platform === "android").map((profile) => profile.id),
-);
+type ProfileListItem = { id: string; name: string; icon: string; subtitle: string };
 
-function sortApps(apps: InstalledAppInfo[], initialSelectedPackages: string[]) {
-  const initialSelectedPackageSet = new Set(initialSelectedPackages);
+function sortApps(apps: ProfileListItem[], initialSelectedIds: string[]) {
+  const initialSelectedSet = new Set(initialSelectedIds);
 
   return [...apps].sort((left, right) => {
-    const leftSelected = initialSelectedPackageSet.has(left.packageName);
-    const rightSelected = initialSelectedPackageSet.has(right.packageName);
+    const leftSelected = initialSelectedSet.has(left.id);
+    const rightSelected = initialSelectedSet.has(right.id);
 
     if (leftSelected !== rightSelected) {
       return leftSelected ? -1 : 1;
     }
 
-    return left.appName.localeCompare(right.appName);
+    return left.name.localeCompare(right.name);
   });
 }
 
@@ -65,7 +63,7 @@ function AppSelectionRow({
   onToggle,
   onEdit,
 }: {
-  app: InstalledAppInfo;
+  app: ProfileListItem;
   isSelected: boolean;
   onToggle: () => void;
   onEdit: () => void;
@@ -76,30 +74,28 @@ function AppSelectionRow({
       <Button
         variant="ghost"
         className="h-auto flex-1 self-stretch justify-start rounded-none px-3 py-3"
-        accessibilityLabel={t`Edit ${app.appName} profile`}
+        accessibilityLabel={t`Edit ${app.name} profile`}
         onPress={onEdit}
       >
-        {app.iconUri ? (
+        {app.icon ? (
           <Image
-            source={{ uri: app.iconUri }}
+            source={{ uri: app.icon }}
             contentFit="contain"
             style={styles.appIcon}
           />
         ) : null}
         <View className="flex-1 gap-0.5">
           <Text className="text-left text-base text-foreground">
-            {app.appName}
+            {app.name}
           </Text>
-          {app.packageName !== app.appName ? (
-            <Text className="text-left text-xs text-muted-foreground font-sans">
-              {app.packageName}
-            </Text>
-          ) : null}
+          <Text className="text-left text-xs text-muted-foreground font-sans">
+            {app.subtitle}
+          </Text>
         </View>
       </Button>
       <View className="px-3 py-3">
         <Switch
-          accessibilityLabel={t`Enable ${app.appName}`}
+          accessibilityLabel={t`Enable ${app.name}`}
           checked={isSelected}
           onCheckedChange={onToggle}
         />
@@ -115,7 +111,7 @@ export default function SelectAppsScreen() {
     Outfit_600SemiBold,
     Outfit_700Bold,
   });
-  const [installedApps, setInstalledApps] = useState<InstalledAppInfo[]>([]);
+  const [installedApps, setInstalledApps] = useState<ProfileListItem[]>([]);
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
   const [initialSelectedApps, setInitialSelectedApps] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,12 +124,14 @@ export default function SelectAppsScreen() {
     setSaveError(null);
 
     try {
-      const apps = Platform.OS === "android"
-        ? await CoreplyModule.getInstalledAppsAsync()
-        : (await storageManager.loadProfiles()).map((profile) => ({ packageName: profile.id, appName: profile.displayName ?? profile.id, iconUri: "" }));
+      let apps: ProfileListItem[];
       if (Platform.OS === "android") {
-        await storageManager.prepareAndroidProfiles(apps);
+        const installed = await CoreplyModule.getInstalledAppsAsync();
+        await storageManager.prepareAndroidProfiles(installed);
         await syncStoredSettings();
+        apps = installed.map((app) => ({ id: app.packageName, name: app.appName, icon: app.iconUri, subtitle: app.packageName }));
+      } else {
+        apps = (await storageManager.loadProfiles()).map((profile) => ({ id: profile.id, name: profile.displayName ?? profile.matchingRule, icon: "", subtitle: profile.matchingRule }));
       }
       const savedSelectedApps = await storageManager.loadSelectedApps();
 
@@ -166,10 +164,10 @@ export default function SelectAppsScreen() {
     });
   };
 
-  const toggleSelectedApp = async (packageName: string) => {
-    const nextSelectedApps = selectedApps.includes(packageName)
-      ? selectedApps.filter((entry) => entry !== packageName)
-      : [...selectedApps, packageName].sort();
+  const toggleSelectedApp = async (id: string) => {
+    const nextSelectedApps = selectedApps.includes(id)
+      ? selectedApps.filter((entry) => entry !== id)
+      : [...selectedApps, id].sort();
 
     setSelectedApps(nextSelectedApps);
     setSaveError(null);
@@ -184,22 +182,24 @@ export default function SelectAppsScreen() {
     }
   };
 
-  // Web lists user-owned profiles; Android partitions installed packages.
+  const builtInIds = useMemo(() => new Set(builtInProfiles.filter(
+    (profile) => profile.platform === (Platform.OS === "android" ? "android" : "web"),
+  ).map((profile) => profile.id)), []);
   const supportedApps = useMemo(
     () =>
       sortApps(
-        installedApps.filter((app) => Platform.OS === "web" || SUPPORTED_APP_SET.has(app.packageName)),
+        installedApps.filter((app) => builtInIds.has(app.id)),
         initialSelectedApps,
       ),
-    [initialSelectedApps, installedApps],
+    [builtInIds, initialSelectedApps, installedApps],
   );
   const otherApps = useMemo(
     () =>
       sortApps(
-        installedApps.filter((app) => Platform.OS !== "web" && !SUPPORTED_APP_SET.has(app.packageName)),
+        installedApps.filter((app) => !builtInIds.has(app.id)),
         initialSelectedApps,
       ),
-    [initialSelectedApps, installedApps],
+    [builtInIds, initialSelectedApps, installedApps],
   );
 
   return (
@@ -207,7 +207,7 @@ export default function SelectAppsScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-           title: Platform.OS === "web" ? t`Profiles` : t`Select Apps`,
+          title: Platform.OS === "web" ? t`Select Websites` : t`Select Apps`,
         }}
       />
       <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
@@ -247,43 +247,51 @@ export default function SelectAppsScreen() {
                     <View>
                       <View className="mb-2 flex-row items-center justify-between gap-3">
                         <Text className="flex-1 text-lg text-foreground font-semibold">
-                          {Platform.OS === "web" ? t`Profiles` : t`Coreply Supported Apps`}
+                          <Trans comment="Section heading for suggestion profiles that ship with Coreply">
+                            Coreply built-in profiles
+                          </Trans>
                         </Text>
-                        {Platform.OS === "web" ? <Button variant="outline" size="sm" onPress={async () => {
-                          const profile = { id: crypto.randomUUID(), displayName: "New profile", platform: "web" as const, matchingRule: "^https://example\\.com/", dropRule: { differentProfile: 0, sameProfile: 1 }, contextExtractors: [] };
-                          await storageManager.saveProfile(profile);
-                          router.push({ pathname: "/profile", params: { id: profile.id } });
-                        }}><Text><Trans comment="Creates a new profile">New profile</Trans></Text></Button> : null}
                       </View>
-                      <InfoCard text={Platform.OS === "web" ? t`Enable profiles to run their extractors on matching URLs. Changes to profiles are independent of built-in presets.` : t`Coreply is not affiliated with or endorsed by the apps listed here. Because third-party apps can change at any time, Coreply may stop working or behave differently even for apps shown as supported.`} />
+                      <InfoCard text={Platform.OS === "android" ? t`Coreply is not affiliated with or endorsed by the apps listed here. Because third-party apps can change at any time, Coreply may stop working or behave differently even for apps shown as supported.` : t`Coreply is not affiliated with or endorsed by the websites listed here. Because third-party websites can change at any time, Coreply may stop working or behave differently even for websites shown as supported.`} />
                       {supportedApps.map((app) => (
                         <AppSelectionRow
-                          key={app.packageName}
+                          key={app.id}
                           app={app}
-                          isSelected={selectedApps.includes(app.packageName)}
-                          onEdit={() => router.push({ pathname: "/profile", params: { id: app.packageName } })}
+                          isSelected={selectedApps.includes(app.id)}
+                          onEdit={() => router.push({ pathname: "/profile", params: { id: app.id } })}
                           onToggle={() => {
-                            void toggleSelectedApp(app.packageName);
+                            void toggleSelectedApp(app.id);
                           }}
                         />
                       ))}
                     </View>
                   ) : null}
 
-                  {otherApps.length > 0 ? (
+                  {Platform.OS === "web" || otherApps.length > 0 ? (
                     <View>
-                      <Text className="text-lg text-foreground mb-2 font-semibold">
-                        <Trans>Other Apps</Trans>
-                      </Text>
-                      <InfoCard text={t`Coreply may not work in these apps, or may behave unexpectedly, because every app is different. If enabled, on-screen content from these apps may be sent to the API service you configured to generate suggestions.`} />
+                      <View className="mb-2 flex-row items-center justify-between gap-3">
+                        <Text className="flex-1 text-lg text-foreground font-semibold">
+                          {Platform.OS === "web" ? (
+                            <Trans comment="Heading for website suggestion settings created by the user">Custom Website Profiles</Trans>
+                          ) : (
+                            <Trans comment="Heading for Android apps without a built-in Coreply preset">Custom App Profiles</Trans>
+                          )}
+                        </Text>
+                        {Platform.OS === "web" ? <Button variant="outline" size="sm" onPress={async () => {
+                          const profile = { id: crypto.randomUUID(), displayName: "New profile", platform: "web" as const, matchingRule: "^https://example\\.com/", dropRule: { differentProfile: 0, sameProfile: 1 }, contextExtractors: [{ extractor: "null" }] };
+                          await storageManager.saveProfile(profile);
+                          router.push({ pathname: "/profile", params: { id: profile.id } });
+                        }}><Icon as={Plus} className="size-4" aria-hidden /><Text><Trans comment="Creates a new profile">New profile</Trans></Text></Button> : null}
+                      </View>
+                      <InfoCard text={Platform.OS === "android" ? t`Coreply may not work in these apps, or may behave unexpectedly, because every app is different. If enabled, on-screen content from these apps may be sent to the API service you configured to generate suggestions.` : t`Coreply may not work on these websites, or may behave unexpectedly, because every website is different. If enabled, on-screen content from these websites may be sent to the API service you configured to generate suggestions.`} />
                       {otherApps.map((app) => (
                         <AppSelectionRow
-                          key={app.packageName}
+                          key={app.id}
                           app={app}
-                          isSelected={selectedApps.includes(app.packageName)}
-                          onEdit={() => router.push({ pathname: "/profile", params: { id: app.packageName } })}
+                          isSelected={selectedApps.includes(app.id)}
+                          onEdit={() => router.push({ pathname: "/profile", params: { id: app.id } })}
                           onToggle={() => {
-                            void toggleSelectedApp(app.packageName);
+                            void toggleSelectedApp(app.id);
                           }}
                         />
                       ))}

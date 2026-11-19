@@ -4,7 +4,7 @@ import jsonata from "jsonata";
 import Mustache from "mustache";
 import { DEFAULT_GLOBAL_SETTINGS, type CoreplySettings } from "./settings";
 import { ContextStore, PENDING } from "./context";
-import { generateGenericProfile, matchesProfile } from "./profile";
+import { generateGenericProfile, matchesProfile, resolveProfiles } from "./profile";
 import { createProviderInstance, type ProviderInstance } from "./providers";
 import type { ProviderInstanceOptions } from "./providers/instance";
 import type { LibCoreplyListener } from "./listener";
@@ -92,7 +92,8 @@ export class Coreply {
         : snapshot.url;
 
     // Find matching profile groups
-    const matchingProfiles = this.settings.profiles.filter((profile) =>
+    const profiles = resolveProfiles(this.settings.profiles, platform);
+    const matchingProfiles = profiles.filter((profile) =>
       this.settings.selectedApps.includes(profile.id) &&
       (platform !== "android" || profile.id === target) &&
       matchesProfile(profile, platform, target),
@@ -102,7 +103,7 @@ export class Coreply {
     // dynamically generate a generic profile group for it.
     if (
       platform === "android" &&
-      !this.settings.profiles.some((profile) => profile.platform === "android" && profile.id === target) &&
+      !profiles.some((profile) => profile.id === target) &&
       this.settings.selectedApps.includes(target)
     ) {
       matchingProfiles.push(generateGenericProfile(target, target));

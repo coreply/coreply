@@ -30,6 +30,11 @@ class LegacyNativeToExpoSettingsMigration(context: Context) {
             return
         }
 
+        if (!preferencesManager.hasLegacySettings()) {
+            markMigrationDone()
+            return
+        }
+
         preferencesManager.loadPreferences()
 
         if (!hasExistingCoreSettings) {

@@ -2,7 +2,41 @@ import { describe, expect, it } from "vitest";
 import { ChatContextImpl } from "../context/chat";
 import { ScreenContextImpl } from "../context/screen";
 import { ContextStore } from "../context/store";
-import { builtInProfiles, generateGenericProfile, matchesProfile, profileSchema } from ".";
+import { builtInProfiles, generateGenericProfile, matchesProfile, profileSchema, resolveAndroidProfile, resolveProfiles } from ".";
+
+describe("profile resolution", () => {
+  it.each(["android", "web"] as const)("resolves %s built-ins without stored profiles", (platform) => {
+    expect(resolveProfiles([], platform)).toEqual(builtInProfiles.filter((profile) => profile.platform === platform));
+  });
+
+  it("uses complete stored overrides, including empty extractor lists", () => {
+    const preset = builtInProfiles.find((profile) => profile.platform === "android")!;
+    const override = { ...preset, contextExtractors: [] };
+    const resolved = resolveProfiles([override], "android");
+    expect(resolved.find((profile) => profile.id === preset.id)).toEqual(override);
+    expect(resolved.filter((profile) => profile.id === preset.id)).toHaveLength(1);
+    expect(preset.contextExtractors.length).toBeGreaterThan(0);
+  });
+
+  it("keeps custom web profiles and excludes other platforms", () => {
+    const custom = { ...builtInProfiles.find((profile) => profile.platform === "web")!, id: "custom" };
+    const android = generateGenericProfile("com.example", "Example");
+    const profiles = resolveProfiles([custom, android], "web");
+    expect(profiles).toContainEqual(custom);
+    expect(profiles.every((profile) => profile.platform === "web")).toBe(true);
+  });
+
+  it("resolves Android overrides, built-ins, and generic profiles with installed app names", () => {
+    const preset = builtInProfiles.find((profile) => profile.id === "com.whatsapp")!;
+    expect(resolveAndroidProfile([], preset.id, "WhatsApp"))
+      .toEqual({ ...preset, displayName: "WhatsApp" });
+    const override = { ...preset, contextExtractors: [] };
+    expect(resolveAndroidProfile([override], preset.id, "WhatsApp"))
+      .toEqual({ ...override, displayName: "WhatsApp" });
+    expect(resolveAndroidProfile([], "com.example", "Example"))
+      .toEqual(generateGenericProfile("com.example", "Example"));
+  });
+});
 
 describe("profile schema and context formatting", () => {
   it("validates all built-in profiles", () => {

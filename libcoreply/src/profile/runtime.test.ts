@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { Coreply } from "../index";
 import { createDefaultGlobalSettings } from "../settings";
-import type { WebSnapshot } from "../context/snapshot";
-import type { Profile } from ".";
+import type { AndroidSnapshot, WebSnapshot } from "../context/snapshot";
+import { builtInProfiles, type Profile } from ".";
 
 const profile: Profile = {
   id: "user-profile",
@@ -33,6 +33,53 @@ function createCoreply(selectedApps: string[]) {
 }
 
 describe("user profile evaluation", () => {
+  it("uses Android built-ins before installed-app preparation has run", async () => {
+    const { coreply } = createCoreply(["com.whatsapp"]);
+    coreply.updateSettings({ profiles: [] });
+    const page: AndroidSnapshot = {
+      platform: "android",
+      snapshot: {
+        packageName: "com.whatsapp",
+        isEditable: false, isFocused: false, isVisibleToUser: true, isShowingHintText: false,
+        bounds: { left: 0, top: 0, right: 100, bottom: 200 },
+        children: [],
+      },
+    };
+    page.snapshot.children = [{
+      ...page.snapshot,
+      id: "com.whatsapp:id/entry",
+      className: "android.widget.EditText",
+      text: "Hello",
+      isEditable: true,
+      isFocused: true,
+    }];
+    coreply.snapshotUpdated(page);
+    await vi.waitFor(() => expect(coreply["store"].getContexts()).toHaveLength(1));
+    expect(coreply["store"].getLatestContext()?.type).toBe("chat");
+  });
+
+  it("uses built-in extractors without stored profiles", async () => {
+    const preset = builtInProfiles.find((profile) => profile.id === "chatgpt-web-chat")!;
+    const { coreply } = createCoreply([preset.id]);
+    coreply.updateSettings({ profiles: [] });
+    const page = snapshot("https://chatgpt.com/");
+    page.snapshot.children = [{ ...page.snapshot, id: "mobile-composer-prompt", isFocused: true }];
+    coreply.snapshotUpdated(page);
+    await vi.waitFor(() => expect(coreply["store"].getContexts()).toHaveLength(1));
+    expect(coreply["store"].getLatestContext()?.type).toBe("chat");
+  });
+
+  it("does not replace a stored empty override with built-in extractors", async () => {
+    const preset = builtInProfiles.find((profile) => profile.id === "chatgpt-web-chat")!;
+    const { coreply, mode } = createCoreply([preset.id]);
+    coreply.updateSettings({ profiles: [{ ...preset, contextExtractors: [] }] });
+    const page = snapshot("https://chatgpt.com/");
+    page.snapshot.children = [{ ...page.snapshot, id: "mobile-composer-prompt", isFocused: true }];
+    coreply.snapshotUpdated(page);
+    await vi.waitFor(() => expect(mode).toHaveBeenLastCalledWith("minimal"));
+    expect(coreply["store"].getContexts()).toHaveLength(0);
+  });
+
   it("requires both profile enablement and a matching full URL", async () => {
     const { coreply, mode } = createCoreply([]);
     coreply.snapshotUpdated(snapshot("https://example.com/chat/123"));

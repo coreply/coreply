@@ -23,7 +23,7 @@ An extractor contains:
 */
 
 import type { DropRule, Profile } from "./schema";
-import { exactPackageRule } from "./schema";
+import { exactPackageRule, profileSchema } from "./schema";
 export * from "./schema";
 
 interface BuiltInDefinition {
@@ -1010,6 +1010,26 @@ export const builtInProfiles: readonly Profile[] = templateGroups.flatMap((group
     contextExtractors: definition.extractors.map((extractor) => ({ extractor })),
   }));
 });
+
+export function resolveProfiles(profiles: Profile[], platform: Profile["platform"]): Profile[] {
+  const resolved = new Map(
+    builtInProfiles
+      .filter((profile) => profile.platform === platform)
+      .map((profile) => [profile.id, profile]),
+  );
+  for (const profile of profiles) {
+    if (profile.platform === platform) resolved.set(profile.id, profile);
+  }
+  return Array.from(resolved.values(), (profile) => profileSchema.parse(profile));
+}
+
+export function resolveAndroidProfile(profiles: Profile[], packageName: string, displayName: string): Profile {
+  const profile = profiles.find((entry) => entry.platform === "android" && entry.id === packageName)
+    ?? builtInProfiles.find((entry) => entry.platform === "android" && entry.id === packageName);
+  return profile
+    ? { ...profileSchema.parse(profile), displayName }
+    : generateGenericProfile(packageName, displayName);
+}
 
 // ** Dynamically generates a generic profile for any selected app without predefined extractors.
 // ** A single extractor builds a nested screen-context tree from all visible text; snapshotFrequency

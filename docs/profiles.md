@@ -1,8 +1,9 @@
 # Profiles and persistence
 
 Profiles are independent per app and platform. `selectedApps` stores enabled
-profile IDs on both platforms. Runtime evaluation uses only user-owned profiles,
-not the built-in templates.
+profile IDs on both platforms. Stored profiles override built-in definitions with
+the same ID. Built-in profiles are resolved from code when no override exists;
+loading them does not write them to storage.
 
 `libcoreply/src/profile/schema.ts` defines the profile and context extractor
 schemas. Each extractor carries its own optional context template and partial.
@@ -16,28 +17,37 @@ A profile's ID is its installed package name. Its display name comes from the
 installed app. Matching rules are regular expressions tested against package
 names, within the profile's own package.
 
-Installed-app discovery copies missing built-in presets into user storage and
-removes profiles and selections for packages no longer installed. Apps without a
-preset use an ephemeral generic screen extractor until customized.
+Installed-app discovery updates stored display names and removes profiles and
+selections for packages no longer installed. If no selection has been saved,
+it selects only installed apps with built-in Android profiles. A saved empty
+selection stays empty. Discovery does not copy built-in profiles or generate
+generic profiles. The UI and runtime resolve stored overrides first, then
+built-ins, then an ephemeral generic screen extractor.
 
-Reset replaces a supported app's profile with a fresh preset copy. For apps
-without a preset, reset removes the customized profile and restores the ephemeral
-generic configuration. Applying a preset keeps the target package identity and
-uses that package's exact matching rule.
+Reset removes the stored override without changing selection. The profile then
+uses its built-in definition or the ephemeral generic configuration. Applying a
+preset keeps the target package identity and
+uses that package's exact matching rule. The preset picker includes built-in
+profiles for installed apps only and copies their code-defined defaults.
 
 ## Web
 
-A missing `profiles` key initializes the list with copies of all web presets.
-A stored empty list stays empty. Profiles have stable independent IDs, optional
-display names, and regexes tested against full URLs.
+Built-in web profiles are available even when the stored profile list is missing
+or empty. Stored overrides replace their code-defined defaults, and custom
+profiles extend the list. Profiles have stable independent IDs, optional display
+names, and regexes tested against full URLs.
 
 The extension injects its listener on HTTP/HTTPS pages so custom and self-hosted
 URLs can work. Collection remains gated by enabled profiles and their regexes.
 File URLs and browser-internal pages are not included.
 
-Users can create, edit, enable, disable, and delete profiles. Deletion removes the
-profile's ID from `selectedApps`. Applying a preset preserves the user profile's
-ID and display name and replaces its editable configuration.
+Users can edit, enable, and disable profiles. Built-in profiles can be reset to
+their code-defined defaults by removing their stored override without changing
+selection. Built-in profiles cannot be deleted. Users can create and delete custom profiles; deletion
+removes the profile's ID from `selectedApps`. Applying a preset preserves the
+profile's ID and display name and replaces its editable configuration. New custom
+profiles start with a no-op extractor that can be edited. The preset picker lists
+the available built-in profiles and copies their code-defined defaults.
 
 ## Storage managers
 
@@ -62,6 +72,5 @@ and an array renderer that dispatches each extractor's generated form at an
 indexed data path. Add, remove, and reorder use JSON Forms state handlers.
 
 The extra one-second debounce remains in `SchemaForm` to avoid stale controlled
-data feedback. Pending changes flush when leaving a form. Reset, preset, and
-delete actions invalidate callbacks from the previous form so they cannot undo
-those operations. Initial form emissions do not save untouched generic profiles.
+data feedback. Pending changes flush when leaving a form. Initial form emissions
+do not save untouched generic profiles.

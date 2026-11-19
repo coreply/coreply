@@ -111,7 +111,6 @@ class PreferencesManager private constructor(
 			      "content": "Chat history:\n{{#pastMessages}}{{#messages}}{{#sent}}Me: {{/sent}}{{#received}}Them: {{/received}}{{content.jsonEscaped}}\n{{/messages}}{{/pastMessages}}{{#currentTyping}}Current typing: {{currentTyping.jsonEscaped}}{{/currentTyping}}{{^currentTyping}}Suggest a reply.{{/currentTyping}}"
 			    }
 			  ],
-			  "max_tokens": 50,
 			  "stream": false
 			}
 		""".trimIndent()
@@ -186,6 +185,16 @@ class PreferencesManager private constructor(
                 preferences[SUGGESTION_CONTENT_TEMPLATE] = it
             }
         }
+    }
+
+    suspend fun hasLegacySettings(): Boolean {
+        val preferences = dataStore.data.firstOrNull() ?: return false
+        return listOf(
+            CUSTOM_API_URL, CUSTOM_API_KEY, CUSTOM_MODEL_NAME, CUSTOM_SYSTEM_PROMPT,
+            TEMPERATURE, TOP_P, SUGGESTION_PRESENTATION_TYPE, SHOW_ERRORS, SELECTED_APPS,
+            CONFIG_TYPE, ADVANCED_CONFIG_BODY, TYPING_REGEX_PATTERN, TYPING_REGEX_ENABLED,
+            CUSTOM_DEBOUNCE_MS, SUGGESTION_CONTENT_TEMPLATE,
+        ).any { preferences.asMap().containsKey(it) }
     }
 
     suspend fun loadPreferences() {
