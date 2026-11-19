@@ -1,0 +1,1 @@
+var e={};throw Error(`Could not resolve "livekit-client" imported by "@ai-sdk/mistral". Is it installed?`);export{e as default};

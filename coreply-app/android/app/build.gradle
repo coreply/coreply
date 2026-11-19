@@ -7,13 +7,13 @@ apply plugin: "com.facebook.react"
 
 android {
     namespace = "app.coreply.coreplyapp"
-    compileSdk = 36
+    compileSdk = 37
     defaultConfig {
         applicationId = "app.coreply.coreplyapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 23
-        versionName = "3.0.0"
+        versionCode = 26
+        versionName = "3.1.0"
         vectorDrawables.useSupportLibrary = true
     }
     buildFeatures {
@@ -23,12 +23,11 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "COREPLY_CLOUD_ORIGIN", '"http://localhost:5173"')
-            applicationIdSuffix = ".debug"
+            applicationIdSuffix = ""
             versionNameSuffix = "-debug"
         }
         release {
-            // TODO: Replace with the production Coreply Cloud origin.
-            buildConfigField("String", "COREPLY_CLOUD_ORIGIN", '"https://cloud.example.com"')
+            buildConfigField("String", "COREPLY_CLOUD_ORIGIN", '"https://cloud.coreply.app"')
             minifyEnabled = true
             shrinkResources = true
             proguardFiles(
@@ -81,15 +80,22 @@ react {
     // Use Expo CLI to bundle the app, this ensures the Metro config works correctly with Expo projects.
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
-    // Disable dev server and hot reload.
+    // Embed a JS bundle in every variant.
     debuggableVariants = []
 
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
 
+// React Native sets devEnabled when it registers the bundle task.
+gradle.projectsEvaluated {
+    tasks.named("createBundleDebugJsAndAssets", com.facebook.react.tasks.BundleHermesCTask).configure {
+        devEnabled.set(true)
+    }
+}
+
 tasks.withType(com.facebook.react.tasks.BundleHermesCTask).configureEach {
-    inputs.property("billingVariant", providers.environmentVariable("variant"))
+    inputs.property("billingVariant", providers.environmentVariable("variant").orElse("rc"))
     ["libcoreply", "coreply-shared-components"].each { packageName ->
         inputs.files(fileTree(new File(rootDir, "../../${packageName}")) {
             include("src/**")
