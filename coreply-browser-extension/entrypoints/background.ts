@@ -11,6 +11,14 @@ import { providerDefinitions } from "libcoreply";
 import { appendSuggestionFetchLog } from "../runtime/troubleshooting";
 
 export default defineBackground(() => {
+  browser.runtime.onInstalled.addListener(({ reason }) => {
+    if (reason === "install") {
+      const url = new URL(browser.runtime.getURL("/popup.html"));
+      url.searchParams.set("onboarding", "true");
+      void browser.tabs.create({ url: url.href });
+    }
+  });
+
   let source: { tabId: number; documentId: string } | undefined;
   let enabled = false;
   const runtime = createCoreplyRuntime((message) => {

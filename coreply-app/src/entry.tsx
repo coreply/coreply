@@ -7,13 +7,14 @@ import { ctx } from "expo-router/_ctx";
 
 import { ExpoRoot } from "expo-router/build/ExpoRoot";
 import { Head } from "expo-router/build/head";
+import { Platform } from "react-native";
 
 // This file should only import and register the root. No components or exports
 // should be added here.
 const AppComponent = () => {
   return (
     <Head.Provider>
-      <ExpoRoot context={ctx} location="/" />
+      <ExpoRoot context={ctx} location={Platform.OS === "web" ? `/${window.location.search}` : "/"} />
     </Head.Provider>
   );
 };

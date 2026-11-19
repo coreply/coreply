@@ -89,6 +89,11 @@ export default function AccessibilityDisclosureScreen() {
                       if (Platform.OS === "android") {
                         await startActivityAsync(
                           ActivityAction.ACCESSIBILITY_SETTINGS,
+                          {
+                            extra: {
+                              ":settings:fragment_args_key": "app.coreply.coreplyapp/app.coreply.coreplyapp.applistener.AppListener",
+                            },
+                          },
                         );
                       }
                     }}
