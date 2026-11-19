@@ -26,7 +26,12 @@ export async function manageSubscription(userId: string): Promise<void> {
   await RevenueCatUI.presentCustomerCenter();
 }
 
-export async function getMoreUsage(userId: string): Promise<"paid" | "unavailable" | null> {
+export async function preloadPaywall(userId: string): Promise<void> {
+  await configurePurchases(userId);
+  await Purchases.getOfferings();
+}
+
+export async function getMoreUsage(userId: string, onPurchaseOrRestore: () => void): Promise<"paid" | "unavailable" | null> {
   await configurePurchases(userId);
   const offerings = await Purchases.getOfferings();
   const offering = offerings.all.default;
@@ -36,6 +41,8 @@ export async function getMoreUsage(userId: string): Promise<"paid" | "unavailabl
     offering,
     displayCloseButton: true,
     callbacks: {
+      onPurchaseCompleted: onPurchaseOrRestore,
+      onRestoreCompleted: onPurchaseOrRestore,
       onPurchasePackageInitiated: ({ resume }) => {
         void (async () => {
           let paid: boolean;

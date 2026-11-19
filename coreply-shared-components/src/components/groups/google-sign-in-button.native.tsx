@@ -3,11 +3,12 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { View } from "react-native";
 import {
-  GoogleSignInButton as NativeGoogleSignInButton,
+  useGoogleSignInFromButton,
   type OneTapSuccessData,
 } from "react-native-nitro-google-signin";
 import { useCloudAuth } from "../../cloud/auth-context";
 import { Text } from "../ui/text";
+import { GoogleSignInButtonAppearance } from "./google-sign-in-button-appearance";
 
 export function GoogleSignInButton() {
   const { t } = useLingui();
@@ -25,27 +26,29 @@ export function GoogleSignInButton() {
     },
   });
   const error = googleError ?? signIn.error?.message;
+  const googleSignIn = useGoogleSignInFromButton({
+    behavior: "credentialManager",
+    onPress: () => {
+      setGoogleError(null);
+      signIn.reset();
+    },
+    onSuccess: (data) => signIn.mutate(data),
+    onError: (cause) => setGoogleError(
+      cause instanceof Error ? cause.message : t`Google sign-in failed.`,
+    ),
+  });
+  const loading = googleSignIn.loading || signIn.isPending;
 
   return (
     <View className="w-full items-center gap-2">
-      <NativeGoogleSignInButton
-        colorScheme="light"
-        size="wide"
-        style={{ width: "100%" }}
-        contentAlignment="center"
-        disabled={signIn.isPending}
+      <GoogleSignInButtonAppearance
+        disabled={loading}
+        loading={loading}
+        label={t`Continue with Google`}
         onPress={() => {
-          setGoogleError(null);
-          signIn.reset();
+          // The hook reports errors through onError and also rejects its promise.
+          void googleSignIn.onPress().catch(() => {});
         }}
-        onSignInSuccess={(data) => {
-          signIn.mutate(data);
-        }}
-        onSignInError={(cause) =>
-          setGoogleError(
-            cause instanceof Error ? cause.message : t`Google sign-in failed.`,
-          )
-        }
       />
       {signIn.isPending && (
         <Text className="text-sm text-muted-foreground"><Trans>Signing in...</Trans></Text>

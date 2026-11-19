@@ -61,8 +61,9 @@ export default function CloudAccountScreen() {
                     <Trans>Signed in as {session.user.email}</Trans>
                   </Text>
                 </View>
-                <CoreplyCloudUsage client={billingClient} userId={session.user.id} />
-                <GetMoreUsageButton userId={session.user.id} />
+                <CoreplyCloudUsage client={billingClient} userId={session.user.id}>
+                  <GetMoreUsageButton userId={session.user.id} />
+                </CoreplyCloudUsage>
                 <Button variant="outline" disabled={manage.isPending} onPress={() => manage.mutate(session.user.id)}>
                   <Text><Trans>Manage subscription</Trans></Text>
                 </Button>

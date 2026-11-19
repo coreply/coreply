@@ -1,0 +1,96 @@
+.coreply-google-sign-in {
+  --google-button-background: #fff;
+  --google-button-border: #747775;
+  --google-button-text: #1f1f1f;
+  --google-button-state: #303030;
+  --google-button-disabled-background: #ffffff61;
+  --google-button-disabled-border: #1f1f1f1f;
+  appearance: none;
+  user-select: none;
+  background: var(--google-button-background);
+  border: 1px solid var(--google-button-border);
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: var(--google-button-text);
+  cursor: pointer;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  height: 40px;
+  letter-spacing: 0.25px;
+  outline: none;
+  overflow: hidden;
+  padding: 0 12px;
+  position: relative;
+  text-align: center;
+  transition: background-color .218s, border-color .218s, box-shadow .218s;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: 100%;
+  max-width: 400px;
+  align-self: center;
+}
+
+.coreply-google-sign-in[data-theme="dark"] {
+  --google-button-background: #131314;
+  --google-button-border: #8e918f;
+  --google-button-text: #e3e3e3;
+  --google-button-state: #fff;
+  --google-button-disabled-background: #13131461;
+  --google-button-disabled-border: #8e918f1f;
+}
+
+.coreply-google-sign-in-content {
+  align-items: center;
+  display: flex;
+  flex-flow: row nowrap;
+  height: 100%;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.coreply-google-sign-in-icon {
+  display: block;
+  flex-shrink: 0;
+  height: 20px;
+  margin-right: 10px;
+  width: 20px;
+}
+
+.coreply-google-sign-in-label {
+  font-family: Roboto, Arial, sans-serif;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coreply-google-sign-in-state {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: var(--google-button-state);
+  transition: opacity .218s;
+}
+
+.coreply-google-sign-in:disabled {
+  cursor: default;
+  background: var(--google-button-disabled-background);
+  border-color: var(--google-button-disabled-border);
+}
+
+.coreply-google-sign-in:disabled .coreply-google-sign-in-content {
+  opacity: .38;
+}
+
+.coreply-google-sign-in:not(:disabled):hover {
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+}
+
+.coreply-google-sign-in:not(:disabled):hover .coreply-google-sign-in-state {
+  opacity: .08;
+}
+
+.coreply-google-sign-in:not(:disabled):active .coreply-google-sign-in-state,
+.coreply-google-sign-in:not(:disabled):focus .coreply-google-sign-in-state {
+  opacity: .12;
+}

@@ -9,25 +9,24 @@
   "compatibility_date": "2025-10-08",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "upload_source_maps": true,
   "assets": {
     "directory": "./dist/client",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*"],
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "coreply-cloud",
-      "migrations_dir": "drizzle"
-    }
+      "migrations_dir": "drizzle",
+    },
   ],
   "secrets": {
     "required": [
       "BETTER_AUTH_SECRET",
-      "BETTER_AUTH_URL",
       "GOOGLE_CLIENT_ID",
       "GOOGLE_ANDROID_CLIENT_ID",
       "GOOGLE_EXTENSION_CLIENT_ID",
@@ -36,9 +35,9 @@
       "GITHUB_CLIENT_SECRET",
       "CLOUD_WEB_ORIGIN",
       "AUTUMN_SECRET_KEY",
-      "COREPLY_CLOUD_SETTINGS"
-    ]
-  }
+      "COREPLY_CLOUD_SETTINGS",
+    ],
+  },
   /**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

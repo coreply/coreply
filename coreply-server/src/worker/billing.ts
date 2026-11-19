@@ -45,7 +45,10 @@ function currentSubscription(customer: Customer) {
     (subscription) =>
       subscription.status === "active" &&
       !subscription.addOn &&
-      (subscription.planId === "free" || subscription.planId === "plus" || subscription.planId === "plus_annual"),
+      (subscription.planId === "free" ||
+        subscription.planId === "plus" ||
+        subscription.planId === "plus_quarterly" ||
+        subscription.planId === "plus_annual"),
   );
   if (subscriptions.length !== 1) {
     throw new HTTPException(502, {
@@ -105,7 +108,7 @@ export const billing = new Hono<{
       xApiVersion: "2.3.0",
     });
     const user = c.get("session").user;
-    const [customer, free, plus, plusAnnual] = await Promise.all([
+    const [customer, free, plus] = await Promise.all([
       autumn.customers.getOrCreate({
         customerId: user.id,
         name: user.name,
@@ -113,14 +116,12 @@ export const billing = new Hono<{
       }),
       autumn.plans.get({ planId: "free" }),
       autumn.plans.get({ planId: "plus" }),
-      autumn.plans.get({ planId: "plus_annual" }),
     ]);
     const subscription = currentSubscription(customer);
     const usage = customerUsage(customer);
-    const plans = [planSummary(free), planSummary(plus), planSummary(plusAnnual)];
-    const plan = plans.find((item) => item.id === subscription.planId);
-    if (!plan)
-      throw new HTTPException(502, { message: "Your plan is unavailable." });
+    const plans = [planSummary(free), planSummary(plus)];
+    const plan = plans.find((item) => item.id === subscription.planId)
+      ?? planSummary(await autumn.plans.get({ planId: subscription.planId }));
     return c.json({
       plan,
       plans,
@@ -149,41 +150,45 @@ export const billing = new Hono<{
       ),
     });
   })
-  .post("/upgrade", validator("json", (value, c) => {
-    if (value.planId !== "plus" && value.planId !== "plus_annual") {
-      return c.json({ error: "Please choose a valid plan." }, 400);
-    }
-    return { planId: value.planId };
-  }), async (c) => {
-    const autumn = new Autumn({
-      secretKey: c.env.AUTUMN_SECRET_KEY,
-      xApiVersion: "2.3.0",
-    });
-    const user = c.get("session").user;
-    const customer = await autumn.customers.getOrCreate({
-      customerId: user.id,
-      name: user.name,
-      email: user.email,
-    });
-    if (currentSubscription(customer).planId !== "free") {
-      return c.json(
-        { error: "You already have Plus. Manage your subscription instead." },
-        409,
-      );
-    }
-    const result = await autumn.billing.attach({
-      customerId: user.id,
-      planId: c.req.valid("json").planId,
-      redirectMode: "always",
-      successUrl: new URL("/billing?checkout=success", c.env.CLOUD_WEB_ORIGIN)
-        .href,
-    });
-    if (!result.paymentUrl)
-      throw new HTTPException(502, {
-        message: "Checkout is unavailable. Please try again.",
+  .post(
+    "/upgrade",
+    validator("json", (value, c) => {
+      if (value.planId !== "plus" && value.planId !== "plus_annual") {
+        return c.json({ error: "Please choose a valid plan." }, 400);
+      }
+      return { planId: value.planId };
+    }),
+    async (c) => {
+      const autumn = new Autumn({
+        secretKey: c.env.AUTUMN_SECRET_KEY,
+        xApiVersion: "2.3.0",
       });
-    return c.json({ url: result.paymentUrl });
-  })
+      const user = c.get("session").user;
+      const customer = await autumn.customers.getOrCreate({
+        customerId: user.id,
+        name: user.name,
+        email: user.email,
+      });
+      if (currentSubscription(customer).planId !== "free") {
+        return c.json(
+          { error: "You already have Plus. Manage your subscription instead." },
+          409,
+        );
+      }
+      const result = await autumn.billing.attach({
+        customerId: user.id,
+        planId: c.req.valid("json").planId,
+        redirectMode: "always",
+        successUrl: new URL("/billing?checkout=success", c.env.CLOUD_WEB_ORIGIN)
+          .href,
+      });
+      if (!result.paymentUrl)
+        throw new HTTPException(502, {
+          message: "Checkout is unavailable. Please try again.",
+        });
+      return c.json({ url: result.paymentUrl });
+    },
+  )
   .post("/portal", async (c) => {
     const autumn = new Autumn({
       secretKey: c.env.AUTUMN_SECRET_KEY,

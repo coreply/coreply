@@ -17,13 +17,17 @@ export function CoreplyCloudSignIn({ configured, extensionSignInUrl }: { configu
       {configured ? (extensionSignInUrl ? (
         <Button
           variant="outline"
-          className="w-full max-w-[312px] self-center"
-          onPress={() => void window.open(extensionSignInUrl, "_blank", "noopener,noreferrer")}
+          className="h-10 w-full max-w-[400px] self-center rounded-[4px] sm:h-10"
+          onPress={() => {
+            const url = new URL(extensionSignInUrl);
+            url.searchParams.set("close_tab", "true");
+            window.open(url.href, "_blank", "noopener,noreferrer");
+          }}
         >
           <Text><Trans>Open Coreply Cloud to sign in</Trans></Text>
         </Button>
       ) : (
-        <View className="w-full max-w-[312px] self-center gap-2">
+        <View className="w-full max-w-[400px] self-center gap-2">
           <GoogleSignInButton />
           <GithubSignInButton />
         </View>

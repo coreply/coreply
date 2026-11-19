@@ -12,7 +12,9 @@ export async function manageSubscription(_userId: string): Promise<void> {
   }
 }
 
-export async function getMoreUsage(userId: string): Promise<"paid" | "unavailable" | null> {
+export async function preloadPaywall(_userId: string): Promise<void> {}
+
+export async function getMoreUsage(userId: string, _onPurchaseOrRestore: () => void): Promise<"paid" | "unavailable" | null> {
   await manageSubscription(userId);
   return null;
 }

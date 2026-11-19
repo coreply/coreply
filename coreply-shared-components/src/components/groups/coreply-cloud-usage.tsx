@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import type { ReactNode } from "react";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { CircleAlert, RefreshCw } from "lucide-react-native";
@@ -28,7 +29,7 @@ function UsageMeter({
     <View className="gap-3">
       <View className="flex-row items-center justify-between gap-4">
         <Text className="font-sans text-base font-medium">{label}</Text>
-        <Text className="font-sans text-sm text-muted-foreground">
+        <Text className="font-sans text-sm font-medium text-foreground">
           <Trans>{display}% remaining</Trans>
         </Text>
       </View>
@@ -48,9 +49,11 @@ function UsageMeter({
 export function CoreplyCloudUsage({
   client,
   userId,
+  children,
 }: {
   client: ReturnType<typeof createBillingClient>;
   userId: string;
+  children?: ReactNode;
 }) {
   const { t } = useLingui();
   const billing = useQuery({
@@ -103,10 +106,10 @@ export function CoreplyCloudUsage({
     );
   if (!billing.data) {
     return (
-      <View className="min-h-60 w-full items-center justify-center gap-4 border border-border bg-form p-3 sm:px-5 sm:py-6">
+      <View className="min-h-[188px] w-full items-center justify-center gap-4 border border-border bg-form p-3 sm:min-h-[232px] sm:px-5 sm:pt-5 sm:pb-6">
         <Icon as={CircleAlert} className="size-8 text-muted-foreground" aria-hidden />
         <Text role="alert" className="text-center font-sans text-sm text-muted-foreground">
-          {billing.error?.message}
+          <Trans>Couldn't load your usage. Please try again.</Trans>
         </Text>
         <Button
           variant="ghost"
@@ -125,22 +128,43 @@ export function CoreplyCloudUsage({
   }
   const { plan, daily, monthly } = billing.data;
   return (
+    <>
     <View className="w-full gap-3 border border-border bg-form p-3 sm:gap-6 sm:px-5 sm:pt-5 sm:pb-6">
       <View className="flex-row items-center justify-between gap-4">
-        <View className="gap-1">
-          <Text className="font-sans text-lg font-medium">
-            <Trans>Standard usage</Trans>
-          </Text>
+        <View className="flex-1 gap-1">
+          <View className="flex-row items-center gap-2">
+            <Text className="font-sans text-lg font-medium">
+              <Trans comment="Heading for Coreply Cloud's daily and monthly usage limits">Usage limits</Trans>
+            </Text>
+            {plan.id === "free" ? (
+              <Text className="font-sans text-base font-medium text-muted-foreground">
+                <Trans comment="Name of the free Coreply Cloud plan">Free</Trans>
+              </Text>
+            ) : (
+              <Text className="font-sans text-base font-bold text-primary">
+                <Trans comment="Name of the paid Coreply Cloud plan">Plus</Trans>
+              </Text>
+            )}
+          </View>
           <Text className="font-sans text-sm text-muted-foreground">
             <Trans>Your Coreply Cloud allowance</Trans>
           </Text>
         </View>
-        <Text className="font-sans text-sm font-medium text-primary">
-          {plan.id === "free" ? t({ message: "Free", comment: "Name of the free Coreply Cloud plan" }) : plan.name}
-        </Text>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-auto w-auto p-0"
+          accessibilityLabel={t({ comment: "Label for the button that reloads Coreply Cloud usage", message: "Refresh usage" })}
+          onPress={() => void billing.refetch()}
+          disabled={billing.isFetching}
+        >
+          <Icon as={RefreshCw} className="size-4" aria-hidden />
+        </Button>
       </View>
       <UsageMeter label={t`Daily usage`} period="daily" {...daily} />
       <UsageMeter label={t`Monthly usage`} period="monthly" {...monthly} />
     </View>
+    {plan.id === "free" && children}
+    </>
   );
 }

@@ -10,7 +10,7 @@ import * as schema from "./db/auth-schema";
 import { cloudOrigins } from "./origins";
 
 export const auth = betterAuth({
-  baseURL: env.BETTER_AUTH_URL,
+  baseURL: env.CLOUD_WEB_ORIGIN,
   secret: env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(drizzle(env.DB, { schema }), {
     provider: "sqlite",
@@ -20,21 +20,37 @@ export const auth = betterAuth({
     deleteUser: {
       enabled: true,
       beforeDelete: async (user) => {
-        const autumn = new Autumn({ secretKey: env.AUTUMN_SECRET_KEY, xApiVersion: "2.3.0" });
+        const autumn = new Autumn({
+          secretKey: env.AUTUMN_SECRET_KEY,
+          xApiVersion: "2.3.0",
+        });
         const customer = await autumn.customers.get({ customerId: user.id });
-        if (customer.subscriptions.some((subscription) => subscription.planId !== "free" &&
-          (subscription.status !== "active" || subscription.canceledAt === null))) {
+        if (
+          customer.subscriptions.some(
+            (subscription) =>
+              subscription.planId !== "free" &&
+              (subscription.status !== "active" ||
+                subscription.canceledAt === null),
+          )
+        ) {
           throw new APIError("BAD_REQUEST", {
-            message: "Cancel any active paid subscriptions and remove any scheduled paid plans before deleting your account.",
+            message:
+              "Cancel any active paid subscriptions and remove any scheduled paid plans before deleting your account.",
           });
         }
       },
       afterDelete: async (user) => {
-        const autumn = new Autumn({ secretKey: env.AUTUMN_SECRET_KEY, xApiVersion: "2.3.0" });
+        const autumn = new Autumn({
+          secretKey: env.AUTUMN_SECRET_KEY,
+          xApiVersion: "2.3.0",
+        });
         try {
           await autumn.customers.delete({ customerId: user.id });
         } catch (error) {
-          console.error("Failed to delete Autumn customer after account deletion", { customerId: user.id, error });
+          console.error(
+            "Failed to delete Autumn customer after account deletion",
+            { customerId: user.id, error },
+          );
         }
       },
     },
@@ -56,10 +72,7 @@ export const auth = betterAuth({
       },
     },
   },
-  trustedOrigins: [
-    ...cloudOrigins,
-    "coreplyapp://",
-  ],
+  trustedOrigins: [...cloudOrigins, "coreplyapp://"],
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID,
@@ -74,5 +87,8 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
-  plugins: [expo(), oneTimeToken({ storeToken: "hashed", disableSetSessionCookie: true })],
+  plugins: [
+    expo(),
+    oneTimeToken({ storeToken: "hashed", disableSetSessionCookie: true }),
+  ],
 });

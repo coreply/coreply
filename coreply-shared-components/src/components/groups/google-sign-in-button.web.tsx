@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useLingui } from "@lingui/react/macro";
 import { View } from "react-native";
 import { useCloudAuth } from "../../cloud/auth-context";
-import { Button } from "../ui/button";
+import { GoogleSignInButtonAppearance } from "./google-sign-in-button-appearance";
 import { Text } from "../ui/text";
 
 export function GoogleSignInButton() {
@@ -16,10 +16,13 @@ export function GoogleSignInButton() {
   });
 
   return (
-    <View className="gap-2 px-1">
-      <Button variant="outline" className="w-full" disabled={signIn.isPending} onPress={() => signIn.mutate()}>
-        <Text>{signIn.isPending ? t`Connecting...` : t`Continue with Google`}</Text>
-      </Button>
+    <View className="w-full gap-2">
+      <GoogleSignInButtonAppearance
+        disabled={signIn.isPending}
+        loading={signIn.isPending}
+        label={t`Continue with Google`}
+        onPress={() => signIn.mutate()}
+      />
       {signIn.error && <Text role="alert" className="text-sm text-destructive">{signIn.error.message}</Text>}
     </View>
   );

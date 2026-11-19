@@ -1,9 +1,9 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 
-import { getMoreUsage } from "#manage-subscription";
+import { getMoreUsage, preloadPaywall } from "#manage-subscription";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -11,8 +11,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 export function GetMoreUsageButton({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
   const [blocked, setBlocked] = useState<"paid" | "unavailable" | null>(null);
+  useEffect(() => {
+    void preloadPaywall(userId).catch(() => {});
+  }, [userId]);
   const upgrade = useMutation({
-    mutationFn: getMoreUsage,
+    mutationFn: () => getMoreUsage(userId, () => {
+      setTimeout(() => {
+        void queryClient.invalidateQueries({ queryKey: ["billing", userId] });
+      }, 2_000);
+    }),
     onSuccess: (result) => {
       setBlocked(result);
       return queryClient.invalidateQueries({ queryKey: ["billing", userId] });
@@ -21,7 +28,7 @@ export function GetMoreUsageButton({ userId }: { userId: string }) {
 
   return (
     <View className="gap-2">
-      <Button onPress={() => upgrade.mutate(userId)} disabled={upgrade.isPending}>
+      <Button onPress={() => upgrade.mutate()} disabled={upgrade.isPending}>
         <Text><Trans comment="Button to purchase more Coreply Cloud usage">Get more usage</Trans></Text>
       </Button>
       {upgrade.error && (

@@ -1,5 +1,7 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+@import "tailwindcss";
+@import "uniwind";
 @import "../../../coreply-shared-components/global.css";
 @import "tw-animate-css";
 

@@ -1,3 +1,5 @@
+@import 'tailwindcss';
+@import 'uniwind';
 @import '../coreply-shared-components/global.css';
 
 @theme {
