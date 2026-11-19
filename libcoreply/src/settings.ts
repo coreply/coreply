@@ -81,7 +81,7 @@ export const globalSettingsSchema = z.object({
       .boolean()
       .default(false)
       .describe(/* i18n */ "Save the 10 most recent suggestion requests on this device. Turning this off deletes saved logs."),
-  }).meta({ isAdvancedSettings: true }),
+  }).prefault({}).meta({ isAdvancedSettings: true }),
 });
 
 export const fetchControlSettingsSchema =
