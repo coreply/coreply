@@ -8,14 +8,13 @@ import org.json.JSONObject
 
 class LegacyNativeToExpoSettingsMigration(context: Context) {
     companion object {
-        private const val MIGRATION_STORAGE_NAME = "coreply.migrations"
         private const val MIGRATION_DONE_KEY = "legacy_native_to_expo_v1_done"
     }
 
     private val preferencesManager = PreferencesManager.getInstance(context)
     private val expoSettingsStorage = CoreplyStorageManager(context)
     private val migrationStorage: SharedStorage =
-        StorageRegistry.getStorage(context, MIGRATION_STORAGE_NAME)
+        StorageRegistry.getStorage(context, SettingsMigrations.STORAGE_NAME)
 
     suspend fun migrateIfNeeded() {
         if (isMigrationDone()) {

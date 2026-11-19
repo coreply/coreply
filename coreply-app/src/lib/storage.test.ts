@@ -12,6 +12,24 @@ function createStore(platform: "android" | "web") {
   return { manager, values };
 }
 
+describe("CoreplyStorageManager saved settings", () => {
+  it("does not count defaults as saved settings", async () => {
+    const { manager } = createStore("android");
+    await manager.loadSettings();
+    expect(await manager.hasSavedSettings()).toBe(false);
+  });
+
+  it.each([
+    [STORAGE_KEYS.providerId, "coreplyCloud"],
+    [STORAGE_KEYS.globalSettings, "{}"],
+    [STORAGE_KEYS.selectedApps, "[]"],
+  ])("detects a stored %s even when it is the only key", async (key, value) => {
+    const { manager, values } = createStore("android");
+    values.set(key, value);
+    expect(await manager.hasSavedSettings()).toBe(true);
+  });
+});
+
 describe("CoreplyStorageManager profiles", () => {
   it("defaults to the new cloud provider and preserves a saved provider", async () => {
     const { manager } = createStore("android");

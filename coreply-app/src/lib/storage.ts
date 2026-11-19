@@ -57,6 +57,16 @@ export class CoreplyStorageManager {
     return value === null ? undefined : (JSON.parse(value) as unknown);
   }
 
+  async hasSavedSettings() {
+    const keys = [
+      STORAGE_KEYS.providerId,
+      STORAGE_KEYS.globalSettings,
+      STORAGE_KEYS.selectedApps,
+    ];
+    const values = await Promise.all(keys.map((key) => this.persistence.getItem(key)));
+    return values.some((value) => value !== null);
+  }
+
   async loadProviderId() {
     const providerId =
       (await this.persistence.getItem(STORAGE_KEYS.providerId)) ??

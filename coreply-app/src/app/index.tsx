@@ -172,13 +172,24 @@ export default function SettingsScreen() {
     }
     void onboardingStorage
       .getItem("complete")
-      .then((complete) => {
+      .then(async (complete) => {
         if (complete === "true") return;
+        if (
+          Platform.OS === "android" &&
+          complete === null &&
+          (await storageManager.hasSavedSettings())
+        ) {
+          await onboardingStorage.setItem("complete", "true");
+          return;
+        }
         if (Platform.OS !== "web") {
           router.replace("/onboarding");
         } else if (isBrowserExtension()) {
           openOnboardingTab();
         }
+      })
+      .catch((error) => {
+        console.error("Failed to check onboarding status", error);
       });
   }, [router, onboarding, select]);
   const {

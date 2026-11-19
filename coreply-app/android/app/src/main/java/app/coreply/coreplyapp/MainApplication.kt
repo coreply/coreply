@@ -35,7 +35,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ExpoReactHostFactory
 
-import app.coreply.coreplyapp.data.LegacyNativeToExpoSettingsMigration
+import app.coreply.coreplyapp.data.SettingsMigrations
 import app.coreply.coreplyapp.utils.PreferenceHelper
 import kotlinx.coroutines.runBlocking
 
@@ -57,13 +57,13 @@ open class MainApplication : Application(), ReactApplication {
     override fun onCreate() {
         super.onCreate()
         PreferenceHelper.init(this)
-                runCatching {
-			runBlocking {
-				LegacyNativeToExpoSettingsMigration(applicationContext).migrateIfNeeded()
-			}
-		}.onFailure { error ->
-			Log.e("Coreply", "Failed to migrate native settings to Expo storage", error)
-		}
+        runCatching {
+            runBlocking {
+                SettingsMigrations.run(applicationContext)
+            }
+        }.onFailure { error ->
+            Log.e("Coreply", "Failed to initialize settings migrations", error)
+        }
         DefaultNewArchitectureEntryPoint.releaseLevel = ReleaseLevel.STABLE
         loadReactNative(this)
         ApplicationLifecycleDispatcher.onApplicationCreate(this)

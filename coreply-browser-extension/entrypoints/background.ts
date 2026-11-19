@@ -10,6 +10,16 @@ import { storageManager } from "../runtime/storage-manager";
 import { providerDefinitions } from "libcoreply";
 import { appendSuggestionFetchLog } from "../runtime/troubleshooting";
 
+const SETTINGS_SCHEMA_VERSION_KEY = "local:coreply.migrations.settingsSchemaVersion";
+const INITIAL_SETTINGS_SCHEMA_VERSION = 1;
+
+async function initializeSettingsSchemaVersion() {
+  const version = await storage.getItem<number>(SETTINGS_SCHEMA_VERSION_KEY);
+  if (version === null) {
+    await storage.setItem(SETTINGS_SCHEMA_VERSION_KEY, INITIAL_SETTINGS_SCHEMA_VERSION);
+  }
+}
+
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(({ reason }) => {
     if (reason === "install") {
@@ -48,10 +58,10 @@ export default defineBackground(() => {
 
   }
 
-  const initialization = loadSettings();
+  const initialization = initializeSettingsSchemaVersion().then(loadSettings);
 
   function refresh() {
-    void loadSettings().catch(reportError);
+    void initialization.then(loadSettings).catch(reportError);
   }
 
   function reportError(error: unknown) {
