@@ -25,6 +25,7 @@ const onboardingStorage = createAsyncStorage("coreply.onboarding");
 export default function OnboardingScreen() {
   const { i18n } = useLingui();
   const router = useRouter();
+  const browserExtension = isBrowserExtension();
   const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({ Outfit_300Light, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold });
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function OnboardingScreen() {
   };
   const finishSetup = async () => {
     await onboardingStorage.setItem("complete", "true");
-    if (isBrowserExtension()) {
+    if (browserExtension) {
       await openWebsiteSelectionPopup();
     } else {
       router.replace("/");
@@ -49,9 +50,19 @@ export default function OnboardingScreen() {
     }
   };
   const conversationId = Platform.OS === "web" ? "onboarding-browser" : "onboarding";
-  const finishAction = <Button onPress={finishSetup}><Text><Trans comment="Finishes the onboarding process">Finish setup</Trans></Text></Button>;
+  const finishAction = (
+    <Button onPress={finishSetup}>
+      <Text>
+        {browserExtension ? (
+          <Trans comment="Onboarding button that opens the browser extension's website picker">Finish setup and select websites</Trans>
+        ) : (
+          <Trans comment="Onboarding button that opens the Android app picker">Finish setup and select apps</Trans>
+        )}
+      </Text>
+    </Button>
+  );
   const conversation = createDemoConversation(conversationId, i18n, {
-    signin: <CoreplyCloudSignIn configured={cloudConfigured} extensionSignInUrl={isBrowserExtension() ? process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL : undefined} />,
+    signin: <CoreplyCloudSignIn configured={cloudConfigured} extensionSignInUrl={browserExtension ? process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL : undefined} />,
     "finish-action": finishAction,
     "accessibility-action": accessibilityEnabled ? finishAction : (
       <Button onPress={() => router.push("/accessibility-disclosure")}>

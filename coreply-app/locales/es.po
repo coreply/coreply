@@ -215,10 +215,15 @@ msgstr "No se pudieron cargar los registros"
 msgid "Failed to save selected apps: {message}"
 msgstr "No se pudieron guardar las apps seleccionadas: {message}"
 
-#. Finishes the onboarding process
-#: src/app/onboarding.tsx:42
-msgid "Finish setup"
-msgstr "Finalizar configuración"
+#. Onboarding button that opens the Android app picker
+#: src/app/onboarding.tsx:59
+msgid "Finish setup and select apps"
+msgstr "Finalizar la configuración y seleccionar aplicaciones"
+
+#. Onboarding button that opens the browser extension's website picker
+#: src/app/onboarding.tsx:57
+msgid "Finish setup and select websites"
+msgstr "Finalizar la configuración y seleccionar sitios web"
 
 #. Button to purchase more Coreply Cloud usage
 #: src/components/get-more-usage-button.tsx:30
@@ -290,7 +295,7 @@ msgid "OK"
 msgstr "Aceptar"
 
 #. Title of the conversation that introduces Coreply
-#: src/app/onboarding.tsx:95
+#: src/app/onboarding.tsx:116
 msgid "Onboarding chat"
 msgstr "Chat de bienvenida"
 
@@ -329,7 +334,7 @@ msgstr "Restablecer valores predeterminados"
 msgid "Retry"
 msgstr "Reintentar"
 
-#: src/app/onboarding.tsx:48
+#: src/app/onboarding.tsx:69
 msgid "Review and enable accessibility"
 msgstr "Revisar y activar la accesibilidad"
 
@@ -359,7 +364,7 @@ msgid "Signing out..."
 msgstr "Cerrando sesión..."
 
 #. Button that skips onboarding and opens the app
-#: src/app/onboarding.tsx:98
+#: src/app/onboarding.tsx:119
 msgid "Skip"
 msgstr "Omitir"
 
@@ -368,7 +373,7 @@ msgstr "Omitir"
 msgid "Suggestion: {0}"
 msgstr "Sugerencia: {0}"
 
-#: src/app/onboarding.tsx:110
+#: src/app/onboarding.tsx:133
 msgid "Tap a suggestion to insert the next word, or hold it to insert the whole suggestion."
 msgstr "Toca una sugerencia para insertar la siguiente palabra. Mantenla pulsada para insertar toda la sugerencia."
 

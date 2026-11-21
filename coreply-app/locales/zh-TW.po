@@ -215,10 +215,15 @@ msgstr "無法載入紀錄"
 msgid "Failed to save selected apps: {message}"
 msgstr "無法儲存所選的應用程式：{message}"
 
-#. Finishes the onboarding process
-#: src/app/onboarding.tsx:42
-msgid "Finish setup"
-msgstr "完成設定"
+#. Onboarding button that opens the Android app picker
+#: src/app/onboarding.tsx:59
+msgid "Finish setup and select apps"
+msgstr "完成設定並選取應用程式"
+
+#. Onboarding button that opens the browser extension's website picker
+#: src/app/onboarding.tsx:57
+msgid "Finish setup and select websites"
+msgstr "完成設定並選取網站"
 
 #. Button to purchase more Coreply Cloud usage
 #: src/components/get-more-usage-button.tsx:30
@@ -290,7 +295,7 @@ msgid "OK"
 msgstr "確定"
 
 #. Title of the conversation that introduces Coreply
-#: src/app/onboarding.tsx:95
+#: src/app/onboarding.tsx:116
 msgid "Onboarding chat"
 msgstr "新手引導對話"
 
@@ -329,7 +334,7 @@ msgstr "還原預設設定"
 msgid "Retry"
 msgstr "重試"
 
-#: src/app/onboarding.tsx:48
+#: src/app/onboarding.tsx:69
 msgid "Review and enable accessibility"
 msgstr "閱讀說明並啟用無障礙服務"
 
@@ -359,7 +364,7 @@ msgid "Signing out..."
 msgstr "正在登出..."
 
 #. Button that skips onboarding and opens the app
-#: src/app/onboarding.tsx:98
+#: src/app/onboarding.tsx:119
 msgid "Skip"
 msgstr "略過"
 
@@ -368,7 +373,7 @@ msgstr "略過"
 msgid "Suggestion: {0}"
 msgstr "建議：{0}"
 
-#: src/app/onboarding.tsx:110
+#: src/app/onboarding.tsx:133
 msgid "Tap a suggestion to insert the next word, or hold it to insert the whole suggestion."
 msgstr "輕觸建議可插入下一個字詞，長按可插入整段建議。"
 
