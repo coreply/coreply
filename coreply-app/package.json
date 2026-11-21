@@ -88,6 +88,7 @@
     "i18n:compile": "lingui compile",
     "start": "expo start",
     "android": "expo start --android",
+    "run:android": "cd android && ./gradlew installDebug -PreactNativeArchitectures=arm64-v8a",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",

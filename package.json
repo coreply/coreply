@@ -1,10 +1,15 @@
 {
-	"name": "coreply-workspace",
-	"private": true,
-	"packageManager": "pnpm@12.18.0",
-	"scripts": {
-		"build": "pnpm -r --filter ./libcoreply --filter ./coreply-shared-components --filter ./coreply-wrapper --filter ./coreply-app build",
-		"build:wrapper": "pnpm --filter coreply-wrapper build",
-		"typecheck": "pnpm -r --filter ./libcoreply --filter ./coreply-shared-components --filter ./coreply-wrapper --filter ./coreply-app typecheck"
-	}
+  "name": "coreply-workspace",
+  "private": true,
+  "packageManager": "pnpm@12.18.0",
+  "scripts": {
+    "build": "pnpm -r --filter ./libcoreply --filter ./coreply-shared-components --filter ./coreply-wrapper --filter ./coreply-app build",
+    "build:wrapper": "pnpm --filter coreply-wrapper build",
+    "build:extension": "pnpm --filter coreply-app build && pnpm --filter coreply-browser-extension build",
+    "zip:extension": "pnpm --filter coreply-app build && pnpm --filter coreply-browser-extension zip",
+    "run:extension": "pnpm --filter coreply-app build && pnpm --filter coreply-browser-extension dev",
+    "run:android:rc": "pnpm --filter coreply-wrapper build --mode development && variant=rc pnpm --filter coreply-app run:android",
+    "run:android:web": "pnpm --filter coreply-wrapper build --mode development && variant=web pnpm --filter coreply-app run:android",
+    "typecheck": "pnpm -r --filter ./libcoreply --filter ./coreply-shared-components --filter ./coreply-wrapper --filter ./coreply-app typecheck"
+  }
 }

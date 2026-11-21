@@ -73,23 +73,33 @@ export default defineConfig({
 
       // copy assets and expo folder to ./public (relative to this file)
       const publicDir = path.join(currentDir, "public");
-      const copyDir = (src: string, dest: string) => {
+      const copyDir = (src: string, dest: string, rewriteExpoPaths: boolean) => {
         if (!fs.existsSync(src)) return;
         fs.mkdirSync(dest, { recursive: true });
         for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
           const srcPath = path.join(src, entry.name);
           const destPath = path.join(dest, entry.name);
           if (entry.isDirectory()) {
-            copyDir(srcPath, destPath);
+            copyDir(srcPath, destPath, rewriteExpoPaths);
           } else if (entry.isFile()) {
-            fs.copyFileSync(srcPath, destPath);
+            if (rewriteExpoPaths && entry.name.endsWith(".js")) {
+              // Metro embeds lazy chunk URLs in the generated JavaScript.
+              const content = fs.readFileSync(srcPath, "utf8");
+              fs.writeFileSync(destPath, content.replace(/\/_expo\//g, "/expo/"));
+            } else {
+              fs.copyFileSync(srcPath, destPath);
+            }
           }
         }
       };
 
       try {
-        copyDir(path.join(popupDir, "assets"), path.join(publicDir, "assets"));
-        copyDir(path.join(popupDir, "expo"), path.join(publicDir, "expo"));
+        const publicAssetsDir = path.join(publicDir, "assets");
+        const publicExpoDir = path.join(publicDir, "expo");
+        fs.rmSync(publicAssetsDir, { recursive: true, force: true });
+        fs.rmSync(publicExpoDir, { recursive: true, force: true });
+        copyDir(path.join(popupDir, "assets"), publicAssetsDir, false);
+        copyDir(newExpoDir, publicExpoDir, true);
       } catch (err) {
         console.error("Error copying assets/expo to public:", err);
       }
