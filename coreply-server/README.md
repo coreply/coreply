@@ -10,15 +10,14 @@ the session on the backend. Cached frontend state never authorizes API requests.
 
 Copy `.dev.vars.example` to `.dev.vars` in this package and set:
 
-| Variable | Value |
-| --- | --- |
-| `BETTER_AUTH_SECRET` | Random secret, at least 32 characters. Generate with `openssl rand -base64 32`. |
-| `BETTER_AUTH_URL` | Backend origin, e.g. `http://localhost:5173` locally, your HTTPS origin in production. |
-| `GOOGLE_CLIENT_ID` | Google **Web application** OAuth client ID. |
-| `GOOGLE_CLIENT_SECRET` | Secret for that Web OAuth client. Server only. |
-| `GITHUB_CLIENT_ID` | GitHub OAuth app client ID. |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret. Server only. |
-| `CLOUD_WEB_ORIGIN` | Exact browser frontend origin. Use `http://localhost:5173` for this frontend or `http://localhost:8081` for Expo web. |
+| Variable               | Value                                                                                                                 |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `BETTER_AUTH_SECRET`   | Random secret, at least 32 characters. Generate with `openssl rand -base64 32`.                                       |
+| `GOOGLE_CLIENT_ID`     | Google **Web application** OAuth client ID.                                                                           |
+| `GOOGLE_CLIENT_SECRET` | Secret for that Web OAuth client. Server only.                                                                        |
+| `GITHUB_CLIENT_ID`     | GitHub OAuth app client ID.                                                                                           |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret. Server only.                                                                          |
+| `CLOUD_WEB_ORIGIN`     | Exact browser frontend origin. Use `http://localhost:5173` for this frontend or `http://localhost:8081` for Expo web. |
 
 Register these Google Web OAuth redirect URIs:
 
@@ -66,11 +65,11 @@ Runtime exports one `auth` instance using `cloudflare:workers` bindings.
 
 Copy `../coreply-app/.env.example` to `../coreply-app/.env.local`:
 
-| Variable | Value |
-| --- | --- |
-| `EXPO_PUBLIC_COREPLY_CLOUD_URL` | Backend origin reachable by the device/browser. Android emulator uses `http://10.0.2.2:5173`; a physical device needs your machine's LAN address. |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The same Web OAuth client ID as the backend's `GOOGLE_CLIENT_ID`. Required on native. |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | iOS OAuth client ID. Required only on iOS. |
+| Variable                           | Value                                                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_COREPLY_CLOUD_URL`    | Backend origin reachable by the device/browser. Android emulator uses `http://10.0.2.2:5173`; a physical device needs your machine's LAN address. |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The same Web OAuth client ID as the backend's `GOOGLE_CLIENT_ID`. Required on native.                                                             |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | iOS OAuth client ID. Required only on iOS.                                                                                                        |
 
 Never put `GOOGLE_CLIENT_SECRET` or `BETTER_AUTH_SECRET` in public app variables.
 Rebuild the bundled Android app after changing its environment. The sign-in form
