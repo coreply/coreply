@@ -70,7 +70,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply coreply-cloud --local",
     "db:migrate:remote": "wrangler d1 migrations apply coreply-cloud --remote",
-    "build": "pnpm run i18n:compile && tsc -b && vite build",
+    "build": "pnpm run i18n:compile && vite build",
     "cf-typegen": "wrangler types",
     "check": "tsc && vite build && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",

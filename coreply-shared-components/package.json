@@ -33,6 +33,7 @@
     "debounce": "^3.0.0",
     "hono": "4.11.1",
     "libcoreply": "workspace:*",
+    "lucide-react": "^1.71.0",
     "lucide-react-native": "^1.18.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
