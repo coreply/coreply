@@ -29,11 +29,9 @@
       "BETTER_AUTH_SECRET",
       "GOOGLE_CLIENT_ID",
       "GOOGLE_ANDROID_CLIENT_ID",
-      "GOOGLE_EXTENSION_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",
       "GITHUB_CLIENT_ID",
       "GITHUB_CLIENT_SECRET",
-      "CLOUD_WEB_ORIGIN",
       "AUTUMN_SECRET_KEY",
       "COREPLY_CLOUD_SETTINGS",
     ],
@@ -55,7 +53,10 @@
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/
    */
-  // "vars": {  "MY_VARIABLE": "production_value" }
+  "vars": {
+    "CHROME_EXTENSION_ID": "chrome-extension://iihjeeccchfjpmdhnnngpiimnmbcfjjc",
+    "CLOUD_WEB_ORIGIN": "https://cloud.coreply.app",
+  },
   /**
    * Service Bindings (communicate between multiple Workers)
    * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings

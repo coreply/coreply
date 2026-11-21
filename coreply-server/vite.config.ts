@@ -10,6 +10,8 @@ import { lingui } from "@lingui/vite-plugin";
 export default defineConfig({
   resolve: {
     tsconfigPaths: true,
+    // Shared components and React DOM must use the same React instance.
+    dedupe: ["react", "react-dom"],
     alias: [
       // Shared icons use DOM SVGs on the server, not native SVG modules.
       { find: /^lucide-react-native$/, replacement: "lucide-react" },

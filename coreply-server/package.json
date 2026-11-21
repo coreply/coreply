@@ -1,8 +1,8 @@
 {
-  "name": "vite-react-template",
-  "description": "A template for building a React application with Vite, Hono, and Cloudflare Workers",
+  "name": "coreply-server",
+  "description": "Coreply Cloud web application and server",
   "cloudflare": {
-    "label": "Vite React Template",
+    "label": "Coreply Server",
     "products": [
       "Workers"
     ],
