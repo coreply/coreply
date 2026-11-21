@@ -47,8 +47,7 @@ function currentSubscription(customer: Customer) {
       !subscription.addOn &&
       (subscription.planId === "free" ||
         subscription.planId === "plus" ||
-        subscription.planId === "plus_quarterly" ||
-        subscription.planId === "plus_annual"),
+        subscription.planId === "plus_quarterly"),
   );
   if (subscriptions.length !== 1) {
     throw new HTTPException(502, {
@@ -108,7 +107,7 @@ export const billing = new Hono<{
       xApiVersion: "2.3.0",
     });
     const user = c.get("session").user;
-    const [customer, free, plus] = await Promise.all([
+    const [customer, free, plus, quarterly] = await Promise.all([
       autumn.customers.getOrCreate({
         customerId: user.id,
         name: user.name,
@@ -116,10 +115,11 @@ export const billing = new Hono<{
       }),
       autumn.plans.get({ planId: "free" }),
       autumn.plans.get({ planId: "plus" }),
+      autumn.plans.get({ planId: "plus_quarterly" }),
     ]);
     const subscription = currentSubscription(customer);
     const usage = customerUsage(customer);
-    const plans = [planSummary(free), planSummary(plus)];
+    const plans = [planSummary(free), planSummary(plus), planSummary(quarterly)];
     const plan = plans.find((item) => item.id === subscription.planId)
       ?? planSummary(await autumn.plans.get({ planId: subscription.planId }));
     return c.json({
@@ -153,7 +153,7 @@ export const billing = new Hono<{
   .post(
     "/upgrade",
     validator("json", (value, c) => {
-      if (value.planId !== "plus" && value.planId !== "plus_annual") {
+      if (value.planId !== "plus" && value.planId !== "plus_quarterly") {
         return c.json({ error: "Please choose a valid plan." }, 400);
       }
       return { planId: value.planId };

@@ -7,15 +7,10 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: zh-TW\n"
 
-#. Suffix after a Cloud plan's monthly price
+#. Suffix after a Cloud plan's monthly equivalent price
 #: src/react-app/routes/billing.tsx:104
 msgid "/ month"
 msgstr "/ 月"
-
-#. Suffix after a Cloud plan's annual price
-#: src/react-app/routes/billing.tsx:104
-msgid "/ year"
-msgstr "/ 年"
 
 #. Cloud account settings page and sidebar link
 #. Cloud account settings page and sidebar link
@@ -38,10 +33,10 @@ msgstr "提供基本回覆建議與基本額度。"
 msgid "Better models and {0}x the monthly usage of Free."
 msgstr "使用更強大的模型，每月額度為免費版的 {0} 倍。"
 
-#. Annual billing interval for the Plus subscription
+#. Quarterly billing interval for the Plus subscription
 #: src/react-app/routes/billing.tsx:70
-msgid "Billed annually"
-msgstr "按年計費"
+msgid "Billed quarterly"
+msgstr "按季計費"
 
 #. Monthly billing interval for the Plus subscription
 #: src/react-app/routes/billing.tsx:69
@@ -55,7 +50,7 @@ msgstr "按月計費"
 msgid "Billing"
 msgstr "訂閱與帳單"
 
-#. Select monthly or annual billing for Plus
+#. Select monthly or quarterly billing for Plus
 #: src/react-app/routes/billing.tsx:81
 msgid "Billing frequency"
 msgstr "計費週期"

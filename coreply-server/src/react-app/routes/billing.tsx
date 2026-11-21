@@ -17,7 +17,7 @@ function Billing() {
   const { t, i18n } = useLingui();
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
-  const [selectedPlan, setSelectedPlan] = useState<"plus" | "plus_annual" | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"plus" | "plus_quarterly" | null>(null);
   const billing = useQuery({
     queryKey: ["billing", session?.user.id],
     enabled: !!session,
@@ -33,7 +33,7 @@ function Billing() {
     retry: false,
   });
   const upgrade = useMutation({
-    mutationFn: async (planId: "plus" | "plus_annual") => {
+    mutationFn: async (planId: "plus" | "plus_quarterly") => {
       const response = await client.upgrade.$post({ json: { planId } });
       const data = await response.json();
       if ("error" in data) throw new Error(data.error);
@@ -59,15 +59,15 @@ function Billing() {
     const result = await portal.mutateAsync();
     window.location.assign(result.url);
   }
-  async function openCheckout(planId: "plus" | "plus_annual") {
+  async function openCheckout(planId: "plus" | "plus_quarterly") {
     const result = await upgrade.mutateAsync(planId);
     window.location.assign(result.url);
   }
   const freePlan = billing.data?.plans.find((plan) => plan.id === "free");
-  const plusPlanId = selectedPlan ?? (billing.data?.plan.id === "plus_annual" ? "plus_annual" : "plus");
+  const plusPlanId = selectedPlan ?? (billing.data?.plan.id === "plus_quarterly" ? "plus_quarterly" : "plus");
   const billingIntervals = [
     { value: "plus", label: t({ message: "Billed monthly", comment: "Monthly billing interval for the Plus subscription" }) },
-    { value: "plus_annual", label: t({ message: "Billed annually", comment: "Annual billing interval for the Plus subscription" }) },
+    { value: "plus_quarterly", label: t({ message: "Billed quarterly", comment: "Quarterly billing interval for the Plus subscription" }) },
   ];
   return <CloudLayout title={t({ message: "Billing", comment: "Cloud subscription and payments page title and sidebar link" })}>
     <section className="space-y-6">
@@ -77,8 +77,8 @@ function Billing() {
           <p className="text-muted-foreground"><Trans>Choose your Cloud plan. All prices are in <strong>USD</strong>.</Trans></p>
         </div>
         {billing.data && <div className="flex flex-col gap-2">
-          <Select value={plusPlanId} items={billingIntervals} onValueChange={(value) => { if (value === "plus" || value === "plus_annual") setSelectedPlan(value); }}>
-            <SelectTrigger aria-label={t({ message: "Billing frequency", comment: "Select monthly or annual billing for Plus" })}><SelectValue /></SelectTrigger>
+          <Select value={plusPlanId} items={billingIntervals} onValueChange={(value) => { if (value === "plus" || value === "plus_quarterly") setSelectedPlan(value); }}>
+            <SelectTrigger aria-label={t({ message: "Billing frequency", comment: "Select monthly or quarterly billing for Plus" })}><SelectValue /></SelectTrigger>
             <SelectContent><SelectGroup>{billingIntervals.map((interval) => <SelectItem key={interval.value} value={interval.value}>{interval.label}</SelectItem>)}</SelectGroup></SelectContent>
           </Select>
         </div>}
@@ -101,10 +101,10 @@ function Billing() {
       {billing.data.subscription.canceled && <p className="text-muted-foreground"><Trans>Your subscription is set to cancel. Manage it in billing settings.</Trans></p>}
       <div className="grid gap-5 sm:grid-cols-2">{billing.data.plans.filter((plan) => plan.id === "free" || plan.id === plusPlanId).map((plan) => <section key={plan.id === "free" ? "free" : "plus"} className="flex flex-col gap-5 border bg-form p-6">
         <div className="flex items-center justify-between"><h3 className="text-xl font-semibold">{plan.id === "free" ? t({ message: "Free", comment: "Name of the free Coreply Cloud plan" }) : t({ message: "Plus", comment: "Name of the paid Coreply Cloud plan" })}</h3>{billing.data.plan.id === plan.id && <span className="text-sm text-primary"><Trans comment="Badge identifying the user's subscribed Cloud plan">Current plan</Trans></span>}</div>
-        <p className="text-3xl font-semibold">{plan.price ? `US$${plan.price.amount}` : "US$0"}<span className="text-sm font-normal text-muted-foreground"> {plan.price?.interval === "year" ? <Trans comment="Suffix after a Cloud plan's annual price">/ year</Trans> : <Trans comment="Suffix after a Cloud plan's monthly price">/ month</Trans>}</span></p>
+        <p className="text-3xl font-semibold">{plan.price ? `US$${new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.price.interval === "quarter" ? plan.price.amount / 3 : plan.price.amount)}` : "US$0"}<span className="text-sm font-normal text-muted-foreground"> <Trans comment="Suffix after a Cloud plan's monthly equivalent price">/ month</Trans></span></p>
         {plan.id === "free" && <p className="text-sm text-muted-foreground"><Trans>Basic suggestions with a basic usage allowance.</Trans></p>}
-        {(plan.id === "plus" || plan.id === "plus_annual") && freePlan && <p className="text-sm text-muted-foreground"><Trans comment="Ratio compares Plus and Free monthly Cloud usage allowances">Better models and {new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.monthlyAllowance / freePlan.monthlyAllowance)}x the monthly usage of Free.</Trans></p>}
-        {(plan.id === "plus" || plan.id === "plus_annual") && billing.data.plan.id === "free" && <Button disabled={upgrade.isPending || portal.isPending} onClick={() => { void openCheckout(plan.id === "plus" ? "plus" : "plus_annual").catch(() => {}); }}>{upgrade.isPending && upgrade.variables === plan.id ? t`Opening checkout...` : t`Upgrade to Plus`}</Button>}
+        {(plan.id === "plus" || plan.id === "plus_quarterly") && freePlan && <p className="text-sm text-muted-foreground"><Trans comment="Ratio compares Plus and Free monthly Cloud usage allowances">Better models and {new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.monthlyAllowance / freePlan.monthlyAllowance)}x the monthly usage of Free.</Trans></p>}
+        {(plan.id === "plus" || plan.id === "plus_quarterly") && billing.data.plan.id === "free" && <Button disabled={upgrade.isPending || portal.isPending} onClick={() => { void openCheckout(plan.id === "plus" ? "plus" : "plus_quarterly").catch(() => {}); }}>{upgrade.isPending && upgrade.variables === plan.id ? t`Opening checkout...` : t`Upgrade to Plus`}</Button>}
       </section>)}</div>
     </>}
     </section>

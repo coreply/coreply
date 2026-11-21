@@ -7,15 +7,10 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
-#. Suffix after a Cloud plan's monthly price
+#. Suffix after a Cloud plan's monthly equivalent price
 #: src/react-app/routes/billing.tsx:104
 msgid "/ month"
 msgstr "/ month"
-
-#. Suffix after a Cloud plan's annual price
-#: src/react-app/routes/billing.tsx:104
-msgid "/ year"
-msgstr "/ year"
 
 #. Cloud account settings page and sidebar link
 #. Cloud account settings page and sidebar link
@@ -38,10 +33,10 @@ msgstr "Basic suggestions with a basic usage allowance."
 msgid "Better models and {0}x the monthly usage of Free."
 msgstr "Better models and {0}x the monthly usage of Free."
 
-#. Annual billing interval for the Plus subscription
+#. Quarterly billing interval for the Plus subscription
 #: src/react-app/routes/billing.tsx:70
-msgid "Billed annually"
-msgstr "Billed annually"
+msgid "Billed quarterly"
+msgstr "Billed quarterly"
 
 #. Monthly billing interval for the Plus subscription
 #: src/react-app/routes/billing.tsx:69
@@ -55,7 +50,7 @@ msgstr "Billed monthly"
 msgid "Billing"
 msgstr "Billing"
 
-#. Select monthly or annual billing for Plus
+#. Select monthly or quarterly billing for Plus
 #: src/react-app/routes/billing.tsx:81
 msgid "Billing frequency"
 msgstr "Billing frequency"
