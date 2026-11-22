@@ -1,5 +1,6 @@
 import { createFileRoute, Navigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { SessionCheckError, SessionSpinner } from "@server/components/session-status";
 import { authClient } from "@server/lib/auth-client";
 import { CoreplyCloudSignIn } from "coreply-shared-components/src/components/groups/coreply-cloud-sign-in";
 import { Trans, useLingui } from "@lingui/react/macro";
@@ -7,7 +8,7 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const { t } = useLingui();
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending, error, refetch } = authClient.useSession();
   const search = useLocation({ select: (location) => location.searchStr });
   const closeTab = new URLSearchParams(search).get("close_tab") === "true";
 
@@ -23,6 +24,10 @@ function Home() {
     );
   }
   if (session) return <Navigate to="/usage" replace />;
+  if (isPending) return <SessionSpinner />;
+  if (error && error.status !== 401) {
+    return <SessionCheckError onRetry={() => { void refetch(); }} />;
+  }
   return (
     <main className="relative isolate grid min-h-svh grid-rows-[0.8fr_auto_1.2fr] justify-items-center overflow-hidden bg-background px-6 py-16 font-sans text-foreground sm:px-12">
       <div
