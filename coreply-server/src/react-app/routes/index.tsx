@@ -46,9 +46,9 @@ function Home() {
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-1 -left-1 size-2 border border-primary bg-background" />
         <div aria-hidden="true" className="pointer-events-none absolute -right-1 -bottom-1 size-2 border border-primary bg-background" />
       </section>
-      <div className="row-start-3 flex w-full max-w-md items-center justify-end gap-1 self-start pr-1 pt-2">
-        <LanguageSwitcher trigger={<Button variant="ghost" />} align="end" side="bottom" />
+      <div className="row-start-3 flex w-full max-w-md items-center gap-1 self-start pl-1 pt-2">
         <ThemeToggle />
+        <LanguageSwitcher trigger={<Button variant="ghost" />} align="start" side="bottom" />
       </div>
     </main>
   );
