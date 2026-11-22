@@ -353,6 +353,10 @@ msgstr "進階設定"
 msgid "Show password"
 msgstr "顯示密碼"
 
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:14
+msgid "Sign in or create an account to get typing suggestions tailored to your conversations."
+msgstr "登入或建立帳戶，即可獲得切合你對話內容的輸入建議。"
+
 #: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:12
 msgid "Sign in to Coreply Cloud"
 msgstr "登入 Coreply Cloud"
@@ -452,6 +456,11 @@ msgstr "想喺其他 App 都用到呢啲建議？開啟 Coreply 嘅無障礙服�
 #: ../coreply-shared-components/src/demo-conversations/localized.ts:40
 msgid "Welcome email is updated. Left the subject line alone as agreed."
 msgstr ""
+
+#. Heading for both new and returning Coreply Cloud users
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:12
+msgid "Welcome to Coreply Cloud"
+msgstr "歡迎使用 Coreply Cloud"
 
 #. Friendly chat prompt inviting the user to try typing suggestions.
 #: ../coreply-shared-components/src/demo-conversations/localized.ts:10

@@ -63,7 +63,6 @@ function Billing() {
     const result = await upgrade.mutateAsync(planId);
     window.location.assign(result.url);
   }
-  const freePlan = billing.data?.plans.find((plan) => plan.id === "free");
   const plusPlanId = selectedPlan ?? (billing.data?.plan.id === "plus_quarterly" ? "plus_quarterly" : "plus");
   const billingIntervals = [
     { value: "plus", label: t({ message: "Billed monthly", comment: "Monthly billing interval for the Plus subscription" }) },
@@ -102,8 +101,8 @@ function Billing() {
       <div className="grid gap-5 sm:grid-cols-2">{billing.data.plans.filter((plan) => plan.id === "free" || plan.id === plusPlanId).map((plan) => <section key={plan.id === "free" ? "free" : "plus"} className="flex flex-col gap-5 border bg-form p-6">
         <div className="flex items-center justify-between"><h3 className="text-xl font-semibold">{plan.id === "free" ? t({ message: "Free", comment: "Name of the free Coreply Cloud plan" }) : t({ message: "Plus", comment: "Name of the paid Coreply Cloud plan" })}</h3>{billing.data.plan.id === plan.id && <span className="text-sm text-primary"><Trans comment="Badge identifying the user's subscribed Cloud plan">Current plan</Trans></span>}</div>
         <p className="text-3xl font-semibold">{plan.price ? `US$${new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.price.interval === "quarter" ? plan.price.amount / 3 : plan.price.amount)}` : "US$0"}<span className="text-sm font-normal text-muted-foreground"> <Trans comment="Suffix after a Cloud plan's monthly equivalent price">/ month</Trans></span></p>
-        {plan.id === "free" && <p className="text-sm text-muted-foreground"><Trans>Basic suggestions with a basic usage allowance.</Trans></p>}
-        {(plan.id === "plus" || plan.id === "plus_quarterly") && freePlan && <p className="text-sm text-muted-foreground"><Trans comment="Ratio compares Plus and Free monthly Cloud usage allowances">Better models and {new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.monthlyAllowance / freePlan.monthlyAllowance)}x the monthly usage of Free.</Trans></p>}
+        {plan.id === "free" && <p className="text-sm text-muted-foreground"><Trans>A limited monthly allowance to try Coreply Cloud.</Trans></p>}
+        {(plan.id === "plus" || plan.id === "plus_quarterly") && <p className="text-sm text-muted-foreground"><Trans>A higher monthly allowance for everyday use.</Trans></p>}
         {(plan.id === "plus" || plan.id === "plus_quarterly") && billing.data.plan.id === "free" && <Button disabled={upgrade.isPending || portal.isPending} onClick={() => { void openCheckout(plan.id === "plus" ? "plus" : "plus_quarterly").catch(() => {}); }}>{upgrade.isPending && upgrade.variables === plan.id ? t`Opening checkout...` : t`Upgrade to Plus`}</Button>}
       </section>)}</div>
     </>}

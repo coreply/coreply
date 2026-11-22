@@ -8,7 +8,7 @@ msgstr ""
 "Language: de\n"
 
 #. Suffix after a Cloud plan's monthly equivalent price
-#: src/react-app/routes/billing.tsx:104
+#: src/react-app/routes/billing.tsx:103
 msgid "/ month"
 msgstr "/ Monat"
 
@@ -19,13 +19,13 @@ msgstr "/ Monat"
 msgid "Account"
 msgstr "Konto"
 
-#: src/react-app/routes/billing.tsx:114
+#: src/react-app/routes/billing.tsx:113
 msgid "After subscribing on this website, you can manage your subscription and invoices here."
 msgstr "Sobald du ein Abo auf dieser Website abgeschlossen hast, kannst du es hier verwalten und deine Rechnungen einsehen."
 
-#: src/react-app/routes/billing.tsx:105
-msgid "Basic suggestions with a basic usage allowance."
-msgstr "Einfache Textvorschläge mit einem kleinen Nutzungskontingent."
+#: src/react-app/routes/billing.tsx:104
+msgid "A limited monthly allowance to try Coreply Cloud."
+msgstr "Ein begrenztes monatliches Kontingent zum Ausprobieren von Coreply Cloud."
 
 #. Ratio compares Plus and Free monthly Cloud usage allowances
 #. placeholder {0}: new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.monthlyAllowance / freePlan.monthlyAllowance)
@@ -33,25 +33,27 @@ msgstr "Einfache Textvorschläge mit einem kleinen Nutzungskontingent."
 msgid "Better models and {0}x the monthly usage of Free."
 msgstr "Bessere Modelle und das {0}-fache monatliche Kontingent der kostenlosen Version."
 
-#. Quarterly billing interval for the Plus subscription
-#: src/react-app/routes/billing.tsx:70
-msgid "Billed quarterly"
-msgstr "Vierteljährliche Zahlung"
+#: src/react-app/routes/billing.tsx:105
+msgid "A higher monthly allowance for everyday use."
+msgstr "Ein höheres monatliches Kontingent für die tägliche Nutzung."
 
 #. Monthly billing interval for the Plus subscription
-#: src/react-app/routes/billing.tsx:69
+#: src/react-app/routes/billing.tsx:68
 msgid "Billed monthly"
 msgstr "Monatliche Zahlung"
 
+#. Quarterly billing interval for the Plus subscription
+#: src/react-app/routes/billing.tsx:69
+msgid "Billed quarterly"
+msgstr "Vierteljährliche Zahlung"
+
 #. Cloud subscription and payments page title and sidebar link
-#. Cloud subscription and payments page title and sidebar link
-#: src/react-app/components/cloud-layout.tsx:104
-#: src/react-app/routes/billing.tsx:72
+#: src/react-app/routes/billing.tsx:71
 msgid "Billing"
 msgstr "Abo und Rechnungen"
 
 #. Select monthly or quarterly billing for Plus
-#: src/react-app/routes/billing.tsx:81
+#: src/react-app/routes/billing.tsx:80
 msgid "Billing frequency"
 msgstr "Zahlungsintervall"
 
@@ -59,7 +61,7 @@ msgstr "Zahlungsintervall"
 msgid "Checking your session..."
 msgstr "Anmeldung wird geprüft..."
 
-#: src/react-app/routes/billing.tsx:77
+#: src/react-app/routes/billing.tsx:76
 msgid "Choose your Cloud plan. All prices are in <0>USD</0>."
 msgstr "Wähle das passende Cloud-Abo. Alle Preise sind in <0>USD</0>."
 
@@ -85,7 +87,7 @@ msgid "Couldn't sign out. Please try again."
 msgstr "Die Abmeldung ist fehlgeschlagen. Bitte versuche es erneut."
 
 #. Badge identifying the user's subscribed Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Current plan"
 msgstr "Aktuelles Abo"
 
@@ -102,7 +104,7 @@ msgid "Docs"
 msgstr "Anleitung"
 
 #. Name of the free Coreply Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Free"
 msgstr "Kostenlos"
 
@@ -119,7 +121,7 @@ msgstr "Sieh nach, wie viel du in Coreply Cloud verbraucht hast und noch nutzen 
 msgid "Language"
 msgstr "Sprache"
 
-#: src/react-app/routes/billing.tsx:88
+#: src/react-app/routes/billing.tsx:87
 msgid "Loading your plan..."
 msgstr "Dein Abo wird geladen..."
 
@@ -128,37 +130,37 @@ msgstr "Dein Abo wird geladen..."
 msgid "Log out"
 msgstr "Abmelden"
 
-#: src/react-app/routes/billing.tsx:113
+#: src/react-app/routes/billing.tsx:112
 msgid "Manage subscription"
 msgstr "Abo verwalten"
 
-#: src/react-app/routes/billing.tsx:117
+#: src/react-app/routes/billing.tsx:116
 msgid "Manage subscription and invoices"
 msgstr "Abo und Rechnungen verwalten"
 
-#: src/react-app/routes/billing.tsx:114
+#: src/react-app/routes/billing.tsx:113
 msgid "Manage subscriptions purchased on this website and view your invoices."
 msgstr "Verwalte die auf dieser Website abgeschlossenen Abos und sieh deine Rechnungen ein."
 
-#: src/react-app/routes/billing.tsx:115
+#: src/react-app/routes/billing.tsx:114
 msgid "Only subscriptions purchased on this website appear in these billing settings. If you subscribed elsewhere, manage your subscription where you purchased it."
 msgstr "Hier erscheinen nur Abos, die du auf dieser Website abgeschlossen hast. Wenn du dein Abo woanders gekauft hast, verwalte es bitte dort."
 
-#: src/react-app/routes/billing.tsx:117
+#: src/react-app/routes/billing.tsx:116
 msgid "Opening billing..."
 msgstr "Abo-Verwaltung wird geöffnet..."
 
-#: src/react-app/routes/billing.tsx:107
+#: src/react-app/routes/billing.tsx:106
 msgid "Opening checkout..."
 msgstr "Zahlungsseite wird geöffnet..."
 
 #. Heading above available Cloud subscription plans
-#: src/react-app/routes/billing.tsx:76
+#: src/react-app/routes/billing.tsx:75
 msgid "Plans"
 msgstr "Abos"
 
 #. Name of the paid Coreply Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Plus"
 msgstr "Plus"
 
@@ -175,11 +177,11 @@ msgid "Signing out..."
 msgstr "Abmeldung läuft..."
 
 #. Button to retry loading billing details
-#: src/react-app/routes/billing.tsx:98
+#: src/react-app/routes/billing.tsx:97
 msgid "Try again"
 msgstr "Erneut versuchen"
 
-#: src/react-app/routes/billing.tsx:107
+#: src/react-app/routes/billing.tsx:106
 msgid "Upgrade to Plus"
 msgstr "Auf Plus upgraden"
 
@@ -198,11 +200,11 @@ msgstr "Nutze die Textvorschläge von Coreply Cloud in der Coreply-App für Andr
 msgid "Where to use Coreply"
 msgstr "Hier kannst du Coreply nutzen"
 
-#: src/react-app/routes/billing.tsx:100
+#: src/react-app/routes/billing.tsx:99
 msgid "Your payment needs attention. Update it in billing settings."
 msgstr "Bei deiner Zahlung ist ein Problem aufgetreten. Bitte aktualisiere deine Zahlungsdaten in den Zahlungseinstellungen."
 
-#: src/react-app/routes/billing.tsx:101
+#: src/react-app/routes/billing.tsx:100
 msgid "Your subscription is set to cancel. Manage it in billing settings."
 msgstr "Dein Abo ist gekündigt und wird auslaufen. Du kannst das in der Abo-Verwaltung ändern."
 

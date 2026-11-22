@@ -353,6 +353,10 @@ msgstr "Afficher les paramètres avancés"
 msgid "Show password"
 msgstr "Afficher le mot de passe"
 
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:14
+msgid "Sign in or create an account to get typing suggestions tailored to your conversations."
+msgstr "Connectez-vous ou créez un compte pour recevoir des suggestions de saisie adaptées à vos conversations."
+
 #: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:12
 msgid "Sign in to Coreply Cloud"
 msgstr "Se connecter à Coreply Cloud"
@@ -452,6 +456,11 @@ msgstr "Envie de retrouver ces suggestions dans tes autres applis ? Active le se
 #: ../coreply-shared-components/src/demo-conversations/localized.ts:40
 msgid "Welcome email is updated. Left the subject line alone as agreed."
 msgstr "Le mail de bienvenue est à jour. J'ai gardé l'objet comme convenu."
+
+#. Heading for both new and returning Coreply Cloud users
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:12
+msgid "Welcome to Coreply Cloud"
+msgstr "Bienvenue sur Coreply Cloud"
 
 #. Friendly chat prompt inviting the user to try typing suggestions.
 #: ../coreply-shared-components/src/demo-conversations/localized.ts:10

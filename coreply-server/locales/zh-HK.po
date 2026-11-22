@@ -8,7 +8,7 @@ msgstr ""
 "Language: zh-HK\n"
 
 #. Suffix after a Cloud plan's monthly equivalent price
-#: src/react-app/routes/billing.tsx:104
+#: src/react-app/routes/billing.tsx:103
 msgid "/ month"
 msgstr "/ 月"
 
@@ -19,13 +19,13 @@ msgstr "/ 月"
 msgid "Account"
 msgstr "帳戶"
 
-#: src/react-app/routes/billing.tsx:114
+#: src/react-app/routes/billing.tsx:113
 msgid "After subscribing on this website, you can manage your subscription and invoices here."
 msgstr "在此網站訂閱後，你便可以在這裏管理訂閱及查看帳單。"
 
-#: src/react-app/routes/billing.tsx:105
-msgid "Basic suggestions with a basic usage allowance."
-msgstr "提供基本回覆建議及基本額度。"
+#: src/react-app/routes/billing.tsx:104
+msgid "A limited monthly allowance to try Coreply Cloud."
+msgstr "每月額度有限，適合試用 Coreply Cloud。"
 
 #. Ratio compares Plus and Free monthly Cloud usage allowances
 #. placeholder {0}: new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.monthlyAllowance / freePlan.monthlyAllowance)
@@ -33,25 +33,27 @@ msgstr "提供基本回覆建議及基本額度。"
 msgid "Better models and {0}x the monthly usage of Free."
 msgstr "使用更強的模型，每月額度為免費版的 {0} 倍。"
 
-#. Quarterly billing interval for the Plus subscription
-#: src/react-app/routes/billing.tsx:70
-msgid "Billed quarterly"
-msgstr "按季收費"
+#: src/react-app/routes/billing.tsx:105
+msgid "A higher monthly allowance for everyday use."
+msgstr "每月額度更高，適合日常使用。"
 
 #. Monthly billing interval for the Plus subscription
-#: src/react-app/routes/billing.tsx:69
+#: src/react-app/routes/billing.tsx:68
 msgid "Billed monthly"
 msgstr "按月收費"
 
+#. Quarterly billing interval for the Plus subscription
+#: src/react-app/routes/billing.tsx:69
+msgid "Billed quarterly"
+msgstr "按季收費"
+
 #. Cloud subscription and payments page title and sidebar link
-#. Cloud subscription and payments page title and sidebar link
-#: src/react-app/components/cloud-layout.tsx:104
-#: src/react-app/routes/billing.tsx:72
+#: src/react-app/routes/billing.tsx:71
 msgid "Billing"
 msgstr "訂閱與帳單"
 
 #. Select monthly or quarterly billing for Plus
-#: src/react-app/routes/billing.tsx:81
+#: src/react-app/routes/billing.tsx:80
 msgid "Billing frequency"
 msgstr "收費週期"
 
@@ -59,7 +61,7 @@ msgstr "收費週期"
 msgid "Checking your session..."
 msgstr "正在檢查登入狀態..."
 
-#: src/react-app/routes/billing.tsx:77
+#: src/react-app/routes/billing.tsx:76
 msgid "Choose your Cloud plan. All prices are in <0>USD</0>."
 msgstr "選擇適合你的 Cloud 方案。所有價格均以<0>美元</0>計算。"
 
@@ -85,7 +87,7 @@ msgid "Couldn't sign out. Please try again."
 msgstr "無法登出，請重試。"
 
 #. Badge identifying the user's subscribed Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Current plan"
 msgstr "目前方案"
 
@@ -102,7 +104,7 @@ msgid "Docs"
 msgstr "使用指南"
 
 #. Name of the free Coreply Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Free"
 msgstr "免費版"
 
@@ -119,7 +121,7 @@ msgstr "查看你的 Coreply Cloud 使用量及剩餘額度。"
 msgid "Language"
 msgstr "語言"
 
-#: src/react-app/routes/billing.tsx:88
+#: src/react-app/routes/billing.tsx:87
 msgid "Loading your plan..."
 msgstr "正在載入方案資料..."
 
@@ -128,37 +130,37 @@ msgstr "正在載入方案資料..."
 msgid "Log out"
 msgstr "登出"
 
-#: src/react-app/routes/billing.tsx:113
+#: src/react-app/routes/billing.tsx:112
 msgid "Manage subscription"
 msgstr "管理訂閱"
 
-#: src/react-app/routes/billing.tsx:117
+#: src/react-app/routes/billing.tsx:116
 msgid "Manage subscription and invoices"
 msgstr "管理訂閱及帳單"
 
-#: src/react-app/routes/billing.tsx:114
+#: src/react-app/routes/billing.tsx:113
 msgid "Manage subscriptions purchased on this website and view your invoices."
 msgstr "管理你在此網站購買的訂閱及查看帳單。"
 
-#: src/react-app/routes/billing.tsx:115
+#: src/react-app/routes/billing.tsx:114
 msgid "Only subscriptions purchased on this website appear in these billing settings. If you subscribed elsewhere, manage your subscription where you purchased it."
 msgstr "這裏只會顯示在此網站購買的訂閱。如你透過其他平台訂閱，請前往原購買平台管理。"
 
-#: src/react-app/routes/billing.tsx:117
+#: src/react-app/routes/billing.tsx:116
 msgid "Opening billing..."
 msgstr "正在開啟訂閱與帳單頁面..."
 
-#: src/react-app/routes/billing.tsx:107
+#: src/react-app/routes/billing.tsx:106
 msgid "Opening checkout..."
 msgstr "正在開啟付款頁面..."
 
 #. Heading above available Cloud subscription plans
-#: src/react-app/routes/billing.tsx:76
+#: src/react-app/routes/billing.tsx:75
 msgid "Plans"
 msgstr "訂閱方案"
 
 #. Name of the paid Coreply Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Plus"
 msgstr "Plus"
 
@@ -175,11 +177,11 @@ msgid "Signing out..."
 msgstr "正在登出..."
 
 #. Button to retry loading billing details
-#: src/react-app/routes/billing.tsx:98
+#: src/react-app/routes/billing.tsx:97
 msgid "Try again"
 msgstr "重試"
 
-#: src/react-app/routes/billing.tsx:107
+#: src/react-app/routes/billing.tsx:106
 msgid "Upgrade to Plus"
 msgstr "升級至 Plus"
 
@@ -198,11 +200,11 @@ msgstr "在 Coreply Android 應用程式或瀏覽器擴充功能中登入，即�
 msgid "Where to use Coreply"
 msgstr "在哪裏使用 Coreply"
 
-#: src/react-app/routes/billing.tsx:100
+#: src/react-app/routes/billing.tsx:99
 msgid "Your payment needs attention. Update it in billing settings."
 msgstr "付款出現問題，請前往付款設定更新付款資料。"
 
-#: src/react-app/routes/billing.tsx:101
+#: src/react-app/routes/billing.tsx:100
 msgid "Your subscription is set to cancel. Manage it in billing settings."
 msgstr "你的訂閱已排定取消。如需更改，請前往訂閱管理頁面。"
 

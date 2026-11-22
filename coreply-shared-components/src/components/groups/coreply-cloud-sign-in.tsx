@@ -9,9 +9,9 @@ export function CoreplyCloudSignIn({ configured, extensionSignInUrl }: { configu
   return (
     <View className="w-full gap-5 border border-border bg-form p-5">
       <View className="gap-2">
-        <Text className="font-sans text-xl font-semibold"><Trans>Sign in to Coreply Cloud</Trans></Text>
+        <Text className="font-sans text-xl font-semibold"><Trans comment="Heading for both new and returning Coreply Cloud users">Welcome to Coreply Cloud</Trans></Text>
         <Text className="font-sans text-sm text-muted-foreground">
-          <Trans>Sign in to get typing suggestions tailored to your conversations.</Trans>
+          <Trans>Sign in or create an account to get typing suggestions tailored to your conversations.</Trans>
         </Text>
       </View>
       {configured ? (extensionSignInUrl ? (

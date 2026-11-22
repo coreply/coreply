@@ -8,7 +8,7 @@ msgstr ""
 "Language: es\n"
 
 #. Suffix after a Cloud plan's monthly equivalent price
-#: src/react-app/routes/billing.tsx:104
+#: src/react-app/routes/billing.tsx:103
 msgid "/ month"
 msgstr "/ mes"
 
@@ -19,13 +19,13 @@ msgstr "/ mes"
 msgid "Account"
 msgstr "Cuenta"
 
-#: src/react-app/routes/billing.tsx:114
+#: src/react-app/routes/billing.tsx:113
 msgid "After subscribing on this website, you can manage your subscription and invoices here."
 msgstr "Cuando te suscribas en este sitio web, podrás gestionar tu suscripción y consultar tus facturas aquí."
 
-#: src/react-app/routes/billing.tsx:105
-msgid "Basic suggestions with a basic usage allowance."
-msgstr "Sugerencias sencillas con una cuota de uso básica."
+#: src/react-app/routes/billing.tsx:104
+msgid "A limited monthly allowance to try Coreply Cloud."
+msgstr "Una cuota mensual limitada para probar Coreply Cloud."
 
 #. Ratio compares Plus and Free monthly Cloud usage allowances
 #. placeholder {0}: new Intl.NumberFormat(i18n.locale, { maximumFractionDigits: 2 }).format(plan.monthlyAllowance / freePlan.monthlyAllowance)
@@ -33,25 +33,27 @@ msgstr "Sugerencias sencillas con una cuota de uso básica."
 msgid "Better models and {0}x the monthly usage of Free."
 msgstr "Mejores modelos y {0}× la cuota mensual del plan gratuito."
 
-#. Quarterly billing interval for the Plus subscription
-#: src/react-app/routes/billing.tsx:70
-msgid "Billed quarterly"
-msgstr "Pago trimestral"
+#: src/react-app/routes/billing.tsx:105
+msgid "A higher monthly allowance for everyday use."
+msgstr "Una cuota mensual más alta para el uso diario."
 
 #. Monthly billing interval for the Plus subscription
-#: src/react-app/routes/billing.tsx:69
+#: src/react-app/routes/billing.tsx:68
 msgid "Billed monthly"
 msgstr "Pago mensual"
 
+#. Quarterly billing interval for the Plus subscription
+#: src/react-app/routes/billing.tsx:69
+msgid "Billed quarterly"
+msgstr "Pago trimestral"
+
 #. Cloud subscription and payments page title and sidebar link
-#. Cloud subscription and payments page title and sidebar link
-#: src/react-app/components/cloud-layout.tsx:104
-#: src/react-app/routes/billing.tsx:72
+#: src/react-app/routes/billing.tsx:71
 msgid "Billing"
 msgstr "Suscripción y facturas"
 
 #. Select monthly or quarterly billing for Plus
-#: src/react-app/routes/billing.tsx:81
+#: src/react-app/routes/billing.tsx:80
 msgid "Billing frequency"
 msgstr "Frecuencia de pago"
 
@@ -59,7 +61,7 @@ msgstr "Frecuencia de pago"
 msgid "Checking your session..."
 msgstr "Comprobando tu sesión..."
 
-#: src/react-app/routes/billing.tsx:77
+#: src/react-app/routes/billing.tsx:76
 msgid "Choose your Cloud plan. All prices are in <0>USD</0>."
 msgstr "Elige el plan Cloud que más te convenga. Todos los precios están en <0>USD</0>."
 
@@ -85,7 +87,7 @@ msgid "Couldn't sign out. Please try again."
 msgstr "No se pudo cerrar la sesión. Vuelve a intentarlo."
 
 #. Badge identifying the user's subscribed Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Current plan"
 msgstr "Plan actual"
 
@@ -102,7 +104,7 @@ msgid "Docs"
 msgstr "Guía de uso"
 
 #. Name of the free Coreply Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Free"
 msgstr "Gratis"
 
@@ -119,7 +121,7 @@ msgstr "Consulta tu consumo de Coreply Cloud y la cuota que te queda."
 msgid "Language"
 msgstr "Idioma"
 
-#: src/react-app/routes/billing.tsx:88
+#: src/react-app/routes/billing.tsx:87
 msgid "Loading your plan..."
 msgstr "Cargando tu plan..."
 
@@ -128,37 +130,37 @@ msgstr "Cargando tu plan..."
 msgid "Log out"
 msgstr "Cerrar sesión"
 
-#: src/react-app/routes/billing.tsx:113
+#: src/react-app/routes/billing.tsx:112
 msgid "Manage subscription"
 msgstr "Gestionar suscripción"
 
-#: src/react-app/routes/billing.tsx:117
+#: src/react-app/routes/billing.tsx:116
 msgid "Manage subscription and invoices"
 msgstr "Gestionar suscripción y facturas"
 
-#: src/react-app/routes/billing.tsx:114
+#: src/react-app/routes/billing.tsx:113
 msgid "Manage subscriptions purchased on this website and view your invoices."
 msgstr "Gestiona las suscripciones contratadas en este sitio web y consulta tus facturas."
 
-#: src/react-app/routes/billing.tsx:115
+#: src/react-app/routes/billing.tsx:114
 msgid "Only subscriptions purchased on this website appear in these billing settings. If you subscribed elsewhere, manage your subscription where you purchased it."
 msgstr "Aquí solo aparecen las suscripciones contratadas en este sitio web. Si te suscribiste en otra plataforma, gestiona tu suscripción allí."
 
-#: src/react-app/routes/billing.tsx:117
+#: src/react-app/routes/billing.tsx:116
 msgid "Opening billing..."
 msgstr "Abriendo la gestión de suscripciones..."
 
-#: src/react-app/routes/billing.tsx:107
+#: src/react-app/routes/billing.tsx:106
 msgid "Opening checkout..."
 msgstr "Abriendo la página de pago..."
 
 #. Heading above available Cloud subscription plans
-#: src/react-app/routes/billing.tsx:76
+#: src/react-app/routes/billing.tsx:75
 msgid "Plans"
 msgstr "Planes"
 
 #. Name of the paid Coreply Cloud plan
-#: src/react-app/routes/billing.tsx:103
+#: src/react-app/routes/billing.tsx:102
 msgid "Plus"
 msgstr "Plus"
 
@@ -175,11 +177,11 @@ msgid "Signing out..."
 msgstr "Cerrando sesión..."
 
 #. Button to retry loading billing details
-#: src/react-app/routes/billing.tsx:98
+#: src/react-app/routes/billing.tsx:97
 msgid "Try again"
 msgstr "Reintentar"
 
-#: src/react-app/routes/billing.tsx:107
+#: src/react-app/routes/billing.tsx:106
 msgid "Upgrade to Plus"
 msgstr "Pasar a Plus"
 
@@ -198,11 +200,11 @@ msgstr "Recibe sugerencias de Coreply Cloud en la app de Coreply para Android y 
 msgid "Where to use Coreply"
 msgstr "Dónde usar Coreply"
 
-#: src/react-app/routes/billing.tsx:100
+#: src/react-app/routes/billing.tsx:99
 msgid "Your payment needs attention. Update it in billing settings."
 msgstr "Hay un problema con tu pago. Actualiza tus datos en la configuración de pago."
 
-#: src/react-app/routes/billing.tsx:101
+#: src/react-app/routes/billing.tsx:100
 msgid "Your subscription is set to cancel. Manage it in billing settings."
 msgstr "Tu suscripción está cancelada y finalizará al terminar el periodo actual. Puedes cambiarlo desde la gestión de suscripciones."
 
