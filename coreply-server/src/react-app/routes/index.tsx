@@ -18,7 +18,7 @@ function Home() {
 
   if (session && closeTab) {
     return (
-      <main className="grid min-h-svh place-items-center bg-background px-6 text-foreground">
+      <main className="grid min-h-svh place-items-center bg-background px-3 text-foreground sm:px-6">
         <p role="status"><Trans>Signed in. You can close this tab.</Trans></p>
       </main>
     );
@@ -29,10 +29,10 @@ function Home() {
     return <SessionCheckError onRetry={() => { void refetch(); }} />;
   }
   return (
-    <main className="relative isolate grid min-h-svh grid-rows-[0.8fr_auto_1.2fr] justify-items-center overflow-hidden bg-background px-6 py-16 font-sans text-foreground sm:px-12">
+    <main className="relative isolate grid min-h-svh grid-rows-[0.8fr_auto_1.2fr] justify-items-center overflow-hidden bg-background p-3 font-sans text-foreground sm:px-12 sm:py-16">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-1/2 w-[calc(100%-3rem)] max-w-md -translate-x-1/2 border-x border-border/50 sm:w-[calc(100%-6rem)]"
+        className="pointer-events-none absolute inset-y-0 left-1/2 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 border-x border-border/50 sm:w-[calc(100%-6rem)]"
       />
       <section
         aria-label={t`Sign in`}

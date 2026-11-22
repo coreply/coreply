@@ -204,12 +204,12 @@ export function CloudLayout({
       <SidebarProvider>
         <CloudSidebar />
         <SidebarInset>
-          <header className="flex h-16 items-center gap-3 border-b px-6">
+          <header className="flex h-16 items-center gap-3 border-b px-3 sm:px-6">
             <SidebarTrigger />
             <h1 className="text-xl font-medium tracking-tight">{title}</h1>
             <div className="ml-auto"><ThemeToggle /></div>
           </header>
-          <main className="mx-auto w-full max-w-4xl space-y-8 px-6 py-10 sm:px-10">
+          <main className="mx-auto w-full max-w-4xl space-y-8 p-3 sm:p-10">
             {children}
           </main>
         </SidebarInset>

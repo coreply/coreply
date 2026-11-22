@@ -106,11 +106,11 @@ function ComponentDemo() {
     <SidebarProvider>
       <DemoSidebar />
       <SidebarInset className="min-w-0">
-        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-4 sm:px-6">
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-3 sm:px-6">
           <SidebarTrigger />
           <p className="text-sm font-medium">Component preview</p>
         </header>
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-10 sm:px-8 sm:py-12">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 p-3 sm:px-8 sm:py-12">
           <div className="flex w-full max-w-xl flex-col gap-2">
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">A conversation with Coreply</h1>
             <p className="text-sm leading-6 text-muted-foreground">

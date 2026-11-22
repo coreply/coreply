@@ -15,7 +15,7 @@ export function SessionSpinner() {
 
 export function SessionCheckError({ onRetry }: { onRetry: () => void }) {
   return (
-    <main className="grid min-h-svh place-content-center gap-4 p-6">
+    <main className="grid min-h-svh place-content-center gap-4 p-3 sm:p-6">
       <p role="alert">Couldn't check your session. Check your connection.</p>
       <Button onClick={onRetry}>Try again</Button>
     </main>

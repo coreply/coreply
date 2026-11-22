@@ -5,10 +5,10 @@ export const Route = createFileRoute("/onboarding")({ component: Onboarding });
 
 function Onboarding() {
   return (
-    <main className="relative isolate grid min-h-svh grid-rows-[0.8fr_auto_1.2fr] justify-items-center overflow-hidden bg-background px-6 py-12 font-sans text-foreground sm:px-12">
+    <main className="relative isolate grid min-h-svh grid-rows-[0.8fr_auto_1.2fr] justify-items-center overflow-hidden bg-background p-3 font-sans text-foreground sm:p-12">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-1/2 w-[calc(100%-3rem)] max-w-md -translate-x-1/2 border-x border-border/50 sm:w-[calc(100%-6rem)]"
+        className="pointer-events-none absolute inset-y-0 left-1/2 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 border-x border-border/50 sm:w-[calc(100%-6rem)]"
       />
       <section
         aria-label="Demo conversation"
