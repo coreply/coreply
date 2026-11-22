@@ -1,6 +1,8 @@
 import { createFileRoute, Navigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { LanguageSwitcher, ThemeToggle } from "@server/components/display-preferences";
 import { SessionCheckError, SessionSpinner } from "@server/components/session-status";
+import { Button } from "@server/components/ui/button";
 import { authClient } from "@server/lib/auth-client";
 import { CoreplyCloudSignIn } from "coreply-shared-components/src/components/groups/coreply-cloud-sign-in";
 import { Trans, useLingui } from "@lingui/react/macro";
@@ -44,6 +46,10 @@ function Home() {
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-1 -left-1 size-2 border border-primary bg-background" />
         <div aria-hidden="true" className="pointer-events-none absolute -right-1 -bottom-1 size-2 border border-primary bg-background" />
       </section>
+      <div className="row-start-3 flex w-full max-w-md items-center justify-end gap-1 self-start pr-1 pt-2">
+        <LanguageSwitcher trigger={<Button variant="ghost" />} align="end" side="bottom" />
+        <ThemeToggle />
+      </div>
     </main>
   );
 }

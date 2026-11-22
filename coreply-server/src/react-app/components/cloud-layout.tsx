@@ -1,20 +1,16 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpenIcon, ChartNoAxesCombinedIcon, CreditCardIcon, GlobeIcon, UserIcon } from "lucide-react";
+import { BookOpenIcon, ChartNoAxesCombinedIcon, CreditCardIcon, UserIcon } from "lucide-react";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { setLocale } from "@server/i18n";
-import { locales } from "@server/i18n/locales";
 import { authClient } from "@server/lib/auth-client";
+import { LanguageSwitcher, ThemeToggle } from "./display-preferences";
 import { RequireSession } from "./require-session";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Classic } from "./ui/classic";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
@@ -34,39 +30,8 @@ import {
   useSidebar,
 } from "./ui/sidebar";
 
-function ThemeToggle() {
-  const { t } = useLingui();
-  const [dark, setDark] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
-    return savedTheme === "dark" || (savedTheme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  });
-  useEffect(() => {
-    const preference = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = (event: MediaQueryListEvent) => {
-      if (!localStorage.getItem("theme")) setDark(event.matches);
-    };
-    preference.addEventListener("change", onChange);
-    return () => preference.removeEventListener("change", onChange);
-  }, []);
-  return (
-    <Classic
-      toggled={dark}
-      onClick={() => {
-        const nextTheme = dark ? "light" : "dark";
-        document.documentElement.classList.remove("light", "dark");
-        document.documentElement.classList.add(nextTheme);
-        localStorage.setItem("theme", nextTheme);
-        setDark(!dark);
-      }}
-      aria-label={t({ message: "Dark mode", comment: "Toggle for the site's dark color theme" })}
-      title={t({ message: "Dark mode", comment: "Toggle for the site's dark color theme" })}
-      className="flex size-8 shrink-0 items-center justify-center rounded-md text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-    />
-  );
-}
-
 function CloudSidebar() {
-  const { i18n, t } = useLingui();
+  const { t } = useLingui();
   const { pathname } = useLocation();
   const { setOpenMobile, isMobile } = useSidebar();
   const { data: session } = authClient.useSession();
@@ -134,24 +99,7 @@ function CloudSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={<SidebarMenuButton />}
-                    aria-label={t({ message: "Language", comment: "Sidebar menu for changing the display language" })}
-                  >
-                    <GlobeIcon aria-hidden="true" />
-                    {locales.find(({ id }) => id === i18n.locale)?.name}
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" side={isMobile ? "bottom" : "top"}>
-                    <DropdownMenuGroup>
-                      {locales.map(({ id, name }) => (
-                        <DropdownMenuCheckboxItem key={id} checked={i18n.locale === id} onClick={() => setLocale(id)}>
-                          {name}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <LanguageSwitcher trigger={<SidebarMenuButton />} align="start" side={isMobile ? "bottom" : "top"} />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
@@ -175,9 +123,9 @@ function CloudSidebar() {
                 <EllipsisVerticalIcon className="ml-auto" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side={isMobile ? "bottom" : "top"}>
-                <DropdownMenuItem onClick={() => signOut.mutate()}>
-                  {signOut.isPending ? t`Signing out...` : t({ message: "Log out", comment: "Account menu action to sign out of Coreply Cloud" })}
-                </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => signOut.mutate()}>
+                    {signOut.isPending ? t`Signing out...` : t({ message: "Log out", comment: "Account menu action to sign out of Coreply Cloud" })}
+                  </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
