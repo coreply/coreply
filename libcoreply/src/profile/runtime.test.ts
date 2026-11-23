@@ -18,7 +18,7 @@ const profile: Profile = {
 function snapshot(url: string): WebSnapshot {
   return {
     platform: "web", url,
-    snapshot: { id: "", tagName: "BODY", text: null, ariaLabel: null, placeholder: null, name: null, className: null, attributes: {}, isEditable: false, isContentEditable: false, isFocused: false, isVisible: true, children: [] },
+    snapshot: { id: "", tagName: "BODY", text: null, ariaLabel: null, role: null, placeholder: null, name: null, className: null, attributes: {}, isEditable: false, isContentEditable: false, isFocused: false, isVisible: true, bounds: { left: 0, top: 0, right: 0, bottom: 0 }, children: [] },
   };
 }
 

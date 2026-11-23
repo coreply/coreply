@@ -73,7 +73,7 @@ function AppSelectionRow({
     <View className="h-auto w-full flex-row items-center justify-between rounded-none border-x border-b border-border">
       <Button
         variant="ghost"
-        className="h-auto flex-1 self-stretch justify-start rounded-none px-3 py-3"
+        className="h-auto flex-1 self-stretch justify-start rounded-none px-3 py-3 sm:h-auto"
         accessibilityLabel={t`Edit ${app.name} profile`}
         onPress={onEdit}
       >

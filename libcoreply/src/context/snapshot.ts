@@ -43,6 +43,7 @@ export interface WebSnapshotNode {
   tagName: string;
   text: string | null;
   ariaLabel: string | null;
+  role: string | null;
   placeholder: string | null;
   name: string | null;
   className: string | null;
@@ -51,6 +52,7 @@ export interface WebSnapshotNode {
   isContentEditable: boolean;
   isFocused: boolean;
   isVisible: boolean;
+  bounds: Bounds;
   children: WebSnapshotNode[];
 }
 
@@ -77,6 +79,7 @@ export const webSnapshotNodeSchema: z.ZodType<WebSnapshotNode> = z.lazy(() => z.
   tagName: z.string(),
   text: z.string().nullable(),
   ariaLabel: z.string().nullable(),
+  role: z.string().nullable(),
   placeholder: z.string().nullable(),
   name: z.string().nullable(),
   className: z.string().nullable(),
@@ -85,6 +88,7 @@ export const webSnapshotNodeSchema: z.ZodType<WebSnapshotNode> = z.lazy(() => z.
   isContentEditable: z.boolean(),
   isFocused: z.boolean(),
   isVisible: z.boolean(),
+  bounds: boundsSchema,
   children: z.array(webSnapshotNodeSchema),
 }));
 

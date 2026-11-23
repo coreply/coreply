@@ -94,6 +94,51 @@ const buildWhatsAppChatExtractor = (packageName: string) => `(
 // ** Fixed JSONata syntax: replaced custom shorthand with standard $.** for recursive descent
 const templateGroups: TemplateGroup[] = [
   {
+    rule: "web.whatsapp.com",
+    profiles: [
+      {
+        id: "whatsapp-web-chat",
+        platform: "web",
+        dropRule: { differentProfile: 0, sameProfile: 1 },
+        extractors: [
+          `(
+            $wrapper := $.**[$lookup(attributes, "data-testid") = "conversation-panel-wrapper"][0];
+            $editor := $wrapper.**[$lookup(attributes, "data-testid") = "conversation-compose-box-input" and isContentEditable = true and isVisible = true][0];
+            $panel := $wrapper.**[$lookup(attributes, "data-testid") = "conversation-panel-messages"][0];
+            $rows := $panel.**[$lookup(attributes, "data-testid") = "msg-container" and isVisible = true];
+            $turns := $count($rows) = 0 ? [] : [$map($rows, function($row) {(
+              $userSent := ($row.bounds.left + $row.bounds.right) > ($panel.bounds.left + $panel.bounds.right);
+              $row.text != null and $trim($row.text) != "" ? {"sender": $userSent ? "Me" : "Others", "userSent": $userSent, "messages": [{"body": $row.text}]} : null
+            )})[$ != null]];
+            $editor ? {"type": "chat", "label": "messages", "snapshotFrequency": $editor.isFocused ? "active" : "frequent", "turns": $turns} : null
+          )`,
+        ],
+      },
+    ],
+  },
+  {
+    rule: "www.instagram.com",
+    profiles: [
+      {
+        id: "instagram-web-chat",
+        platform: "web",
+        dropRule: { differentProfile: 0, sameProfile: 1 },
+        extractors: [
+          `(
+            $editor := $.**[tagName = "DIV" and isContentEditable = true and isVisible = true and $lookup(attributes, "data-lexical-editor") = "true"][0];
+            $rows := $.**[role = "group" and isVisible = true and $exists($.**[role = "article"])];
+            $turns := $count($rows) = 0 ? [] : [$map($rows, function($row) {(
+              $message := $row.**[role = "article" and isVisible = true and text != null and $trim(text) != ""][0];
+              $userSent := ($message.bounds.left + $message.bounds.right) > ($row.bounds.left + $row.bounds.right);
+              $message ? {"sender": $userSent ? "Me" : "Others", "userSent": $userSent, "messages": [{"body": $message.text}]} : null
+            )})[$ != null]];
+            $editor ? {"type": "chat", "label": "messages", "snapshotFrequency": $editor.isFocused ? "active" : "frequent", "turns": $turns} : null
+          )`,
+        ],
+      },
+    ],
+  },
+  {
     rule: "gemini.google.com",
     profiles: [
       {

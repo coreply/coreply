@@ -6,6 +6,7 @@ export function serializeWebSnapshot(
   activeElement = getDeepActiveElement(),
 ): WebSnapshotNode {
   const isVisible = element.getClientRects().length > 0;
+  const bounds = element.getBoundingClientRect();
 
   return {
     id: element.id,
@@ -15,6 +16,7 @@ export function serializeWebSnapshot(
         ? element.innerText.trim() || null
         : null,
     ariaLabel: element.getAttribute("aria-label"),
+    role: element.getAttribute("role"),
     placeholder: element.getAttribute("placeholder"),
     name: element.getAttribute("name"),
     className: typeof element.className === "string" ? element.className : "",
@@ -28,6 +30,7 @@ export function serializeWebSnapshot(
       element instanceof HTMLElement && element.isContentEditable,
     isFocused: element === activeElement,
     isVisible,
+    bounds: { left: bounds.left, top: bounds.top, right: bounds.right, bottom: bounds.bottom },
     children: [...element.children].map((child) =>
       serializeWebSnapshot(child, activeElement),
     ),
