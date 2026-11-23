@@ -81,6 +81,31 @@ describe("screen extractors", () => {
     expect(await jsonata(profile.contextExtractors[0].extractor).evaluate({ children: [{ text: "" }] })).toBeNull();
   });
 
+  it("excludes focused editable nodes and their descendants from generic screen context", async () => {
+    const profile = generateGenericProfile("com.example.app", "Example");
+    const extractor = jsonata(profile.contextExtractors[0].extractor);
+    const page = {
+      children: [
+        { text: "Screen content" },
+        { text: "Draft", isEditable: true, isFocused: true, children: [{ text: "Nested draft" }] },
+        { text: "Unfocused editable", isEditable: true, isFocused: false },
+        { text: "Focused non-editable", isEditable: false, isFocused: true },
+      ],
+    };
+    const result = await extractor.evaluate(page);
+    expect(result).toEqual({
+      type: "screen", label: "screen", snapshotFrequency: "active", text: "",
+      children: [
+        { text: "Screen content", children: [] },
+        { text: "Unfocused editable", children: [] },
+        { text: "Focused non-editable", children: [] },
+      ],
+    });
+    page.children[1].text = "Changed draft";
+    expect(await extractor.evaluate(page)).toEqual(result);
+    expect(await extractor.evaluate({ children: [page.children[1]] })).toBeNull();
+  });
+
   it("emits required fields in the Tinder screen tree", async () => {
     const profile = getProfile("com.tinder");
     const result = await jsonata(profile.contextExtractors[1].extractor).evaluate({
@@ -92,6 +117,20 @@ describe("screen extractors", () => {
       label: "user_profile",
       snapshotFrequency: "frequent",
       text: "",
+      children: [{ text: "Profile", children: [] }],
+    });
+  });
+
+  it("excludes focused editable nodes from the Tinder screen tree", async () => {
+    const extractor = jsonata(getProfile("com.tinder").contextExtractors[1].extractor);
+    const result = await extractor.evaluate({
+      children: [{ id: "com.tinder:id/user_rec_sparks_profile", children: [
+        { text: "Profile" },
+        { text: "Draft", isEditable: true, isFocused: true, children: [{ text: "Nested draft" }] },
+      ] }],
+    });
+    expect(result).toEqual({
+      type: "screen", label: "user_profile", snapshotFrequency: "frequent", text: "",
       children: [{ text: "Profile", children: [] }],
     });
   });

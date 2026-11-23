@@ -571,7 +571,7 @@ const templateGroups: TemplateGroup[] = [
             $profilePage := $.**[id = "com.tinder:id/user_rec_sparks_profile"][];
             $isProfilePage := $count($profilePage) = 1;
             $extractNestedText := function($node) {(
-                {"text": $exists($node.text) and $node.text != null ? $node.text : "", "children": $append([], $map($node.children[$count(children) > 0 or text != null], $extractNestedText))}
+                $node.isEditable = true and $node.isFocused = true ? {"text": "", "children": []} : {"text": $exists($node.text) and $node.text != null ? $node.text : "", "children": $append([], $map($node.children[($count(children) > 0 or text != null) and $not(isEditable = true and isFocused = true)], $extractNestedText))}
             )};
             $screenText := $extractNestedText($profilePage[0]);
              $result := $isProfilePage ? (
@@ -1078,18 +1078,18 @@ export function resolveAndroidProfile(profiles: Profile[], packageName: string, 
 
 // ** Dynamically generates a generic profile for any selected app without predefined extractors.
 // ** A single extractor builds a nested screen-context tree from all visible text; snapshotFrequency
-// ** is "active" when an EditText is focused, otherwise "frequent".
+// ** is "active" when an editable node is focused, otherwise "frequent".
 export function generateGenericProfile(
   packageName: string,
   displayName: string,
 ): Profile {
   const extractor = `(
     $extract := function($node) {(
-      {"text": $exists($node.text) and $node.text != null ? $node.text : "", "children": $append([], $map($node.children[$count(children) > 0 or text != null], $extract))}
+      $node.isEditable = true and $node.isFocused = true ? {"text": "", "children": []} : {"text": $exists($node.text) and $node.text != null ? $node.text : "", "children": $append([], $map($node.children[($count(children) > 0 or text != null) and $not(isEditable = true and isFocused = true)], $extract))}
     )};
     $tree := $extract($);
     $hasText := $tree.text != "" or $count($tree.**[$exists(text) and text != ""]) > 0;
-    $input := $.**[className = "android.widget.EditText" and isFocused = true][0];
+    $input := $.**[isEditable = true and isFocused = true][0];
     $result := $hasText ? {
       "type": "screen",
       "label": "screen",
