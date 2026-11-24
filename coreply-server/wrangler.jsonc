@@ -24,9 +24,23 @@
       "migrations_dir": "drizzle",
     },
   ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+    },
+  ],
+  "ratelimits": [
+    {
+      "name": "LOGIN_EMAIL_LIMIT",
+      "namespace_id": "1001",
+      "simple": { "limit": 3, "period": 60 },
+    },
+  ],
   "secrets": {
     "required": [
       "BETTER_AUTH_SECRET",
+      "LOGIN_EMAIL",
+      "LOGIN_OTP",
       "GOOGLE_CLIENT_ID",
       "GOOGLE_ANDROID_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",

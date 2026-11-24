@@ -62,7 +62,7 @@ export default function OnboardingScreen() {
     </Button>
   );
   const conversation = createDemoConversation(conversationId, i18n, {
-    signin: <CoreplyCloudSignIn configured={cloudConfigured} extensionSignInUrl={browserExtension ? process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL : undefined} />,
+    signin: <CoreplyCloudSignIn authClient={authClient} configured={cloudConfigured} extensionSignInUrl={browserExtension ? process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL : undefined} />,
     "finish-action": finishAction,
     "accessibility-action": accessibilityEnabled ? finishAction : (
       <Button onPress={() => router.push("/accessibility-disclosure")}>

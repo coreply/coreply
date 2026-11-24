@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react";
+import { emailOTPClient } from "better-auth/client/plugins";
 import { expoClient } from "@better-auth/expo/client";
 import * as SecureStore from "expo-secure-store";
 import { GoogleOneTapSignIn } from "react-native-nitro-google-signin";
@@ -14,6 +15,7 @@ if (webClientId) {
 export const authClient = createAuthClient({
   baseURL: process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL,
   plugins: [
+    emailOTPClient(),
     expoClient({
       scheme: "coreplyapp",
       storagePrefix: "coreply-cloud",

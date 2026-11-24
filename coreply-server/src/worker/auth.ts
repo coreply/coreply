@@ -3,11 +3,19 @@ import { expo } from "@better-auth/expo";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { Autumn } from "autumn-js";
 import { betterAuth } from "better-auth";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
+import { emailOTP } from "better-auth/plugins/email-otp";
 import { oneTimeToken } from "better-auth/plugins/one-time-token";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./db/auth-schema";
 import { cloudOrigins } from "./origins";
+
+function getTestLoginOTP(email: string, type: string) {
+  if (type !== "sign-in") return;
+  if (email !== env.LOGIN_EMAIL.trim().toLowerCase()) return;
+  const otp = env.LOGIN_OTP;
+  if (otp && /^\d{10}$/.test(otp)) return otp;
+}
 
 export const auth = betterAuth({
   baseURL: env.CLOUD_WEB_ORIGIN,
@@ -73,6 +81,28 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: [...cloudOrigins, "coreplyapp://"],
+  advanced: { ipAddress: { ipAddressHeaders: ["CF-Connecting-IP"] } },
+  disabledPaths: [
+    "/email-otp/check-verification-otp",
+    "/email-otp/verify-email",
+    "/email-otp/request-password-reset",
+    "/forget-password/email-otp",
+    "/email-otp/reset-password",
+    "/email-otp/request-email-change",
+    "/email-otp/change-email",
+  ],
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/email-otp/send-verification-otp") return;
+      const { email, type } = ctx.body ?? {};
+      if (type !== "sign-in" || typeof email !== "string")
+        throw new APIError("BAD_REQUEST");
+      const { success } = await env.LOGIN_EMAIL_LIMIT.limit({
+        key: email.toLowerCase(),
+      });
+      if (!success) throw new APIError("TOO_MANY_REQUESTS");
+    }),
+  },
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID,
@@ -85,6 +115,29 @@ export const auth = betterAuth({
   },
   plugins: [
     expo(),
+    emailOTP({
+      otpLength: 10,
+      expiresIn: 300,
+      allowedAttempts: 3,
+      storeOTP: "encrypted",
+      generateOTP: ({ email, type }) => getTestLoginOTP(email, type),
+      async sendVerificationOTP({ email, otp, type }) {
+        if (type !== "sign-in" || getTestLoginOTP(email, type)) return;
+        try {
+          await env.EMAIL.send({
+            to: email,
+            from: { email: "login@noreply.coreply.app", name: "Coreply Cloud" },
+            subject: "Your Coreply Cloud code",
+            text: `Your Coreply Cloud code is ${otp}. It expires in 5 minutes. If you didn't request it, you can ignore this email.`,
+          });
+        } catch (error) {
+          console.error("Could not send Coreply Cloud code", error);
+          throw new APIError("SERVICE_UNAVAILABLE", {
+            message: "Could not send a sign-in code. Try again.",
+          });
+        }
+      },
+    }),
     oneTimeToken({ storeToken: "hashed", disableSetSessionCookie: true }),
   ],
 });

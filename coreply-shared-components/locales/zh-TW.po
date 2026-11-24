@@ -7,6 +7,98 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: zh-TW\n"
 
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:151
+msgid "10-digit code"
+msgstr "10 位數驗證碼"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:164
+msgid "A new code was sent."
+msgstr "已寄出新的驗證碼。"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:131
+msgid "Back to email address"
+msgstr "返回輸入電子郵件地址"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:142
+msgid "Check your email"
+msgstr "查看你的電子郵件"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:166
+msgid "Checking code…"
+msgstr "正在驗證…"
+
+#. Submit the email code to sign in or create a Coreply Cloud account
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:166
+msgid "Continue"
+msgstr "繼續"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:202
+msgid "Continue with email"
+msgstr "使用電子郵件繼續"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:74
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:82
+msgid "Couldn't send a code. Try again."
+msgstr "無法寄出驗證碼，請再試一次。"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:93
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:96
+msgid "Couldn't verify the code. Try again."
+msgstr "無法驗證，請再試一次。"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:185
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:186
+msgid "Email address"
+msgstr "電子郵件地址"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:73
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:105
+msgid "Enter a valid email address."
+msgstr "請輸入有效的電子郵件地址。"
+
+#. The address where the Coreply Cloud verification code was sent
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:145
+msgid "Enter the 10-digit code sent to {codeEmail}."
+msgstr "請輸入寄到 {codeEmail} 的 10 位數驗證碼。"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:180
+msgid "or continue with"
+msgstr "或使用以下方式繼續"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:169
+msgid "Send a new code"
+msgstr "寄出新驗證碼"
+
+#. Disabled resend button; resendSeconds is the seconds remaining
+msgid "Send a new code in {resendSeconds}s"
+msgstr "{resendSeconds} 秒後可重新寄出驗證碼"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:169
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:202
+msgid "Sending code…"
+msgstr "正在寄出驗證碼…"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:91
+msgid "That code didn't match. Check it or request a new one."
+msgstr "驗證碼不符，請檢查或索取新的驗證碼。"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:89
+msgid "This code expired. Request a new one."
+msgstr "驗證碼已過期，請索取新的驗證碼。"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:90
+msgid "Too many attempts. Request a new code."
+msgstr "嘗試次數過多，請索取新的驗證碼。"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:72
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:92
+msgid "Too many requests. Wait a minute and try again."
+msgstr "要求次數過多，請等一分鐘再試。"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:150
+msgid "Verification code"
+msgstr "驗證碼"
+
 #: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:33
 msgid "{display}% remaining"
 msgstr "剩餘 {display}%"
@@ -89,13 +181,13 @@ msgstr "連線中..."
 
 #: ../coreply-shared-components/src/components/groups/github-sign-in-button.tsx:21
 msgid "Continue with GitHub"
-msgstr ""
+msgstr "使用 GitHub 繼續"
 
 #: ../coreply-shared-components/src/components/groups/google-sign-in-button.web.tsx:21
 msgid "Continue with Google"
 msgstr "使用 Google 繼續"
 
-#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:35
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:43
 msgid "Coreply Cloud sign-in isn't configured for this app."
 msgstr "此應用程式尚未設定 Coreply Cloud 登入功能。"
 
@@ -269,7 +361,7 @@ msgstr "太好了！登入後就能在對話中使用 Coreply。"
 msgid "No items yet."
 msgstr "目前沒有項目。"
 
-#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:27
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:40
 msgid "Open Coreply Cloud to sign in"
 msgstr "開啟 Coreply Cloud 以登入"
 
@@ -353,7 +445,7 @@ msgstr "顯示進階設定"
 msgid "Show password"
 msgstr "顯示密碼"
 
-#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:14
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:54
 msgid "Sign in or create an account to get typing suggestions tailored to your conversations."
 msgstr "登入或建立帳號，即可獲得符合你對話內容的輸入建議。"
 
@@ -458,7 +550,7 @@ msgid "Welcome email is updated. Left the subject line alone as agreed."
 msgstr "歡迎信更新好了，照說好的沒有改主旨。"
 
 #. Heading for both new and returning Coreply Cloud users
-#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:12
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:52
 msgid "Welcome to Coreply Cloud"
 msgstr "歡迎使用 Coreply Cloud"
 

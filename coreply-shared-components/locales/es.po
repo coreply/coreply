@@ -7,6 +7,98 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: es\n"
 
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:151
+msgid "10-digit code"
+msgstr "Código de 10 dígitos"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:164
+msgid "A new code was sent."
+msgstr "Se ha enviado un nuevo código."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:131
+msgid "Back to email address"
+msgstr "Volver al correo electrónico"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:142
+msgid "Check your email"
+msgstr "Revisa tu correo"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:166
+msgid "Checking code…"
+msgstr "Comprobando el código…"
+
+#. Submit the email code to sign in or create a Coreply Cloud account
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:166
+msgid "Continue"
+msgstr "Continuar"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:202
+msgid "Continue with email"
+msgstr "Continuar con correo electrónico"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:74
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:82
+msgid "Couldn't send a code. Try again."
+msgstr "No se pudo enviar el código. Vuelve a intentarlo."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:93
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:96
+msgid "Couldn't verify the code. Try again."
+msgstr "No se pudo verificar el código. Vuelve a intentarlo."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:185
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:186
+msgid "Email address"
+msgstr "Correo electrónico"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:73
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:105
+msgid "Enter a valid email address."
+msgstr "Introduce una dirección de correo válida."
+
+#. The address where the Coreply Cloud verification code was sent
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:145
+msgid "Enter the 10-digit code sent to {codeEmail}."
+msgstr "Introduce el código de 10 dígitos enviado a {codeEmail}."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:180
+msgid "or continue with"
+msgstr "o continúa con"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:169
+msgid "Send a new code"
+msgstr "Enviar un nuevo código"
+
+#. Disabled resend button; resendSeconds is the seconds remaining
+msgid "Send a new code in {resendSeconds}s"
+msgstr "Enviar un nuevo código en {resendSeconds} s"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:169
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:202
+msgid "Sending code…"
+msgstr "Enviando el código…"
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:91
+msgid "That code didn't match. Check it or request a new one."
+msgstr "El código no coincide. Revísalo o solicita uno nuevo."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:89
+msgid "This code expired. Request a new one."
+msgstr "Este código ha caducado. Solicita uno nuevo."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:90
+msgid "Too many attempts. Request a new code."
+msgstr "Demasiados intentos. Solicita un nuevo código."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:72
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:92
+msgid "Too many requests. Wait a minute and try again."
+msgstr "Demasiadas solicitudes. Espera un minuto y vuelve a intentarlo."
+
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:150
+msgid "Verification code"
+msgstr "Código de verificación"
+
 #: ../coreply-shared-components/src/components/groups/coreply-cloud-usage.tsx:33
 msgid "{display}% remaining"
 msgstr "Queda un {display} %"
@@ -89,13 +181,13 @@ msgstr "Conectando..."
 
 #: ../coreply-shared-components/src/components/groups/github-sign-in-button.tsx:21
 msgid "Continue with GitHub"
-msgstr ""
+msgstr "Continuar con GitHub"
 
 #: ../coreply-shared-components/src/components/groups/google-sign-in-button.web.tsx:21
 msgid "Continue with Google"
 msgstr "Continuar con Google"
 
-#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:35
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:43
 msgid "Coreply Cloud sign-in isn't configured for this app."
 msgstr "El inicio de sesión en Coreply Cloud no está configurado para esta app."
 
@@ -269,7 +361,7 @@ msgstr "¡Genial! Inicia sesión para usar Coreply en tus conversaciones."
 msgid "No items yet."
 msgstr "Todavía no hay elementos."
 
-#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:27
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:40
 msgid "Open Coreply Cloud to sign in"
 msgstr "Abrir Coreply Cloud para iniciar sesión"
 
@@ -353,7 +445,7 @@ msgstr "Mostrar ajustes avanzados"
 msgid "Show password"
 msgstr "Mostrar contraseña"
 
-#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:14
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:54
 msgid "Sign in or create an account to get typing suggestions tailored to your conversations."
 msgstr "Inicia sesión o crea una cuenta para recibir sugerencias de escritura adaptadas a tus conversaciones."
 
@@ -458,7 +550,7 @@ msgid "Welcome email is updated. Left the subject line alone as agreed."
 msgstr "El correo de bienvenida está actualizado. Dejé el asunto igual, como acordamos."
 
 #. Heading for both new and returning Coreply Cloud users
-#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:12
+#: ../coreply-shared-components/src/components/groups/coreply-cloud-sign-in.tsx:52
 msgid "Welcome to Coreply Cloud"
 msgstr "Te damos la bienvenida a Coreply Cloud"
 

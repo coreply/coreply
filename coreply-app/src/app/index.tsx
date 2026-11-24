@@ -417,6 +417,7 @@ export default function SettingsScreen() {
                             />
                           ) : (
                             <CoreplyCloudSignIn
+                              authClient={authClient}
                               configured={cloudConfigured}
                               extensionSignInUrl={
                                 isBrowserExtension()
