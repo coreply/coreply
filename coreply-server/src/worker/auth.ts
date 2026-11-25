@@ -9,6 +9,7 @@ import { oneTimeToken } from "better-auth/plugins/one-time-token";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./db/auth-schema";
 import { cloudOrigins } from "./origins";
+import { createSignInEmail } from "./sign-in-email";
 
 function getTestLoginOTP(email: string, type: string) {
   if (type !== "sign-in") return;
@@ -127,8 +128,7 @@ export const auth = betterAuth({
           await env.EMAIL.send({
             to: email,
             from: { email: "login@noreply.coreply.app", name: "Coreply Cloud" },
-            subject: "Your Coreply Cloud code",
-            text: `Your Coreply Cloud code is ${otp}. It expires in 5 minutes. If you didn't request it, you can ignore this email.`,
+            ...createSignInEmail(otp),
           });
         } catch (error) {
           console.error("Could not send Coreply Cloud code", error);
