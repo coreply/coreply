@@ -143,6 +143,12 @@ export default function SettingsScreen() {
     error: sessionError,
     refetch: refetchSession,
   } = authClient.useSession();
+  const [sessionChecked, setSessionChecked] = useState(false);
+
+  useEffect(() => {
+    if (!sessionPending) setSessionChecked(true);
+  }, [sessionPending]);
+
   const colorScheme = useColorScheme();
   const [androidAccessibilityEnabled] =
     Platform.OS === "android"
@@ -407,24 +413,27 @@ export default function SettingsScreen() {
                             <CloudSessionError
                               onRetry={() => void refetchSession()}
                             />
-                          ) : sessionPending ? (
+                          ) : !sessionChecked ? (
                             <Text className="text-sm text-muted-foreground">
                               <Trans>Checking your session...</Trans>
                             </Text>
-                          ) : sessionError && sessionError.status !== 401 ? (
-                            <CloudSessionError
-                              onRetry={() => void refetchSession()}
-                            />
                           ) : (
-                            <CoreplyCloudSignIn
-                              authClient={authClient}
-                              configured={cloudConfigured}
-                              extensionSignInUrl={
-                                isBrowserExtension()
-                                  ? process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL
-                                  : undefined
-                              }
-                            />
+                            <>
+                              {sessionError && sessionError.status !== 401 && (
+                                <CloudSessionError
+                                  onRetry={() => void refetchSession()}
+                                />
+                              )}
+                              <CoreplyCloudSignIn
+                                authClient={authClient}
+                                configured={cloudConfigured}
+                                extensionSignInUrl={
+                                  isBrowserExtension()
+                                    ? process.env.EXPO_PUBLIC_COREPLY_CLOUD_URL
+                                    : undefined
+                                }
+                              />
+                            </>
                           )
                         ) : (
                           <ProviderSettingsForm
