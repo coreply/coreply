@@ -340,9 +340,15 @@ export const suggestionWebSocket = new Hono<{
         onError(event) {
           closed = true;
           pendingIds.clear();
-          console.warn("Cloud WebSocket transport error", {
+          const error = event instanceof ErrorEvent ? event.error : undefined;
+          console.warn("Cloud WebSocket error", {
             connectionId,
-            eventObject: event,
+            eventType: event.type,
+            eventMessage:
+              event instanceof ErrorEvent ? event.message : undefined,
+            errorName: error instanceof Error ? error.name : undefined,
+            errorMessage: error instanceof Error ? error.message : undefined,
+            stack: error instanceof Error ? error.stack : undefined,
           });
         },
       };
