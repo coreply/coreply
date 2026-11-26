@@ -320,7 +320,7 @@ export const suggestionWebSocket = new Hono<{
               pendingIds.delete(request.id);
             }
           })().catch((error) => {
-            console.error("ERROR: Cloud WebSocket suggestion task failed:", {
+            console.error("ERROR: Cloud WebSocket suggestion task failed: ", {
               error,
             });
             closed = true;
@@ -342,7 +342,7 @@ export const suggestionWebSocket = new Hono<{
           pendingIds.clear();
           console.warn("Cloud WebSocket transport error", {
             connectionId,
-            event,
+            eventObject: event,
           });
         },
       };
