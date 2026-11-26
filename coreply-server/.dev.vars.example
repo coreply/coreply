@@ -12,3 +12,4 @@ CLOUD_WEB_ORIGIN=http://localhost:5173
 # Server-only Autumn key. Use the sandbox key while developing.
 AUTUMN_SECRET_KEY=am_sk_replace-with-your-autumn-sandbox-key
 COREPLY_CLOUD_SETTINGS=
+COREPLY_CLOUD_INSTRUCTIONS=

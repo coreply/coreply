@@ -48,6 +48,7 @@
       "GITHUB_CLIENT_SECRET",
       "AUTUMN_SECRET_KEY",
       "COREPLY_CLOUD_SETTINGS",
+      "COREPLY_CLOUD_INSTRUCTIONS",
     ],
   },
   /**

@@ -51,7 +51,9 @@ const settingsSchema = z.object({
 });
 
 function createSessionRuntime(env: Env) {
-  const config = settingsSchema.parse(JSON.parse(env.COREPLY_CLOUD_SETTINGS));
+  const cloudSettings = JSON.parse(env.COREPLY_CLOUD_SETTINGS);
+  cloudSettings.providerConfig.generateText.instructions = env.COREPLY_CLOUD_INSTRUCTIONS;
+  const config = settingsSchema.parse(cloudSettings);
   const settings = providerDefinitions[config.providerId].settingsSchema.parse(
     config.providerConfig,
   );

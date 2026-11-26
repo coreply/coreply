@@ -31,7 +31,9 @@ demoSuggestions.post("/", async (c) => {
   if (!input.success) return c.json({ error: "Invalid demo conversation or draft." }, 400);
 
   try {
-    const config = settingsSchema.parse(JSON.parse(c.env.COREPLY_CLOUD_SETTINGS));
+    const cloudSettings = JSON.parse(c.env.COREPLY_CLOUD_SETTINGS);
+    cloudSettings.providerConfig.generateText.instructions = c.env.COREPLY_CLOUD_INSTRUCTIONS;
+    const config = settingsSchema.parse(cloudSettings);
     const settings = providerDefinitions[config.providerId].settingsSchema.parse(config.providerConfig);
     const locale = input.data.locale;
     const i18n = setupI18n({ locale, messages: { [locale]: catalogs[locale] } });
