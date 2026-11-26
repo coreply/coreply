@@ -178,6 +178,9 @@ function createSuggestionHandler(env: Env, ctx: ExecutionContext, user: User) {
       const contexts = input.contexts.map((context) =>
         deserializeContext(context, profile),
       );
+      console.info("Cloud suggestion request started", {
+        length: input.typing.length,
+      });
       const completion = await provider.request(
         contexts,
         input.typing,
@@ -329,7 +332,7 @@ export const suggestionWebSocket = new Hono<{
             connectionId,
             code: event.code,
           });
-          ws.close(event.code, event.reason);
+          ws.close(1000, "Close due to idle");
         },
         onError() {
           closed = true;
