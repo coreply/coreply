@@ -319,7 +319,10 @@ export const suggestionWebSocket = new Hono<{
             } finally {
               pendingIds.delete(request.id);
             }
-          })().catch(() => {
+          })().catch((error) => {
+            console.error("ERROR: Cloud WebSocket suggestion task failed", {
+              error,
+            });
             closed = true;
             ws.close(1011, "Connection failed");
           });
@@ -334,10 +337,13 @@ export const suggestionWebSocket = new Hono<{
           });
           ws.close(1000, "Close due to idle");
         },
-        onError() {
+        onError(event) {
           closed = true;
           pendingIds.clear();
-          console.warn("Cloud WebSocket transport error", { connectionId });
+          console.warn("Cloud WebSocket transport error", {
+            connectionId,
+            event,
+          });
         },
       };
     }),
