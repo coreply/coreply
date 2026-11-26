@@ -52,7 +52,8 @@ const settingsSchema = z.object({
 
 function createSessionRuntime(env: Env) {
   const cloudSettings = JSON.parse(env.COREPLY_CLOUD_SETTINGS);
-  cloudSettings.providerConfig.generateText.instructions = env.COREPLY_CLOUD_INSTRUCTIONS;
+  cloudSettings.providerConfig.generateText.instructions =
+    env.COREPLY_CLOUD_INSTRUCTIONS;
   const config = settingsSchema.parse(cloudSettings);
   const settings = providerDefinitions[config.providerId].settingsSchema.parse(
     config.providerConfig,
@@ -154,7 +155,9 @@ function createSuggestionHandler(env: Env, ctx: ExecutionContext, user: User) {
       //     message: "Your usage limit has been reached.",
       //   });
       // }
-      const onModelResponse: ProviderInstanceOptions["onModelResponse"] = (response) => {
+      const onModelResponse: ProviderInstanceOptions["onModelResponse"] = (
+        response,
+      ) => {
         const tracking = trackModelResponse(
           autumn,
           user.id,
@@ -319,13 +322,14 @@ export const suggestionWebSocket = new Hono<{
           });
           c.executionCtx.waitUntil(task);
         },
-        onClose(event) {
+        onClose(event, ws) {
           closed = true;
           pendingIds.clear();
           console.info("Cloud WebSocket closed", {
             connectionId,
             code: event.code,
           });
+          ws.close(event.code, event.reason);
         },
         onError() {
           closed = true;
