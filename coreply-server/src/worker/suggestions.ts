@@ -113,6 +113,7 @@ async function trackModelResponse(
 
 function createSuggestionHandler(env: Env, ctx: ExecutionContext, user: User) {
   let runtime: ReturnType<typeof createSessionRuntime> | undefined;
+  let accessCheck: Promise<void> | undefined;
 
   async function generate(input: z.infer<typeof cloudSuggestionInputSchema>) {
     const generationId = crypto.randomUUID();
@@ -120,6 +121,20 @@ function createSuggestionHandler(env: Env, ctx: ExecutionContext, user: User) {
     try {
       runtime ??= createSessionRuntime(env);
       const { autumn, provider, settings, modelId, profile } = runtime;
+      accessCheck ??= (async () => {
+        // AI credits are dollars, so require less than $1 of remaining usage.
+        const access = await autumn.check({
+          customerId: user.id,
+          featureId,
+          requiredBalance: 0.0001,
+        });
+        if (!access.allowed) {
+          throw new HTTPException(403, {
+            message: "Your usage limit has been reached.",
+          });
+        }
+      })();
+      await accessCheck;
       // await autumn.customers.getOrCreate({
       //   customerId: user.id,
       //   name: user.name,
@@ -228,21 +243,6 @@ export const suggestionWebSocket = new Hono<{
       c.set("session", session);
     } catch {
       return c.json({ error: "Unauthorized" }, 401);
-    }
-    const user = c.get("session").user;
-    const autumn = new Autumn({
-      secretKey: c.env.AUTUMN_SECRET_KEY,
-      xApiVersion: "2.3.0",
-    });
-    // AI credits are dollars, so the default required balance of 1 would
-    // reject customers with less than $1 even when they have usage left.
-    const access = await autumn.check({
-      customerId: user.id,
-      featureId,
-      requiredBalance: 0.0001,
-    });
-    if (!access.allowed) {
-      return c.json({ error: "Your usage limit has been reached." }, 403);
     }
     await next();
     if (c.res.status === 101)
