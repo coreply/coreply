@@ -392,7 +392,11 @@ export default function SettingsScreen() {
                     {isLoaded ? (
                       <View className="px-3">
                         {providerId === "coreplyCloudStateful" ? (
-                          session?.user ? (
+                          sessionError && sessionError.status !== 401 ? (
+                            <CloudSessionError
+                              onRetry={() => void refetchSession()}
+                            />
+                          ) : session?.user ? (
                             <View className="gap-4">
                               <CoreplyCloudUsage
                                 client={billingClient}
@@ -418,12 +422,6 @@ export default function SettingsScreen() {
                               <Trans>Checking your session...</Trans>
                             </Text>
                           ) : (
-                            <>
-                              {sessionError && sessionError.status !== 401 && (
-                                <CloudSessionError
-                                  onRetry={() => void refetchSession()}
-                                />
-                              )}
                               <CoreplyCloudSignIn
                                 authClient={authClient}
                                 configured={cloudConfigured}
@@ -433,7 +431,6 @@ export default function SettingsScreen() {
                                     : undefined
                                 }
                               />
-                            </>
                           )
                         ) : (
                           <ProviderSettingsForm

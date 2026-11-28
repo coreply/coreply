@@ -53,7 +53,9 @@ export default function CloudAccountScreen() {
       <SafeAreaView style={{ flex: 1, width: "100%", maxWidth: MaxContentWidth }} edges={["bottom"]}>
         <TextClassContext.Provider value="font-display">
           <ScrollView contentContainerClassName="gap-4 p-3">
-            {session?.user ? (
+            {error && error.status !== 401 ? (
+              <CloudSessionError onRetry={() => void refetch()} />
+            ) : session?.user ? (
               <>
                 <View className="gap-2">
                   <Text className="font-sans text-xl font-semibold"><Trans>Account</Trans></Text>
@@ -82,8 +84,6 @@ export default function CloudAccountScreen() {
               <CloudSessionError onRetry={() => void refetch()} />
             ) : isPending ? (
               <Text className="text-sm text-muted-foreground"><Trans>Checking your session...</Trans></Text>
-            ) : error && error.status !== 401 ? (
-              <CloudSessionError onRetry={() => void refetch()} />
             ) : null}
           </ScrollView>
         </TextClassContext.Provider>

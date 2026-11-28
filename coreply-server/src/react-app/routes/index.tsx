@@ -42,10 +42,11 @@ function Home() {
         aria-label={t`Sign in`}
         className="relative row-start-2 w-full max-w-md before:absolute before:top-0 before:left-1/2 before:-z-10 before:w-screen before:-translate-x-1/2 before:border-t before:border-border/50 after:absolute after:bottom-0 after:left-1/2 after:-z-10 after:w-screen after:-translate-x-1/2 after:border-t after:border-border/50 [&_[role=button]]:shadow-none"
       >
-        {error && error.status !== 401 && (
+        {error && error.status !== 401 ? (
           <SessionCheckError onRetry={() => { void refetch(); }} />
+        ) : (
+          <CoreplyCloudSignIn configured authClient={authClient} />
         )}
-        <CoreplyCloudSignIn configured authClient={authClient} />
         <div aria-hidden="true" className="pointer-events-none absolute -top-1 -left-1 size-2 border border-primary bg-background" />
         <div aria-hidden="true" className="pointer-events-none absolute -top-1 -right-1 size-2 border border-primary bg-background" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-1 -left-1 size-2 border border-primary bg-background" />
